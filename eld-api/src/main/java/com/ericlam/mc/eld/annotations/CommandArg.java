@@ -5,8 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ELDPlugin {
-    String locate();
+public @interface CommandArg {
+
+    String name() default "";
+
+    boolean optional() default false;
+
 }

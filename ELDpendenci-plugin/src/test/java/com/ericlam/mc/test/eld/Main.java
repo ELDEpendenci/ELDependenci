@@ -1,6 +1,7 @@
 package com.ericlam.mc.test.eld;
 
 import com.ericlam.mc.eld.ELDenpendenci;
+import com.ericlam.mc.test.eld.experinment.ELDependenciTest;
 
 public class Main {
 
@@ -13,6 +14,8 @@ public class Main {
     }
 
     private void run(){
-        ELDenpendenci.register(this, injector -> {});
+        ELDependenciTest.register(this, service -> {
+
+        });
     }
 }

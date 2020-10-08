@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 public class ELDependenci extends JavaPlugin {
 
-    public static void register(JavaPlugin plugin, Consumer<ELDependencyInjector> injector) {
+    public static void register(JavaPlugin plugin, Consumer<ServiceCollection> injector) {
 
     }
 
