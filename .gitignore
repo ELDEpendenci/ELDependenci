@@ -1,0 +1,5 @@
+# Project exclude paths
+/eld-api/target/
+/ELDpendenci-plugin/target/
+*.iml
+/.idea/
