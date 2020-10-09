@@ -4,7 +4,6 @@ public interface ComponentsRegistry {
 
     void registerCommand(CommandRegistry registry);
 
-    void registerListeners(CommandRegistry registry);
+    void registerListeners(); // i dunno
 
-    void registerConfigs();
 }
