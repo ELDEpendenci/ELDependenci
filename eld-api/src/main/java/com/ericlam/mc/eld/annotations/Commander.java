@@ -15,10 +15,10 @@ public @interface Commander {
 
     String description();
 
+    boolean playerOnly() default false;
+
     String permission() default "";
 
     String[] alias() default {};
-
-    Class<CommandNode<?>>[] children() default {};
 
 }

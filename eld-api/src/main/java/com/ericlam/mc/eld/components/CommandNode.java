@@ -2,8 +2,14 @@ package com.ericlam.mc.eld.components;
 
 import org.bukkit.command.CommandSender;
 
-public interface CommandNode<T extends CommandSender> {
+import java.util.List;
 
-    void execute(T sender);
+public interface CommandNode {
+
+    void execute(CommandSender sender);
+
+    default List<String> tabComplete(CommandSender sender, List<String> args) {
+        return null;
+    }
 
 }

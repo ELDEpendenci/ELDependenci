@@ -5,16 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CommandArg {
+@Target(ElementType.TYPE)
+public @interface Resource {
 
-    int order();
-
-    String identifier() default "default";
-
-    String[] labels() default {};
-
-    boolean optional() default false;
-
+    String locate();
 }

@@ -7,14 +7,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CommandArg {
-
-    int order();
-
-    String identifier() default "default";
-
-    String[] labels() default {};
-
-    boolean optional() default false;
-
+public @interface RemainArgs {
 }
