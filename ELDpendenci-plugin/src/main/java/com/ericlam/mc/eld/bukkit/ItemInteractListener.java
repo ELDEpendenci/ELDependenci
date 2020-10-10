@@ -18,8 +18,8 @@ import java.util.function.Consumer;
 
 public class ItemInteractListener implements ItemInteractManager, Listener {
 
-    public static NamespacedKey CLICK_EVENT_KEY = new NamespacedKey(ELDependenci.getPlugin(ELDependenci.class), "event.click.key");
-    public static NamespacedKey INTERACT_EVENT_KEY = new NamespacedKey(ELDependenci.getPlugin(ELDependenci.class), "event.interact.key");
+    public static final NamespacedKey CLICK_EVENT_KEY = new NamespacedKey(ELDependenci.getProvidingPlugin(ELDependenci.class), "event.click.key");
+    public static final NamespacedKey INTERACT_EVENT_KEY = new NamespacedKey(ELDependenci.getProvidingPlugin(ELDependenci.class), "event.interact.key");
 
     private static final Map<String, Consumer<PlayerInteractEvent>> eventInteractMap = new ConcurrentHashMap<>();
     private static final Map<String, Consumer<InventoryClickEvent>> eventClickerMap = new ConcurrentHashMap<>();

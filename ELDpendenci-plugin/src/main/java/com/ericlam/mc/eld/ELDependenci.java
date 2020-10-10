@@ -24,12 +24,13 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
     private final ELDModule module = new ELDModule(this);
     private final Map<JavaPlugin, ELDServiceCollection> collectionMap = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
-    private final ItemInteractListener itemInteractListener = new ItemInteractListener(this);
+    private ItemInteractListener itemInteractListener;
     private static ELDependenciAPI api;
 
     @Override
     public void onLoad() {
         api = this;
+        this.itemInteractListener =  new ItemInteractListener(this);
     }
 
     public static ELDependenciAPI getApi() {
