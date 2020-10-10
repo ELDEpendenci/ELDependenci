@@ -1,6 +1,10 @@
 package com.ericlam.mc.test.eld;
 
 import com.ericlam.mc.eld.registrations.ListenerRegistry;
+import com.ericlam.mc.test.eld.eventlistener.EventListenerRegister;
+import com.ericlam.mc.test.eld.eventlistener.PlayerJoinEventListener;
+import com.ericlam.mc.test.eld.eventlistener.PlayerQuitEventListener;
+import org.bukkit.Material;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;

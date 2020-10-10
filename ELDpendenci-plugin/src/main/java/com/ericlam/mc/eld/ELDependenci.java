@@ -1,21 +1,19 @@
 package com.ericlam.mc.eld;
 
+import com.ericlam.mc.eld.bukkit.ItemInteractListener;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
 import com.ericlam.mc.eld.commands.ELDCommandHandler;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
-import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ArgumentManager;
-import com.ericlam.mc.eld.misc.ArgParser;
+import com.ericlam.mc.eld.managers.ConfigStorage;
+import com.ericlam.mc.eld.managers.ItemInteractManager;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +24,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
     private final ELDModule module = new ELDModule(this);
     private final Map<JavaPlugin, ELDServiceCollection> collectionMap = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
+    private final ItemInteractListener itemInteractListener = new ItemInteractListener(this);
     private static ELDependenciAPI api;
 
     @Override
@@ -48,6 +47,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
     @Override
     public void onEnable() {
         registerParser();
+        getServer().getPluginManager().registerEvents(itemInteractListener, this);
         Bukkit.getScheduler().runTask(this, () -> {
             Injector injector = Guice.createInjector(module);
             injector.getInstance(InstanceInjector.class).setInjector(injector);
@@ -65,7 +65,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
         });
     }
 
-    private class ELDManagerProvider implements ManagerProvider{
+    private class ELDManagerProvider implements ManagerProvider {
 
         private final ELDServiceCollection collection;
 
@@ -82,59 +82,64 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
         public ArgumentManager getArgumentManager() {
             return argumentManager;
         }
+
+        @Override
+        public ItemInteractManager getItemInteractManager() {
+            return itemInteractListener;
+        }
     }
 
-    private void registerParser(){
+    private void registerParser() {
         argumentManager.registerParser(Integer.class, (args, sender) -> {
             var num = args.next();
-            try{
+            try {
                 return Integer.parseInt(args.next());
-            }catch (NumberFormatException e){
-                throw new ArgumentParseException(num+" 不是有效的 Integer 。");
+            } catch (NumberFormatException e) {
+                throw new ArgumentParseException(num + " 不是有效的 Integer 。");
             }
         });
         argumentManager.registerParser(Double.class, (args, sender) -> {
             var num = args.next();
-            try{
+            try {
                 return Double.parseDouble(args.next());
-            }catch (NumberFormatException e){
-                throw new ArgumentParseException(num+" 不是有效的 Double 。");
+            } catch (NumberFormatException e) {
+                throw new ArgumentParseException(num + " 不是有效的 Double 。");
             }
         });
 
         argumentManager.registerParser(Long.class, (args, sender) -> {
             var num = args.next();
-            try{
+            try {
                 return Long.parseLong(args.next());
-            }catch (NumberFormatException e){
-                throw new ArgumentParseException(num+" 不是有效的 Long 。");
+            } catch (NumberFormatException e) {
+                throw new ArgumentParseException(num + " 不是有效的 Long 。");
             }
         });
 
         argumentManager.registerParser(Byte.class, (args, sender) -> {
             var num = args.next();
-            try{
+            try {
                 return Byte.parseByte(args.next());
-            }catch (NumberFormatException e){
-                throw new ArgumentParseException(num+" 不是有效的 Byte 。");
+            } catch (NumberFormatException e) {
+                throw new ArgumentParseException(num + " 不是有效的 Byte 。");
             }
         });
 
         argumentManager.registerParser(Short.class, (args, sender) -> {
             var num = args.next();
-            try{
+            try {
                 return Short.parseShort(args.next());
-            }catch (NumberFormatException e){
-                throw new ArgumentParseException(num+" 不是有效的 Short 。");
+            } catch (NumberFormatException e) {
+                throw new ArgumentParseException(num + " 不是有效的 Short 。");
             }
         });
 
         argumentManager.registerParser(Float.class, (args, sender) -> {
             var num = args.next();
-            try{
+            try {
                 return Float.parseFloat(args.next());
-            }catch (NumberFormatException e){
-                throw new ArgumentParseException(num+" 不是有效的 Float 。");
+            } catch (NumberFormatException e) {
+                throw new ArgumentParseException(num + " 不是有效的 Float 。");
             }
         });
 
@@ -148,7 +153,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
         }));
         argumentManager.registerParser(Player.class, (args, sender) -> {
             var player = Bukkit.getPlayer(args.next());
-            if (player == null){
+            if (player == null) {
                 throw new ArgumentParseException("&c玩家未上線");
             }
             return player;
@@ -156,7 +161,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
 
         argumentManager.registerParser(OfflinePlayer.class, (args, sender) -> {
             var uuid = Bukkit.getPlayerUniqueId(args.next());
-            if (uuid == null){
+            if (uuid == null) {
                 throw new ArgumentParseException("&c玩家不存在");
             }
             return Bukkit.getOfflinePlayer(uuid);

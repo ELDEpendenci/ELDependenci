@@ -1,4 +1,4 @@
-package com.ericlam.mc.test.eld;
+package com.ericlam.mc.test.eld.eventlistener;
 
 import org.bukkit.event.Event;
 
