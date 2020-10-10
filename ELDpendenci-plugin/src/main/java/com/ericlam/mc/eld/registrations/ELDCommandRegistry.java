@@ -12,20 +12,17 @@ import java.util.function.Consumer;
 public class ELDCommandRegistry implements CommandRegistry {
 
     private final Set<HierarchyNode> nodes;
-    private final ELDModule module;
 
-    public ELDCommandRegistry(ELDModule module) {
-        this(module, new ConcurrentSet<>());
+    public ELDCommandRegistry() {
+        this(new ConcurrentSet<>());
     }
 
-    public ELDCommandRegistry(ELDModule module, Set<HierarchyNode> nodes) {
-        this.module = module;
+    public ELDCommandRegistry(Set<HierarchyNode> nodes) {
         this.nodes = nodes;
     }
 
     @Override
     public void command(Class<? extends CommandNode> node, Consumer<CommandRegistry> child) {
-        module.bindCommand(node);
         var n = new HierarchyNode(node);
         child.accept(new SubCommandRegistry(n));
         nodes.add(n);
@@ -33,7 +30,6 @@ public class ELDCommandRegistry implements CommandRegistry {
 
     @Override
     public void command(Class<? extends CommandNode> node) {
-        module.bindCommand(node);
         nodes.add(new HierarchyNode(node));
     }
 
@@ -41,7 +37,7 @@ public class ELDCommandRegistry implements CommandRegistry {
         return ImmutableSet.copyOf(nodes);
     }
 
-    private class SubCommandRegistry implements CommandRegistry{
+    private static class SubCommandRegistry implements CommandRegistry{
 
         private final HierarchyNode node;
 
@@ -51,7 +47,6 @@ public class ELDCommandRegistry implements CommandRegistry {
 
         @Override
         public void command(Class<? extends CommandNode> node, Consumer<CommandRegistry> child) {
-            module.bindCommand(node);
             var n = new HierarchyNode(this.node, node);
             child.accept(new SubCommandRegistry(n));
             this.node.addNote(n);
@@ -59,7 +54,6 @@ public class ELDCommandRegistry implements CommandRegistry {
 
         @Override
         public void command(Class<? extends CommandNode> node) {
-            module.bindCommand(node);
             this.node.addNote(new HierarchyNode(this.node, node));
         }
     }

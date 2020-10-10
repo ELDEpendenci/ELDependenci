@@ -7,6 +7,7 @@ import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.LangConfiguration;
 import com.ericlam.mc.eld.controllers.FileController;
 import com.ericlam.mc.eld.controllers.LangController;
+import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -107,7 +108,7 @@ public class ELDConfigManager implements ConfigStorage {
             }
 
             Field controller = Configuration.class.getDeclaredField("controller");
-            setFinalField(controller, new FileControllerImpl(), ins);
+            setField(controller, new FileControllerImpl(), ins);
             if (ins instanceof LangConfiguration){
                 YamlConfiguration configuration = YamlConfiguration.loadConfiguration(f);
                 class MessageGetterImpl implements LangController {
@@ -139,7 +140,7 @@ public class ELDConfigManager implements ConfigStorage {
                     }
                 }
                 controller = LangConfiguration.class.getDeclaredField("lang");
-                setFinalField(controller, new MessageGetterImpl(), ins);
+                setField(controller, new MessageGetterImpl(), ins);
             }
 
             this.configurationMap.putIfAbsent(config, ins);
@@ -181,6 +182,11 @@ public class ELDConfigManager implements ConfigStorage {
         modifiersField.setAccessible(true);
         modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
 
+        field.set(ins, newValue);
+    }
+
+    private void setField(Field field, Object newValue, Object ins) throws Exception {
+        field.setAccessible(true);
         field.set(ins, newValue);
     }
 }

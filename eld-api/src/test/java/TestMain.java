@@ -1,3 +1,6 @@
+import com.ericlam.mc.eld.services.ScheduleService;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +9,7 @@ public class TestMain {
 
     private List<String> list;
     private String fake;
+    private ScheduleService service;
 
     public static void main(String[] args) {
         try{
@@ -21,5 +25,13 @@ public class TestMain {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public void run(){
+        service.callAsync(() -> "", JavaPlugin.getPlugin(JavaPlugin.class))
+                .thenRunAsync(s -> s.equals("abc"))
+                .thenRunSync(b -> b ? 1 : 2)
+                .thenRunSync(n -> n + 123)
+                .join();
     }
 }

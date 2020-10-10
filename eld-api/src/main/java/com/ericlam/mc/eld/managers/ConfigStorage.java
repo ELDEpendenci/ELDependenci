@@ -1,4 +1,4 @@
-package com.ericlam.mc.eld.configurations;
+package com.ericlam.mc.eld.managers;
 
 import com.ericlam.mc.eld.components.Configuration;
 

@@ -1,4 +1,4 @@
-package com.ericlam.mc.eld.managers;
+package com.ericlam.mc.eld.misc;
 
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import org.bukkit.command.CommandSender;

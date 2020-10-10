@@ -2,21 +2,20 @@ package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.annotations.ELDPlugin;
 import com.ericlam.mc.eld.components.Configuration;
-import com.ericlam.mc.eld.configurations.ConfigStorage;
 import com.ericlam.mc.eld.configurations.ELDConfigManager;
 import com.ericlam.mc.eld.registrations.ComponentsRegistry;
 import com.ericlam.mc.eld.registrations.ELDCommandRegistry;
-import io.netty.util.internal.ConcurrentSet;
+import com.ericlam.mc.eld.registrations.ELDListenerRegistry;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 public class ELDServiceCollection implements ServiceCollection {
 
     final Set<HierarchyNode> commands;
+
+    final Set<Class<? extends Listener>> listeners;
 
     final ELDConfigManager configManager;
 
@@ -29,9 +28,17 @@ public class ELDServiceCollection implements ServiceCollection {
         }
         var eld = plugin.getClass().getAnnotation(ELDPlugin.class);
         var registry = toRealInstance(eld.registry());
-        var cmdregistry = new ELDCommandRegistry(module);
+
+        //register command
+        var cmdregistry = new ELDCommandRegistry();
         registry.registerCommand(cmdregistry);
         this.commands = cmdregistry.getNodes();
+
+        //register listeners
+        var listenerRegistry = new ELDListenerRegistry();
+        registry.registerListeners(listenerRegistry);
+        this.listeners = listenerRegistry.getBukkitListenerClass();
+
         this.configManager = new ELDConfigManager(module, plugin);
     }
 

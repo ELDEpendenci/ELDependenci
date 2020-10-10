@@ -6,11 +6,9 @@ import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.annotations.RemainArgs;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.google.inject.Injector;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
@@ -135,7 +133,13 @@ public class ELDCommandHandler implements CommandExecutor, TabCompleter{
     public List<String> onTabComplete(CommandSender commandSender, Command command, String label, String[] strings) {
         for (HierarchyNode node : commandNodes) {
             if (labelMatch(node.current.getAnnotation(Commander.class), label)){
-                return invokeTabComplete(commandSender, node, new ArrayList<>(List.of(strings)));
+                var result =  invokeTabComplete(commandSender, node, new ArrayList<>(List.of(strings)));
+                String lastAug = strings[strings.length - 1];
+                if (result != null && !lastAug.equals("")) {
+                    result.removeIf(tabItem -> !tabItem.startsWith(lastAug));
+                }
+                return result;
+
             }
         }
         return null;
@@ -157,7 +161,9 @@ public class ELDCommandHandler implements CommandExecutor, TabCompleter{
                     return invokeTabComplete(sender, n, passArg);
                 }
             }
-        }else if (!node.nodes.isEmpty()){
+        }
+
+        if (!node.nodes.isEmpty()){
             return node.nodes.stream().map(n -> n.current.getAnnotation(Commander.class).name()).collect(Collectors.toList());
         }
 
@@ -213,15 +219,27 @@ public class ELDCommandHandler implements CommandExecutor, TabCompleter{
         plugin.getLogger().info("正在註冊插件 "+plugin.getName()+" 的所有指令...");
         commands.forEach(hir -> {
             var cmd = hir.current.getAnnotation(Commander.class);
-            var pluginCommand = plugin.getCommand(cmd.name());
-            if (pluginCommand == null) {
-                plugin.getLogger().warning("指令 " + cmd.name() + " 尚未於 plugin.yml 註冊。");
+            var pluginCommand = Optional.ofNullable(plugin.getCommand(cmd.name())).orElseGet(() -> {
+                try{
+                    var constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
+                    constructor.setAccessible(true);
+                    var pluginCmd = constructor.newInstance(cmd.name(), plugin);
+                    plugin.getServer().getCommandMap().register(plugin.getDescription().getName(), pluginCmd);
+                    return pluginCmd;
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                return null;
+            });
+            if (pluginCommand == null){
+                plugin.getLogger().warning("指令 " + cmd.name() + " 尚未於 plugin.yml 註冊。並強行註冊失敗。");
                 return;
             }
             pluginCommand.setAliases(List.of(cmd.alias()));
             pluginCommand.setDescription(cmd.description());
             pluginCommand.setExecutor(executor);
             pluginCommand.setTabCompleter(executor);
+
         });
     }
 

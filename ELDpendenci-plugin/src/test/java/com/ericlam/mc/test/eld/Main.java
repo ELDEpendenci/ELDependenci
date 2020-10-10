@@ -1,34 +1,39 @@
 package com.ericlam.mc.test.eld;
 
-import java.util.ArrayList;
+import com.ericlam.mc.eld.registrations.ListenerRegistry;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
-        var list = new ArrayList<Sortable>();
-        list.add(new Sortable(0, true));
-        list.add(new Sortable(1, false));
-        list.add(new Sortable(2, true));
-        list.add(new Sortable(3, false));
-        list.sort((s1, s2) -> Integer.compare(s1.order, s2.order) * Boolean.compare(s1.optional, s2.optional));
-        System.out.println(list.toString());
+
     }
 
-    static class Sortable {
-        final int order;
-        final boolean optional;
 
-        Sortable(int order, boolean optional) {
-            this.order = order;
-            this.optional = optional;
-        }
+    public void registerEvent(EventListenerRegister reg) {
+        reg.register(PlayerJoinEvent.class, PlayerJoinEventListener.class);
+        reg.register(PlayerQuitEvent.class, PlayerQuitEventListener.class);
+        JavaPlugin.getPlugin(JavaPlugin.class).getServer().getPluginManager().registerEvent(
+                PlayerJoinEvent.class, new Listener() {
+                }, EventPriority.HIGH, (listener, event) -> {
 
-        @Override
-        public String toString() {
-            return "Sortable{" +
-                    "order=" + order +
-                    ", optional=" + optional +
-                    '}';
-        }
+                }, JavaPlugin.getPlugin(JavaPlugin.class));
+
     }
+
+    public void registerListener(ListenerRegistry reg) {
+        reg.listeners(List.of(
+                Listener.class,
+                Listener.class,
+                Listener.class
+        ));
+    }
+
+
 }
