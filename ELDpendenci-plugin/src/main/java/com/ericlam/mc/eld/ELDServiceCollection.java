@@ -23,7 +23,7 @@ public class ELDServiceCollection implements ServiceCollection {
 
     private final ELDModule module;
 
-    public ELDServiceCollection(ELDModule module, JavaPlugin plugin) {
+    public ELDServiceCollection(ELDModule module, ELDBukkitPlugin plugin) {
         this.module = module;
         if (!plugin.getClass().isAnnotationPresent(ELDPlugin.class)) {
             throw new IllegalStateException("插件 " + plugin.getName() + " 缺少 @ELDPlugin 標註");

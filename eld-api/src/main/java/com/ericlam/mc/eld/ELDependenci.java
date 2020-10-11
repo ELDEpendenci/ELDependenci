@@ -1,7 +1,5 @@
 package com.ericlam.mc.eld;
 
-import org.bukkit.plugin.java.JavaPlugin;
-
 import java.util.function.Consumer;
 
 public class ELDependenci implements ELDependenciAPI {
@@ -11,7 +9,7 @@ public class ELDependenci implements ELDependenciAPI {
         throw new UnsupportedOperationException("not plugin");
     }
 
-    public ManagerProvider register(JavaPlugin plugin, Consumer<ServiceCollection> injector) {
+    public ManagerProvider register(ELDBukkitPlugin plugin, Consumer<ServiceCollection> injector) {
         return null;
     }
 

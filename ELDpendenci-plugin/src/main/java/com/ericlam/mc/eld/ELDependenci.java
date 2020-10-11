@@ -42,7 +42,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
         return api;
     }
 
-    public ManagerProvider register(JavaPlugin plugin, Consumer<ServiceCollection> injector) {
+    public ManagerProvider register(ELDBukkitPlugin plugin, Consumer<ServiceCollection> injector) {
         if (collectionMap.containsKey(plugin)){
             throw new IllegalStateException("本插件已經被註冊，不得重複註冊。");
         }
