@@ -1,8 +1,10 @@
 package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
+import com.ericlam.mc.eld.services.GUIService;
 import com.ericlam.mc.eld.services.ItemStackService;
 import com.ericlam.mc.eld.services.ScheduleService;
+import com.ericlam.mc.eld.services.factory.ELDGUIService;
 import com.ericlam.mc.eld.services.factory.ELDItemStackService;
 import com.ericlam.mc.eld.services.scheduler.ELDSchedulerService;
 import com.google.inject.Binder;
@@ -35,6 +37,7 @@ public class ELDModule implements Module {
         binder.bind(InstanceInjector.class).in(Scopes.SINGLETON);
         binder.bind(ScheduleService.class).to(ELDSchedulerService.class).in(Scopes.SINGLETON);
         binder.bind(ItemStackService.class).to(ELDItemStackService.class).in(Scopes.SINGLETON);
+        binder.bind(GUIService.class).to(ELDGUIService.class).in(Scopes.SINGLETON);
 
 
         singleton.forEach(cls -> binder.bind(cls).in(Scopes.SINGLETON));

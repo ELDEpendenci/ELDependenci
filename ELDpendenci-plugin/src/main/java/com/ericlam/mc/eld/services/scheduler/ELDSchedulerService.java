@@ -6,6 +6,7 @@ import com.ericlam.mc.eld.services.ScheduleService;
 import com.google.inject.Inject;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.concurrent.Callable;
 
@@ -58,24 +59,24 @@ public final class ELDSchedulerService implements ScheduleService {
         }
 
         @Override
-        public void run(Plugin plugin) {
+        public BukkitTask run(Plugin plugin) {
             if (timeout == -1 && interval == -1) {
                 if (async) {
-                    bukkitRunnable.runTaskAsynchronously(plugin);
+                    return bukkitRunnable.runTaskAsynchronously(plugin);
                 } else {
-                    bukkitRunnable.runTask(plugin);
+                    return bukkitRunnable.runTask(plugin);
                 }
             } else if (timeout != -1 && interval == -1) {
                 if (async) {
-                    bukkitRunnable.runTaskLaterAsynchronously(plugin, timeout);
+                    return bukkitRunnable.runTaskLaterAsynchronously(plugin, timeout);
                 } else {
-                    bukkitRunnable.runTaskLater(plugin, timeout);
+                    return bukkitRunnable.runTaskLater(plugin, timeout);
                 }
-            } else if (timeout != -1) {
+            } else  {
                 if (async) {
-                    bukkitRunnable.runTaskTimerAsynchronously(plugin, timeout, interval);
+                    return bukkitRunnable.runTaskTimerAsynchronously(plugin, timeout, interval);
                 } else {
-                    bukkitRunnable.runTaskTimer(plugin, timeout, interval);
+                    return bukkitRunnable.runTaskTimer(plugin, timeout, interval);
                 }
             }
         }

@@ -3,6 +3,7 @@ package com.ericlam.mc.eld.services;
 import com.ericlam.mc.eld.misc.ChainCallable;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.concurrent.Callable;
 
@@ -21,7 +22,7 @@ public interface ScheduleService {
 
         ScheduleFactory timeout(long ticks);
 
-        void run(Plugin plugin);
+        BukkitTask run(Plugin plugin);
 
     }
 
