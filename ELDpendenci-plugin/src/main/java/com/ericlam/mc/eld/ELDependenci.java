@@ -12,6 +12,10 @@ import com.google.inject.Injector;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
@@ -19,13 +23,14 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
+public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listener {
 
     private final ELDModule module = new ELDModule(this);
     private final Map<JavaPlugin, ELDServiceCollection> collectionMap = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
     private ItemInteractListener itemInteractListener;
     private static ELDependenciAPI api;
+    private Injector injector;
 
     @Override
     public void onLoad() {
@@ -38,6 +43,9 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
     }
 
     public ManagerProvider register(JavaPlugin plugin, Consumer<ServiceCollection> injector) {
+        if (collectionMap.containsKey(plugin)){
+            throw new IllegalStateException("本插件已經被註冊，不得重複註冊。");
+        }
         var collection = new ELDServiceCollection(module, plugin);
         injector.accept(collection);
         collection.configManager.dumpAll();
@@ -49,22 +57,50 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI {
     public void onEnable() {
         registerParser();
         getServer().getPluginManager().registerEvents(itemInteractListener, this);
-        Bukkit.getScheduler().runTask(this, () -> {
-            Injector injector = Guice.createInjector(module);
-            injector.getInstance(InstanceInjector.class).setInjector(injector);
-            collectionMap.forEach((plugin, services) -> {
-                services.configManager.setInjector(injector);
-                ELDCommandHandler.registers(plugin, services.commands, injector, argumentManager);
-
-                //register listener
-                services.listeners.forEach(listenerCls -> {
-                    var listener = injector.getInstance(listenerCls);
-                    plugin.getServer().getPluginManager().registerEvents(listener, plugin);
-                });
-
-            });
-        });
+        this.injector = Guice.createInjector(module);
+        injector.getInstance(InstanceInjector.class).setInjector(injector);
+        getServer().getPluginManager().registerEvents(this, this);
     }
+
+    @EventHandler
+    public void onPluginEnable(final PluginEnableEvent e){
+        if (!(e.getPlugin() instanceof JavaPlugin)) return;
+        var plugin = (JavaPlugin)e.getPlugin();
+        var services = collectionMap.get(plugin);
+        if (services == null) return; // not eld plugin
+
+        services.configManager.setInjector(injector);
+        services.lifeCycleHook.onEnable(plugin);
+
+        //register command
+        if (!services.commands.isEmpty()){
+            plugin.getLogger().info("正在註冊插件 "+plugin.getName()+" 的所有指令...");
+            ELDCommandHandler.registers(plugin, services.commands, injector, argumentManager);
+        }
+
+        //register listener
+        if (!services.listeners.isEmpty()){
+            plugin.getLogger().info("正在註冊插件 "+plugin.getName()+" 的所有監聽器...");
+            services.listeners.forEach(listenerCls -> {
+                var listener = injector.getInstance(listenerCls);
+                plugin.getServer().getPluginManager().registerEvents(listener, plugin);
+            });
+        }
+    }
+
+    @EventHandler
+    public void onPluginDisable(final PluginDisableEvent e){
+        if (!(e.getPlugin() instanceof JavaPlugin)) return;
+        var plugin = (JavaPlugin)e.getPlugin();
+        var services = collectionMap.get(plugin);
+        if (services == null) return; // not eld plugin
+
+        services.lifeCycleHook.onDisable(plugin);
+
+    }
+
+
+
 
     private class ELDManagerProvider implements ManagerProvider {
 

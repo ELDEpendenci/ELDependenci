@@ -17,6 +17,8 @@ public class ELDServiceCollection implements ServiceCollection {
 
     final Set<Class<? extends Listener>> listeners;
 
+    final ELDLifeCycle lifeCycleHook;
+
     final ELDConfigManager configManager;
 
     private final ELDModule module;
@@ -27,7 +29,8 @@ public class ELDServiceCollection implements ServiceCollection {
             throw new IllegalStateException("插件 " + plugin.getName() + " 缺少 @ELDPlugin 標註");
         }
         var eld = plugin.getClass().getAnnotation(ELDPlugin.class);
-        var registry = toRealInstance(eld.registry());
+        var registry = this.toInstanceRegistry(eld.registry());
+        this.lifeCycleHook = this.toInstanceLifeCycle(eld.lifeCycle());
 
         //register command
         var cmdregistry = new ELDCommandRegistry();
@@ -60,7 +63,7 @@ public class ELDServiceCollection implements ServiceCollection {
         return this;
     }
 
-    private ComponentsRegistry toRealInstance(Class<? extends ComponentsRegistry> registry){
+    private ComponentsRegistry toInstanceRegistry(Class<? extends ComponentsRegistry> registry){
         try{
             var con = registry.getConstructor();
             con.setAccessible(true);
@@ -68,6 +71,19 @@ public class ELDServiceCollection implements ServiceCollection {
         }catch (Exception e){
             if (e instanceof NoSuchMethodException){
                 throw new IllegalStateException("ComponentRegistry 必須擁有無參數構造器(no-args constructor)。");
+            }
+            throw new RuntimeException(e);
+        }
+    }
+
+    private ELDLifeCycle toInstanceLifeCycle(Class<? extends ELDLifeCycle> lifeCycle){
+        try{
+            var con = lifeCycle.getConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
+        }catch (Exception e){
+            if (e instanceof NoSuchMethodException){
+                throw new IllegalStateException("LifeCycle 必須擁有無參數構造器(no-args constructor)。");
             }
             throw new RuntimeException(e);
         }

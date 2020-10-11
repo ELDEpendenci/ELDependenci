@@ -216,7 +216,6 @@ public class ELDCommandHandler implements CommandExecutor, TabCompleter{
 
     public static void registers(JavaPlugin plugin, Set<HierarchyNode> commands, Injector injector, ELDArgumentManager manager){
         var executor = new ELDCommandHandler(commands, injector, manager);
-        plugin.getLogger().info("正在註冊插件 "+plugin.getName()+" 的所有指令...");
         commands.forEach(hir -> {
             var cmd = hir.current.getAnnotation(Commander.class);
             var pluginCommand = Optional.ofNullable(plugin.getCommand(cmd.name())).orElseGet(() -> {
