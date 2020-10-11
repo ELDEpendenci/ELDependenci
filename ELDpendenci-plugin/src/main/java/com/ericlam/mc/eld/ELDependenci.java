@@ -70,6 +70,9 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
         if (services == null) return; // not eld plugin
 
         services.configManager.setInjector(injector);
+
+        injector.injectMembers(services.lifeCycleHook);
+
         services.lifeCycleHook.onEnable(plugin);
 
         //register command
