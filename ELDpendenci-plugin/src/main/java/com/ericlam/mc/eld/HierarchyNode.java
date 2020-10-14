@@ -5,7 +5,7 @@ import io.netty.util.internal.ConcurrentSet;
 
 import java.util.Set;
 
-public class HierarchyNode {
+public final class HierarchyNode {
 
     public HierarchyNode parent;
     public final Class<? extends CommandNode> current;
@@ -21,7 +21,7 @@ public class HierarchyNode {
         this(null, current);
     }
 
-    public void addNote(HierarchyNode node) {
+    public void addNode(HierarchyNode node) {
         this.nodes.add(node);
     }
 }

@@ -3,7 +3,7 @@ package com.ericlam.mc.eld;
 import com.google.inject.Injector;
 import org.bukkit.Bukkit;
 
-public class InstanceInjector {
+public final class InstanceInjector {
 
     private Injector injector;
 

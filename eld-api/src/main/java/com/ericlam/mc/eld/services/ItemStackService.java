@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -55,9 +56,9 @@ public interface ItemStackService {
 
         ItemFactory onInteractEventTemp(Consumer<PlayerInteractEvent> handler);
 
-        ItemFactory onClickEventTemp(Consumer<InventoryClickEvent> handler);
+        ItemFactory onConsumeEventTemp(Consumer<PlayerItemConsumeEvent> handler);
 
-        ItemFactory onClickEvent(String keyExecute);
+        ItemFactory onConsumeEvent(String keyExecute);
 
         ItemFactory destroyInteractEvent();
 

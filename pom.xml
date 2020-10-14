@@ -7,7 +7,7 @@
     <groupId>com.ericlam.mc</groupId>
     <artifactId>ELDependenci</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <modules>
         <module>eld-api</module>
         <module>ELDpendenci-plugin</module>
@@ -57,6 +57,11 @@
                 <artifactId>guice</artifactId>
                 <version>4.2.3</version>
                 <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.inject.extensions</groupId>
+                <artifactId>guice-multibindings</artifactId>
+                <version>4.2.3</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>

@@ -31,7 +31,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class ELDConfigManager implements ConfigStorage {
+public final class ELDConfigManager implements ConfigStorage {
 
     private final ELDModule module;
     private final JavaPlugin plugin;

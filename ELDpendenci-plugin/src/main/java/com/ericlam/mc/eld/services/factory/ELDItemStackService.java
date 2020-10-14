@@ -1,14 +1,12 @@
 package com.ericlam.mc.eld.services.factory;
 
-import com.ericlam.mc.eld.ELDependenci;
 import com.ericlam.mc.eld.bukkit.ItemInteractListener;
 import com.ericlam.mc.eld.services.ItemStackService;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -20,7 +18,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class ELDItemStackService implements ItemStackService {
+public final class ELDItemStackService implements ItemStackService {
 
     @Override
     public ItemFactory build(Material material) {
@@ -170,13 +168,13 @@ public class ELDItemStackService implements ItemStackService {
         }
 
         @Override
-        public ItemFactory onClickEventTemp(Consumer<InventoryClickEvent> handler) {
-            return this.editPersisData(data -> data.set(ItemInteractListener.CLICK_EVENT_KEY, PersistentDataType.STRING, ItemInteractListener.setClickerKeyTemp(handler)));
+        public ItemFactory onConsumeEventTemp(Consumer<PlayerItemConsumeEvent> handler) {
+            return this.editPersisData(data -> data.set(ItemInteractListener.CONSUME_EVENT_KEY, PersistentDataType.STRING, ItemInteractListener.setConsumeKeyTemp(handler)));
         }
 
         @Override
-        public ItemFactory onClickEvent(String keyExecute) {
-            return this.editPersisData(data -> data.set(ItemInteractListener.CLICK_EVENT_KEY, PersistentDataType.STRING, keyExecute));
+        public ItemFactory onConsumeEvent(String keyExecute) {
+            return this.editPersisData(data -> data.set(ItemInteractListener.CONSUME_EVENT_KEY, PersistentDataType.STRING, keyExecute));
         }
 
         @Override
@@ -186,7 +184,7 @@ public class ELDItemStackService implements ItemStackService {
 
         @Override
         public ItemFactory destroyClickerEvent() {
-            return this.editPersisData(data -> data.remove(ItemInteractListener.CLICK_EVENT_KEY));
+            return this.editPersisData(data -> data.remove(ItemInteractListener.CONSUME_EVENT_KEY));
         }
 
         @Override

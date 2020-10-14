@@ -1,6 +1,5 @@
 package com.ericlam.mc.eld.registrations;
 
-import com.ericlam.mc.eld.ELDModule;
 import com.ericlam.mc.eld.HierarchyNode;
 import com.ericlam.mc.eld.components.CommandNode;
 import com.google.common.collect.ImmutableSet;
@@ -9,7 +8,7 @@ import io.netty.util.internal.ConcurrentSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class ELDCommandRegistry implements CommandRegistry {
+public final class ELDCommandRegistry implements CommandRegistry {
 
     private final Set<HierarchyNode> nodes;
 
@@ -49,12 +48,12 @@ public class ELDCommandRegistry implements CommandRegistry {
         public void command(Class<? extends CommandNode> node, Consumer<CommandRegistry> child) {
             var n = new HierarchyNode(this.node, node);
             child.accept(new SubCommandRegistry(n));
-            this.node.addNote(n);
+            this.node.addNode(n);
         }
 
         @Override
         public void command(Class<? extends CommandNode> node) {
-            this.node.addNote(new HierarchyNode(this.node, node));
+            this.node.addNode(new HierarchyNode(this.node, node));
         }
     }
 }

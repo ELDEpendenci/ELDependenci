@@ -2,20 +2,23 @@ package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.annotations.ELDPlugin;
 import com.ericlam.mc.eld.components.Configuration;
+import com.ericlam.mc.eld.components.ELDListener;
 import com.ericlam.mc.eld.configurations.ELDConfigManager;
 import com.ericlam.mc.eld.registrations.ComponentsRegistry;
 import com.ericlam.mc.eld.registrations.ELDCommandRegistry;
 import com.ericlam.mc.eld.registrations.ELDListenerRegistry;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Map;
 import java.util.Set;
 
-public class ELDServiceCollection implements ServiceCollection {
+public final class ELDServiceCollection implements ServiceCollection {
 
     final Set<HierarchyNode> commands;
 
     final Set<Class<? extends Listener>> listeners;
+
+    final Set<Class<? extends ELDListener>> eldListeners;
 
     final ELDLifeCycle lifeCycleHook;
 
@@ -40,7 +43,9 @@ public class ELDServiceCollection implements ServiceCollection {
         //register listeners
         var listenerRegistry = new ELDListenerRegistry();
         registry.registerListeners(listenerRegistry);
+
         this.listeners = listenerRegistry.getBukkitListenerClass();
+        this.eldListeners = listenerRegistry.getEldListenerClass();
 
         this.configManager = new ELDConfigManager(module, plugin);
     }
@@ -52,8 +57,14 @@ public class ELDServiceCollection implements ServiceCollection {
     }
 
     @Override
-    public <T, L extends T> ServiceCollection addService(Class<T> service, Class<L> implement) {
-        module.bindService(service, implement);
+    public <T, L extends T> ServiceCollection addService(Class<T> service, Class<L> implementation) {
+        module.bindService(service, implementation);
+        return this;
+    }
+
+    @Override
+    public <T, L extends T> ServiceCollection addServices(Class<T> service, Map<String, Class<L>> implementations) {
+        module.bindServices(service, implementations);
         return this;
     }
 

@@ -4,13 +4,17 @@ import com.ericlam.mc.eld.bukkit.ItemInteractListener;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
 import com.ericlam.mc.eld.commands.ELDCommandHandler;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
+import com.ericlam.mc.eld.listeners.ELDEventListeners;
 import com.ericlam.mc.eld.managers.ArgumentManager;
 import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
+import com.ericlam.mc.eld.services.ArgParserService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,8 +26,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listener {
+public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listener {
 
     private final ELDModule module = new ELDModule(this);
     private final Map<JavaPlugin, ELDServiceCollection> collectionMap = new ConcurrentHashMap<>();
@@ -35,7 +40,8 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
     @Override
     public void onLoad() {
         api = this;
-        this.itemInteractListener =  new ItemInteractListener(this);
+        this.itemInteractListener = new ItemInteractListener(this);
+        this.module.bindInstance(ArgParserService.class, argumentManager);
     }
 
     public static ELDependenciAPI getApi() {
@@ -43,7 +49,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
     }
 
     public ManagerProvider register(ELDBukkitPlugin plugin, Consumer<ServiceCollection> injector) {
-        if (collectionMap.containsKey(plugin)){
+        if (collectionMap.containsKey(plugin)) {
             throw new IllegalStateException("本插件已經被註冊，不得重複註冊。");
         }
         var collection = new ELDServiceCollection(module, plugin);
@@ -63,9 +69,9 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
     }
 
     @EventHandler
-    public void onPluginEnable(final PluginEnableEvent e){
+    public void onPluginEnable(final PluginEnableEvent e) {
         if (!(e.getPlugin() instanceof JavaPlugin)) return;
-        var plugin = (JavaPlugin)e.getPlugin();
+        var plugin = (JavaPlugin) e.getPlugin();
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
 
@@ -76,33 +82,51 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
         services.lifeCycleHook.onEnable(plugin);
 
         //register command
-        if (!services.commands.isEmpty()){
-            plugin.getLogger().info("正在註冊插件 "+plugin.getName()+" 的所有指令...");
+        if (!services.commands.isEmpty()) {
+            plugin.getLogger().info("正在註冊插件 " + plugin.getName() + " 的所有指令...");
             ELDCommandHandler.registers(plugin, services.commands, injector, argumentManager);
         }
 
         //register listener
-        if (!services.listeners.isEmpty()){
-            plugin.getLogger().info("正在註冊插件 "+plugin.getName()+" 的所有監聽器...");
+        if (!services.listeners.isEmpty() || !services.eldListeners.isEmpty()) {
+            plugin.getLogger().info("正在註冊插件 " + plugin.getName() + " 的所有監聽器...");
             services.listeners.forEach(listenerCls -> {
                 var listener = injector.getInstance(listenerCls);
                 plugin.getServer().getPluginManager().registerEvents(listener, plugin);
             });
+
+            if (!services.eldListeners.isEmpty()) {
+                var eventListeners = new ELDEventListeners();
+                services.eldListeners.forEach(eldListenerCls -> {
+                    var eldListener = injector.getInstance(eldListenerCls);
+                    eldListener.defineNodes(eventListeners);
+                });
+                var pluginManager = plugin.getServer().getPluginManager();
+                eventListeners.getSubscribersMap().forEach((eventCls, subscribersList) -> {
+                    subscribersList.stream()
+                            .collect(Collectors.groupingByConcurrent(ELDEventListeners.ELDEventSubscriber::getPriority))
+                            .forEach(((priority, subscribers) -> {
+                                var anonymousListener = new Listener() {
+                                };
+                                pluginManager.registerEvent(eventCls, anonymousListener, priority, (listener, event) -> {
+                                    subscribers.forEach(sub -> sub.invoke(event));
+                                }, plugin);
+                            }));
+                });
+            }
         }
     }
 
     @EventHandler
-    public void onPluginDisable(final PluginDisableEvent e){
+    public void onPluginDisable(final PluginDisableEvent e) {
         if (!(e.getPlugin() instanceof JavaPlugin)) return;
-        var plugin = (JavaPlugin)e.getPlugin();
+        var plugin = (JavaPlugin) e.getPlugin();
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
 
         services.lifeCycleHook.onDisable(plugin);
 
     }
-
-
 
 
     private class ELDManagerProvider implements ManagerProvider {
@@ -130,7 +154,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
     }
 
     private void registerParser() {
-        argumentManager.registerParser(Integer.class, (args, sender) -> {
+        argumentManager.registerParser(Integer.class, (args, sender, parser) -> {
             var num = args.next();
             try {
                 return Integer.parseInt(args.next());
@@ -138,7 +162,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
                 throw new ArgumentParseException(num + " 不是有效的 Integer 。");
             }
         });
-        argumentManager.registerParser(Double.class, (args, sender) -> {
+        argumentManager.registerParser(Double.class, (args, sender, parser) -> {
             var num = args.next();
             try {
                 return Double.parseDouble(args.next());
@@ -147,7 +171,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
             }
         });
 
-        argumentManager.registerParser(Long.class, (args, sender) -> {
+        argumentManager.registerParser(Long.class, (args, sender, parser) -> {
             var num = args.next();
             try {
                 return Long.parseLong(args.next());
@@ -156,7 +180,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
             }
         });
 
-        argumentManager.registerParser(Byte.class, (args, sender) -> {
+        argumentManager.registerParser(Byte.class, (args, sender, parser) -> {
             var num = args.next();
             try {
                 return Byte.parseByte(args.next());
@@ -165,7 +189,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
             }
         });
 
-        argumentManager.registerParser(Short.class, (args, sender) -> {
+        argumentManager.registerParser(Short.class, (args, sender, parser) -> {
             var num = args.next();
             try {
                 return Short.parseShort(args.next());
@@ -174,7 +198,7 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
             }
         });
 
-        argumentManager.registerParser(Float.class, (args, sender) -> {
+        argumentManager.registerParser(Float.class, (args, sender, parser) -> {
             var num = args.next();
             try {
                 return Float.parseFloat(args.next());
@@ -183,15 +207,15 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
             }
         });
 
-        argumentManager.registerParser(Character.class, (args, sender) -> args.next().charAt(0));
-        argumentManager.registerParser(Boolean.class, (args, sender) -> Boolean.parseBoolean(args.next()));
-        argumentManager.registerParser(String.class, (args, sender) -> args.next());
-        argumentManager.registerParser(String.class, "message", ((args, sender) -> {
+        argumentManager.registerParser(Character.class, (args, sender, parser) -> args.next().charAt(0));
+        argumentManager.registerParser(Boolean.class, (args, sender, parser) -> Boolean.parseBoolean(args.next()));
+        argumentManager.registerParser(String.class, (args, sender, parser) -> args.next());
+        argumentManager.registerParser(String.class, "message", ((args, sender, parser) -> {
             var builder = new StringBuilder();
             args.forEachRemaining(s -> builder.append(s).append(" "));
             return builder.toString();
         }));
-        argumentManager.registerParser(Player.class, (args, sender) -> {
+        argumentManager.registerParser(Player.class, (args, sender, parser) -> {
             var player = Bukkit.getPlayer(args.next());
             if (player == null) {
                 throw new ArgumentParseException("&c玩家未上線");
@@ -199,12 +223,28 @@ public class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listene
             return player;
         });
 
-        argumentManager.registerParser(OfflinePlayer.class, (args, sender) -> {
+        argumentManager.registerParser(OfflinePlayer.class, (args, sender, parser) -> {
             var uuid = Bukkit.getPlayerUniqueId(args.next());
             if (uuid == null) {
                 throw new ArgumentParseException("&c玩家不存在");
             }
             return Bukkit.getOfflinePlayer(uuid);
+        });
+
+        argumentManager.registerParser(Location.class, (args, sender, parser) -> {
+            World world;
+            if (!(sender instanceof Player)) {
+                world = Bukkit.getWorld(args.next());
+            } else {
+                world = ((Player) sender).getWorld();
+            }
+            if (world == null) {
+                throw new ArgumentParseException("&c未知世界");
+            }
+            var x = parser.tryParse(Double.class, args, sender);
+            var y = parser.tryParse(Double.class, args, sender);
+            var z = parser.tryParse(Double.class, args, sender);
+            return new Location(world, x, y, z);
         });
 
     }

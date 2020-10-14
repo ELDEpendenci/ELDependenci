@@ -16,7 +16,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ELDCommandHandler implements CommandExecutor, TabCompleter{
+public final class ELDCommandHandler implements CommandExecutor, TabCompleter{
 
     private final Injector injector;
     private final Set<HierarchyNode> commandNodes;
