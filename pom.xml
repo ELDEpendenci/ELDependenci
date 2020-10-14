@@ -7,7 +7,7 @@
     <groupId>com.ericlam.mc</groupId>
     <artifactId>ELDependenci</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <modules>
         <module>eld-api</module>
         <module>ELDpendenci-plugin</module>
