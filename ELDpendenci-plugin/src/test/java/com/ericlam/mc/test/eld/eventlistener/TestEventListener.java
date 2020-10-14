@@ -1,29 +1,25 @@
 package com.ericlam.mc.test.eld.eventlistener;
 
+import com.ericlam.mc.eld.components.EventListeners;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerKickEvent;
 
 public class TestEventListener {
 
 
-    public void defineNote(EventListener listener){
+    public void defineNote(EventListeners listener){
 
-        listener.listen(PlayerKickEvent.class, sub -> {
+        listener.listen(PlayerKickEvent.class)
+                .filter(Cancellable::isCancelled)
+                .filter(e -> e.getReason().equalsIgnoreCase("fuck"))
+                .fork()
+                .ifTrue(this::onReasonIsFuck)
+                .ifFalse(this::onReasonIsNotFuck);
 
-            sub.priority(EventPriority.MONITOR);
-            sub.ignoreCancel(true);
-
-            sub.filter(e -> e.getReason().equals("fuck"))
-                    .fork()
-                    .ifFalse(this::onReasonIsFuck);
-
-            sub.filter(e -> e.getPlayer().getName().equals("shit"))
-                    .fork()
-                    .ifTrue(this::onPlayerIsShit)
-                    .ifFalse(this::onPlayerIsNotShit);
-
-            sub.handle(this::onPlayerKickEvent);
-        });
+        listener.listen(PlayerKickEvent.class)
+                .priority(EventPriority.MONITOR)
+                .handle(this::onPlayerKickEvent);
 
     }
 

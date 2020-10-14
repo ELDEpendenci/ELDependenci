@@ -1,6 +1,5 @@
 package com.ericlam.mc.eld.components;
 
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 
@@ -12,8 +11,6 @@ public interface EventListeners {
     <E extends Event> EventSubscriber<E> listen(Class<E> eventClass);
 
     interface EventSubscriber<E extends Event> {
-
-        Function<Cancellable, Boolean> IGNORE_CANCELLED = Cancellable::isCancelled;
 
         EventSubscriber<E> expireAfter(int times);
 
