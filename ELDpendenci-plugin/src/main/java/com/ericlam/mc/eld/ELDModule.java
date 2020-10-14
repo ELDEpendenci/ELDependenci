@@ -66,7 +66,7 @@ public final class ELDModule implements Module {
         this.services.putIfAbsent(service, implement);
     }
 
-    <T, R extends T> void bindServices(Class<T> service, Map<String, Class<R>> implementations) {
+    <T> void bindServices(Class<T> service, Map<String, Class<? extends T>> implementations) {
         if (services.containsKey(service) || servicesMulti.containsKey(service)) {
             plugin.getLogger().warning("Service " + service.getName() + " 先前已有註冊，無法再被註冊。");
             return;

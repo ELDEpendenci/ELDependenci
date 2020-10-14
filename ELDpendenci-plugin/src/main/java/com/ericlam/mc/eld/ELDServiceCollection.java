@@ -63,7 +63,7 @@ public final class ELDServiceCollection implements ServiceCollection {
     }
 
     @Override
-    public <T, L extends T> ServiceCollection addServices(Class<T> service, Map<String, Class<L>> implementations) {
+    public <T> ServiceCollection addServices(Class<T> service, Map<String, Class<? extends T>> implementations) {
         module.bindServices(service, implementations);
         return this;
     }

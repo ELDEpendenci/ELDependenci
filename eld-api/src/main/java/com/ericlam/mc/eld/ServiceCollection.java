@@ -10,7 +10,7 @@ public interface ServiceCollection {
 
     <T, L extends T> ServiceCollection addService(Class<T> service, Class<L> implementation);
 
-    <T, L extends T> ServiceCollection addServices(Class<T> service, Map<String, Class<L>> implementations);
+    <T> ServiceCollection addServices(Class<T> service, Map<String, Class<? extends T>> implementations);
 
     <T extends Configuration> ServiceCollection addConfiguration(Class<T> config);
 
