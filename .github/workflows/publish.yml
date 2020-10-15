@@ -44,9 +44,11 @@ jobs:
     - name: 'Update javadocs'
       id: update-javadoc
       run: |
-        echo "check this step location"
-        pwd
-        ls -la
+        git checkout --orphan gh-pages
+        git rm -rf .
+        mv javadocs .
+        git commit -am "update javadocs"
+        git push -u origin gh-pages
     - name: Delete tag and release
       id: delete-tag-release
       uses: dev-drprasad/delete-tag-and-release@v0.1.2
