@@ -37,14 +37,10 @@ jobs:
         git config --global user.name "Javadocs Generator Bot"
         git config --global user.email "<>"
         git checkout --orphan gh-pages
-        git add *
-        git stash
-        git pull
         git rm -rf .
         rm -rf ELDependenci-plugin/*
-        rm -v .gitignore
         mv javadocs/* .
-        git add -f *
+        git add *
         git commit -am "update javadocs"
         git push -u origin gh-pages
     - name: Delete tag and release
