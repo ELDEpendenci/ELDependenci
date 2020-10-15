@@ -44,7 +44,7 @@ jobs:
            then rm -rfv $f
            fi
         done    
-        git pull origin gh-pages
+        git pull origin gh-pages && echo successfully pulled
         echo "directory is now after checkout"
         ls -la
         git rm -rf .
