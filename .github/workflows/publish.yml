@@ -35,10 +35,10 @@ jobs:
         git config --global pull.rebase false
         git config --global user.name "Javadocs Generator Bot"
         git config --global user.email "<>"
-        git branch -D gh-pages
         git checkout --orphan gh-pages
-        git fetch
-        git pull origin gh-pages
+        git add *
+        git stash
+        git pull
         git rm -rf .
         rm -rf ELDependenci-plugin/*
         rm -rf eld-api/*
@@ -46,7 +46,7 @@ jobs:
         mv javadocs/* .
         git add *
         git commit -am "update javadocs"
-        git push -uf origin gh-pages
+        git push -u origin gh-pages
     - name: Delete tag and release
       id: delete-tag-release
       uses: dev-drprasad/delete-tag-and-release@v0.1.2
