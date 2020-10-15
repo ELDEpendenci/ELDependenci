@@ -41,6 +41,12 @@ jobs:
         else
             echo "$file is not exist..."
         fi
+    - name: Delete tag and release
+      id: delete-tag-release
+      uses: dev-drprasad/delete-tag-and-release@v0.1.2
+      with:
+        tag_name: ${{ env.version }}
+        delete_release: true
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -63,10 +69,3 @@ jobs:
         asset_path: ./ELDependenci-plugin/target/ELDependenci-plugin-${{env.version}}.jar
         asset_name: ELDependenci-plugin-${{ env.version }}.jar
         asset_content_type: application/java-archive
-    - name: Delete tag and release on failure
-      id: handle-on-failure
-      if: ${{ failure() }}
-      uses: dev-drprasad/delete-tag-and-release@v0.1.2
-      with:
-        tag_name: ${{ env.version }}
-        delete_release: true
