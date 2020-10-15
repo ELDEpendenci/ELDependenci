@@ -32,9 +32,8 @@ jobs:
       run: mvn -B package --file pom.xml
     - name: check directory
       run: |
-        echo "checking the target jar is exist"
+        echo "checking the target jar is exist..."
         cd ELDependenci-plugin/target
-        ls -la
         file="ELDependenci-plugin-${{ env.version }}.jar"
         if [ -f $file ]
         then 
