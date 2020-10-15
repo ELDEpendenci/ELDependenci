@@ -31,10 +31,11 @@ jobs:
     - name: 'Update javadocs'
       id: update-javadoc
       run: |
-        git config --global user.name ${{ github.actor }}
-        git config --global user.email "tsukiko852@gmail.com"
+        git config --global user.name "Javadocs Generator Bot"
+        git config --global user.email "<>"
         git checkout --orphan gh-pages
         git rm -rf .
+        rm -rf !("javadocs")
         mv javadocs/* .
         git add *
         git commit -am "update javadocs"
