@@ -28,30 +28,6 @@ jobs:
         java-version: 11
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-    - name: 'Update javadocs'
-      id: update-javadoc
-      run: |
-        mvn clean
-        echo "directory is now before checkout"
-        ls -la
-        git config --global pull.rebase false
-        git config --global user.name "Javadocs Generator Bot"
-        git config --global user.email "<>"
-        git checkout gh-pages || git checkout --orphan gh-pages
-        for f in `ls`
-        do
-           if [ $f != "javadocs" ]
-           then rm -rfv $f
-           fi
-        done    
-        git pull origin gh-pages && echo successfully pulled
-        echo "directory is now after checkout"
-        ls -la
-        git rm -rf .
-        mv javadocs/* .
-        git add *
-        git commit -am "update javadocs"
-        git push -u origin gh-pages
     - name: Delete tag and release
       id: delete-tag-release
       uses: dev-drprasad/delete-tag-and-release@v0.1.2
@@ -78,3 +54,27 @@ jobs:
         asset_path: ./ELDependenci-plugin/target/ELDependenci-plugin-${{env.version}}.jar
         asset_name: ELDependenci-plugin-${{ env.version }}.jar
         asset_content_type: application/java-archive
+    - name: 'Update javadocs'
+      id: update-javadoc
+      run: |
+        mvn clean
+        echo "directory is now before checkout"
+        ls -la
+        git config --global pull.rebase false
+        git config --global user.name "Javadocs Generator Bot"
+        git config --global user.email "<>"
+        git checkout gh-pages || git checkout --orphan gh-pages
+        for f in `ls`
+        do
+           if [ $f != "javadocs" ]
+           then rm -rfv $f
+           fi
+        done    
+        git pull origin gh-pages && echo successfully pulled
+        echo "directory is now after checkout"
+        ls -la
+        git rm -rf .
+        mv javadocs/* .
+        git add *
+        git commit -am "update javadocs"
+        git push -u origin gh-pages
