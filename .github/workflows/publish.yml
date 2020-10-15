@@ -4,7 +4,7 @@ env:
   version: 0.0.5
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
 
-name: Publish release | Deploy to nexus | Generate javadocs
+name: Publish WorkFlows for ELDependenci
 
 on:
   push:
@@ -41,6 +41,12 @@ jobs:
         else
             echo "$file is not exist..."
         fi
+    - name: 'Update javadocs'
+      id: update-javadoc
+      run: |
+        echo "check this step location"
+        pwd
+        ls -la
     - name: Delete tag and release
       id: delete-tag-release
       uses: dev-drprasad/delete-tag-and-release@v0.1.2
