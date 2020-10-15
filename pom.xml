@@ -10,7 +10,7 @@
     <version>0.0.5</version>
     <modules>
         <module>eld-api</module>
-        <module>ELDpendenci-plugin</module>
+        <module>ELDependenci-plugin</module>
     </modules>
 
     <repositories>
