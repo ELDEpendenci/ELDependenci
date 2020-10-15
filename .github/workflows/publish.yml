@@ -36,7 +36,8 @@ jobs:
         git config --global user.email "<>"
         git checkout --orphan gh-pages
         git rm -rf .
-        rm -rf !("javadocs")
+        rm -rf ELDependenci-plugin/*
+        rm -rf eld-api/*
         mv javadocs/* .
         git add *
         git commit -am "update javadocs"
