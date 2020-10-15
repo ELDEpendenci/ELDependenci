@@ -55,4 +55,12 @@ jobs:
         asset_path: /ELDependenci-plugin/target/*.jar
         asset_name: ELDependenci-plugin-${{ env.version }}
         asset_content_type: application/java-archive
+  on_failed:
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - uses: dev-drprasad/delete-tag-and-release@v0.1.2
+        with:
+          tag_name: ${{ env.version }}
+          delete_release: true
       
