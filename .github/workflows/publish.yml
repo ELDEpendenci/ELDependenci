@@ -64,9 +64,9 @@ jobs:
         git config --global user.name "Javadocs Generator Bot"
         git config --global user.email "<>"
         git checkout gh-pages || git checkout --orphan gh-pages
-        for f in `ls`
+        for f in `ls -a`
         do
-           if [ $f != "javadocs" ]
+           if [ -f $f ] && [ $f != "javadocs" ]
            then rm -rfv $f
            fi
         done    
