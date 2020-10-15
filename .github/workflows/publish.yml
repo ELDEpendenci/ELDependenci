@@ -31,6 +31,7 @@ jobs:
     - name: 'Update javadocs'
       id: update-javadoc
       run: |
+        mvn clean
         ls -la
         git config --global pull.rebase false
         git config --global user.name "Javadocs Generator Bot"
@@ -41,10 +42,9 @@ jobs:
         git pull
         git rm -rf .
         rm -rf ELDependenci-plugin/*
-        rm -rf eld-api/*
-        rm -rf .gitignore
+        rm -v .gitignore
         mv javadocs/* .
-        git add *
+        git add -f *
         git commit -am "update javadocs"
         git push -u origin gh-pages
     - name: Delete tag and release
