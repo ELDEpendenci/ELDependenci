@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ELDpendenci-plugin</artifactId>
+    <artifactId>ELDependenci-plugin</artifactId>
 
     <dependencies>
         <dependency>
