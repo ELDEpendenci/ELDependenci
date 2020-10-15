@@ -16,7 +16,7 @@
     <repositories>
         <repository>
             <id>xuan</id>
-            <url>https://xuan.nctu.me:8081/repository/minecraft_environment/</url>
+            <url>https://nexus.chu77.xyz/repository/xuan/</url>
         </repository>
     </repositories>
 
