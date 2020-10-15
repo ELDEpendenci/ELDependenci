@@ -3,4 +3,5 @@
 /ELDpendenci-plugin/target/
 *.iml
 /.idea/
+/javadocs/
 **/dependency-reduced-pom.xml

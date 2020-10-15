@@ -76,7 +76,7 @@ public final class ELDItemStackService implements ItemStackService {
         @Override
         public ItemFactory lore(String... lore) {
             var meta = itemStack.getItemMeta();
-            meta.setLore(Arrays.stream(lore).map(s -> ChatColor.translateAlternateColorCodes('&', s)).collect(Collectors.toList()));
+            Optional.ofNullable(meta.getLore()).orElseGet(ArrayList::new).addAll(Arrays.stream(lore).map(s -> ChatColor.translateAlternateColorCodes('&', s)).collect(Collectors.toList()));
             itemStack.setItemMeta(meta);
             return this;
         }
