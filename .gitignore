@@ -5,3 +5,4 @@
 /.idea/
 /javadocs/
 **/dependency-reduced-pom.xml
+**/target
