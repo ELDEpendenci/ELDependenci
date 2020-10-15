@@ -38,11 +38,11 @@ jobs:
         git config --global user.name "Javadocs Generator Bot"
         git config --global user.email "<>"
         git checkout gh-pages || git checkout --orphan gh-pages
+        rm -rfv !("javadocs")
         git pull origin gh-pages
         echo "directory is now after checkout"
         ls -la
         git rm -rf .
-        rm -rf ELDependenci-plugin/*
         mv javadocs/* .
         git add *
         git commit -am "update javadocs"
