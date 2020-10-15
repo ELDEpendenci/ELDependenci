@@ -30,23 +30,13 @@ jobs:
         java-version: 11
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-    - name: check directory
-      run: |
-        echo "checking the target jar is exist..."
-        cd ELDependenci-plugin/target
-        file="ELDependenci-plugin-${{ env.version }}.jar"
-        if [ -f $file ]
-        then 
-            echo "$file is exist!"
-        else
-            echo "$file is not exist..."
-        fi
     - name: 'Update javadocs'
       id: update-javadoc
       run: |
         git checkout --orphan gh-pages
         git rm -rf .
-        mv javadocs .
+        mv javadocs/* .
+        git add *
         git commit -am "update javadocs"
         git push -u origin gh-pages
     - name: Delete tag and release
