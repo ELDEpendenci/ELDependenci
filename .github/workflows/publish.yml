@@ -31,6 +31,7 @@ jobs:
     - name: 'Update javadocs'
       id: update-javadoc
       run: |
+        ls -la
         git config --global user.name "Javadocs Generator Bot"
         git config --global user.email "<>"
         git checkout --orphan gh-pages
