@@ -62,6 +62,11 @@ jobs:
         git config --global user.email "<>"
         git branch -D gh-pages && echo Previous branch gh-pages successfully removed
         git checkout --orphan gh-pages
+        git fetch
+        git pull origin gh-pages
+        echo "directory is now after checkout"
+        ls -la
+        git rm -rf .
         for f in `ls -a`
         do
            remove="true"
@@ -72,14 +77,11 @@ jobs:
                 remove="false"
               fi
            done
-           if [ remove = "true" ]
+           if [ $remove = "true" ]
            then
              rm -rfv $f
            fi
         done    
-        echo "directory is now after checkout"
-        ls -la
-        git rm -rf .
         mv javadocs/* .
         git add *
         git commit -am "update javadocs"
