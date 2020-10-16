@@ -8,7 +8,7 @@ name: Publish WorkFlows for ELDependenci
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, test-workflows ]
   pull_request:
     branches: [ master ]
 
