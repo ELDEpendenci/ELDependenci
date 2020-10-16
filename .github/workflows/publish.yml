@@ -79,7 +79,7 @@ jobs:
            fi
         done    
         git fetch
-        git pull origin master
+        git pull origin gh-pages
         echo "directory is now after checkout"
         ls -la
         git rm -rf .
