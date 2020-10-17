@@ -1,8 +1,10 @@
 package com.ericlam.mc.eld;
 
+import com.ericlam.mc.eld.bukkit.ELDMessageConfig;
 import com.ericlam.mc.eld.bukkit.ItemInteractListener;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
 import com.ericlam.mc.eld.commands.ELDCommandHandler;
+import com.ericlam.mc.eld.configurations.ELDConfigManager;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.listeners.ELDEventListeners;
 import com.ericlam.mc.eld.managers.ArgumentManager;
@@ -36,12 +38,16 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     private ItemInteractListener itemInteractListener;
     private static ELDependenciAPI api;
     private Injector injector;
+    // never use dump
+    private final ELDConfigManager eldConfigManager = new ELDConfigManager(null, this);
 
     @Override
     public void onLoad() {
         api = this;
         this.itemInteractListener = new ItemInteractListener(this);
         this.module.bindInstance(ArgParserService.class, argumentManager);
+        eldConfigManager.loadConfig(ELDMessageConfig.class);
+        ELDCommandHandler.setMsg(eldConfigManager.getConfigAs(ELDMessageConfig.class));
     }
 
     public static ELDependenciAPI getApi() {
