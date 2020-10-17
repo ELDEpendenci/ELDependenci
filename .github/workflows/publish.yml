@@ -1,7 +1,7 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 env:
-  version: 0.0.5.1
+  version: 0.0.6
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
 
 name: Publish WorkFlows for ELDependenci
@@ -40,8 +40,7 @@ jobs:
       with:
         tag_name: ${{ env.version }}
         release_name: Release ${{ github.repository }}-${{ env.version }}
-        body: |
-          - 在計時器新增了啟動並處理錯誤的新方法
+        body: 更新詳細請查看 [版本更新](https://eric2788.gitbook.io/eldependenci/references/version-update/v0.0.6)
         draft: false
         prerelease: false
     - name: Upload Release jar

@@ -4,6 +4,7 @@ import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.misc.ArgParser;
 import com.ericlam.mc.eld.managers.ArgumentManager;
 import com.ericlam.mc.eld.services.ArgParserService;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
@@ -46,6 +47,24 @@ public final class ELDArgumentManager implements ArgumentManager, ArgParserServi
     @Override
     public <T> T tryParse(Class<T> type, Iterator<String> args, CommandSender sender) throws ArgumentParseException {
         return this.tryParse(type, "default", args, sender);
+    }
+
+    public Object multiParse(Class<?>[] types, Iterator<String> iterator, CommandSender sender) throws ArgumentParseException {
+        if (!(iterator instanceof ArgIterator)) throw new IllegalStateException("MultiParsing 必須使用 ArgIterator");
+        ArgIterator argIterator = (ArgIterator) iterator;
+        Class<?> suitableType = null;
+        for (Class<?> t : types) {
+            var testIterator = argIterator.cloneIterator(true);
+            try {
+                tryParse(t, testIterator, sender);
+                suitableType = t;
+                break;
+            }catch (ArgumentParseException ignored){
+                // not suitable type, next
+            }
+        }
+        if (suitableType == null) throw new ArgumentParseException("沒有合適的參數形態: "+Arrays.stream(types).map(Class::getSimpleName).collect(Collectors.joining(", ")));
+        return tryParse(suitableType, iterator, sender);
     }
 
     private <T> T parseEnum(Class<T> enumType, Iterator<String> args) throws ArgumentParseException {

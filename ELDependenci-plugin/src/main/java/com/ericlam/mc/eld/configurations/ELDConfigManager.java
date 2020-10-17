@@ -116,7 +116,7 @@ public final class ELDConfigManager implements ConfigStorage {
                     @Override
                     public String getPrefix() {
                         var prefix = ins.getClass().getAnnotation(Prefix.class);
-                        return Optional.ofNullable(prefix).map(pre -> translate(configuration.getString(pre.path()))).orElseThrow(() -> new IllegalStateException("缺少 @Prefix 標註"));
+                        return Optional.ofNullable(prefix).map(pre -> translate(configuration.getString(pre.path()))).orElseThrow(() -> new IllegalStateException(ins.getClass() + " 缺少 @Prefix 標註"));
                     }
 
                     @Override

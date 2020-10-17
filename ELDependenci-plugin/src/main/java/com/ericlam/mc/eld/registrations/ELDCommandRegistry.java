@@ -1,6 +1,7 @@
 package com.ericlam.mc.eld.registrations;
 
 import com.ericlam.mc.eld.HierarchyNode;
+import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.components.CommandNode;
 import com.google.common.collect.ImmutableSet;
 import io.netty.util.internal.ConcurrentSet;
@@ -22,6 +23,7 @@ public final class ELDCommandRegistry implements CommandRegistry {
 
     @Override
     public void command(Class<? extends CommandNode> node, Consumer<CommandRegistry> child) {
+        if (!node.isAnnotationPresent(Commander.class)) throw new IllegalStateException(node+" 缺少 @Commander 標註");
         var n = new HierarchyNode(node);
         child.accept(new SubCommandRegistry(n));
         nodes.add(n);
