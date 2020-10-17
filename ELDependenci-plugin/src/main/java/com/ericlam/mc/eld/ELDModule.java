@@ -1,6 +1,7 @@
 package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
+import com.ericlam.mc.eld.components.Overridable;
 import com.ericlam.mc.eld.services.ItemStackService;
 import com.ericlam.mc.eld.services.MessageService;
 import com.ericlam.mc.eld.services.ScheduleService;
@@ -11,12 +12,11 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.google.inject.multibindings.MapBinder;
+import com.google.inject.multibindings.Multibinder;
 import io.netty.util.internal.ConcurrentSet;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -25,6 +25,7 @@ public final class ELDModule implements Module {
     private final Set<Class<?>> singleton = new ConcurrentSet<>();
     private final Map<Class<?>, Class> services = new ConcurrentHashMap<>();
     private final Map<Class<?>, Map<String, Class>> servicesMulti = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Set<Class>> servicesSet = new ConcurrentHashMap<>();
     private final Map<Class, Object> instances = new ConcurrentHashMap<>();
 
     private final Map<Class, Configuration> configs = new ConcurrentHashMap<>();
@@ -50,7 +51,11 @@ public final class ELDModule implements Module {
         instances.forEach((cls, ins) -> binder.bind(cls).toInstance(ins));
         servicesMulti.forEach((service, map) -> {
             var binding = MapBinder.newMapBinder(binder, String.class, service);
-            map.forEach((key, impl) -> binding.addBinding(key).to(impl));
+            map.forEach((key, impl) -> binding.addBinding(key).to(impl).in(Scopes.SINGLETON));
+        });
+        servicesSet.forEach((services, cls) -> {
+            var binding = Multibinder.newSetBinder(binder, services);
+            cls.forEach(c -> binding.addBinding().to(c).in(Scopes.SINGLETON));
         });
     }
 
@@ -59,20 +64,34 @@ public final class ELDModule implements Module {
     }
 
     <T, R extends T> void bindService(Class<T> service, Class<R> implement) {
-        if (services.containsKey(service) || servicesMulti.containsKey(service)) {
+        if (services.containsKey(service) || servicesMulti.containsKey(service) || servicesSet.containsKey(service)) {
             plugin.getLogger().warning("Service " + service.getName() + " 先前已有註冊，無法再被註冊。");
             return;
         }
         this.services.putIfAbsent(service, implement);
     }
 
-    <T> void bindServices(Class<T> service, Map<String, Class<? extends T>> implementations) {
-        if (services.containsKey(service) || servicesMulti.containsKey(service)) {
-            plugin.getLogger().warning("Service " + service.getName() + " 先前已有註冊，無法再被註冊。");
+    <T> void addServices(Class<T> service, Map<String, Class<? extends T>> implementations) {
+        if (services.containsKey(service) || servicesSet.containsKey(service)) {
+            plugin.getLogger().warning("Service " + service.getName() + " 先前已被用其他方式註冊，無法再被註冊。");
             return;
         }
+        this.servicesMulti.putIfAbsent(service, new LinkedHashMap<>());
         var map = new HashMap<String, Class>(implementations);
-        this.servicesMulti.putIfAbsent(service, map);
+        this.servicesMulti.get(service).putAll(map);
+    }
+
+    <T, L extends T> void addService(Class<T> service, Class<L> implement){
+        if (services.containsKey(service) || servicesMulti.containsKey(service)) {
+            plugin.getLogger().warning("Service " + service.getName() + " 先前已被用其他方式註冊，無法再被註冊。");
+            return;
+        }
+        this.servicesSet.putIfAbsent(service, new LinkedHashSet<>());
+        this.servicesSet.get(service).add(implement);
+    }
+
+    <T extends Overridable, L extends T> void overrideService(Class<T> service, Class<L> implement){
+        this.services.put(service, implement);
     }
 
     <T> void bindInstance(Class<T> cls, T instance) {

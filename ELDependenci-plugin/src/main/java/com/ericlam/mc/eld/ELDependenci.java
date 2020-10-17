@@ -157,7 +157,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         argumentManager.registerParser(Integer.class, (args, sender, parser) -> {
             var num = args.next();
             try {
-                return Integer.parseInt(args.next());
+                return Integer.parseInt(num);
             } catch (NumberFormatException e) {
                 throw new ArgumentParseException(num + " 不是有效的 Integer 。");
             }
@@ -165,7 +165,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         argumentManager.registerParser(Double.class, (args, sender, parser) -> {
             var num = args.next();
             try {
-                return Double.parseDouble(args.next());
+                return Double.parseDouble(num);
             } catch (NumberFormatException e) {
                 throw new ArgumentParseException(num + " 不是有效的 Double 。");
             }
@@ -174,7 +174,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         argumentManager.registerParser(Long.class, (args, sender, parser) -> {
             var num = args.next();
             try {
-                return Long.parseLong(args.next());
+                return Long.parseLong(num);
             } catch (NumberFormatException e) {
                 throw new ArgumentParseException(num + " 不是有效的 Long 。");
             }
@@ -183,7 +183,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         argumentManager.registerParser(Byte.class, (args, sender, parser) -> {
             var num = args.next();
             try {
-                return Byte.parseByte(args.next());
+                return Byte.parseByte(num);
             } catch (NumberFormatException e) {
                 throw new ArgumentParseException(num + " 不是有效的 Byte 。");
             }
@@ -192,7 +192,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         argumentManager.registerParser(Short.class, (args, sender, parser) -> {
             var num = args.next();
             try {
-                return Short.parseShort(args.next());
+                return Short.parseShort(num);
             } catch (NumberFormatException e) {
                 throw new ArgumentParseException(num + " 不是有效的 Short 。");
             }
@@ -201,7 +201,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         argumentManager.registerParser(Float.class, (args, sender, parser) -> {
             var num = args.next();
             try {
-                return Float.parseFloat(args.next());
+                return Float.parseFloat(num);
             } catch (NumberFormatException e) {
                 throw new ArgumentParseException(num + " 不是有效的 Float 。");
             }

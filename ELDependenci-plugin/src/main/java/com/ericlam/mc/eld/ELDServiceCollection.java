@@ -3,6 +3,7 @@ package com.ericlam.mc.eld;
 import com.ericlam.mc.eld.annotations.ELDPlugin;
 import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.ELDListener;
+import com.ericlam.mc.eld.components.Overridable;
 import com.ericlam.mc.eld.configurations.ELDConfigManager;
 import com.ericlam.mc.eld.registrations.ComponentsRegistry;
 import com.ericlam.mc.eld.registrations.ELDCommandRegistry;
@@ -52,19 +53,36 @@ public final class ELDServiceCollection implements ServiceCollection {
 
     @Override
     public ServiceCollection addSingleton(Class<?> singleton) {
+        if (singleton.isInterface()) throw new IllegalStateException("單例不能為 Interface");
         module.bindSingleton(singleton);
         return this;
     }
 
     @Override
-    public <T, L extends T> ServiceCollection addService(Class<T> service, Class<L> implementation) {
+    public <T, L extends T> ServiceCollection bindService(Class<T> service, Class<L> implementation) {
+        if (!service.isInterface()) throw new IllegalStateException("服務類必須為 Interface");
         module.bindService(service, implementation);
         return this;
     }
 
     @Override
+    public <T extends Overridable, L extends T> ServiceCollection overrideService(Class<T> service, Class<L> implementation) {
+        if (!service.isInterface()) throw new IllegalStateException("服務類必須為 Interface");
+        module.overrideService(service, implementation);
+        return this;
+    }
+
+    @Override
+    public <T, L extends T> ServiceCollection addService(Class<T> service, Class<L> implementation) {
+        if (!service.isInterface()) throw new IllegalStateException("服務類必須為 Interface");
+        module.addService(service, implementation);
+        return this;
+    }
+
+    @Override
     public <T> ServiceCollection addServices(Class<T> service, Map<String, Class<? extends T>> implementations) {
-        module.bindServices(service, implementations);
+        if (!service.isInterface()) throw new IllegalStateException("服務類必須為 Interface");
+        module.addServices(service, implementations);
         return this;
     }
 

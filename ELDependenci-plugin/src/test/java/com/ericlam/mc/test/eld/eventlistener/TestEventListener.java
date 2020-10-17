@@ -1,7 +1,6 @@
 package com.ericlam.mc.test.eld.eventlistener;
 
 import com.ericlam.mc.eld.components.EventListeners;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerKickEvent;
 
@@ -11,7 +10,6 @@ public class TestEventListener {
     public void defineNote(EventListeners listener){
 
         listener.listen(PlayerKickEvent.class)
-                .filter(Cancellable::isCancelled)
                 .filter(e -> e.getReason().equalsIgnoreCase("fuck"))
                 .fork()
                 .ifTrue(this::onReasonIsFuck)

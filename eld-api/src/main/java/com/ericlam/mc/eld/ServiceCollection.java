@@ -1,6 +1,7 @@
 package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
+import com.ericlam.mc.eld.components.Overridable;
 
 import java.util.Map;
 
@@ -24,16 +25,44 @@ public interface ServiceCollection {
      * @param <L> 實作
      * @return this
      */
-    <T, L extends T> ServiceCollection addService(Class<T> service, Class<L> implementation);
+    <T, L extends T> ServiceCollection bindService(Class<T> service, Class<L> implementation);
+
 
     /**
-     * 註冊含有多重實作方式的服務
+     * 覆蓋服務
+     * @param service 可覆蓋的服務類 (interface)
+     * @param implementation 新的實作
+     * @param <T> 可覆蓋的服務
+     * @param <L> 實作
+     * @return this
+     */
+    <T extends Overridable, L extends T> ServiceCollection overrideService(Class<T> service, Class<L> implementation);
+
+
+    /**
+     * 註冊服務, 如果已被註冊，則添加新的實作
+     * <p></p>
+     * 使用依賴注入時，請使用 {@code Set<[Service]> } 進行註冊
+     * @param service 服務類 (interface)
+     * @param implementation 新的實作
+     * @param <T> 服務
+     * @param <L> 實作
+     * @return this
+     */
+    <T, L extends T> ServiceCollection addService(Class<T> service, Class<L> implementation);
+
+
+    /**
+     * 註冊含有多重實作方式的服務, 如果先前已有註冊，將直接添加新的實作
+     * <p></p>
+     * 使用依賴注入時，請使用 {@code Map<String, [Service]> } 進行註冊
      * @param service 服務類 (interface)
      * @param implementations 包含標識id的多重實作類比
      * @param <T> 服務
      * @return this
      */
     <T> ServiceCollection addServices(Class<T> service, Map<String, Class<? extends T>> implementations);
+
 
     /**
      * 新增文件配置
