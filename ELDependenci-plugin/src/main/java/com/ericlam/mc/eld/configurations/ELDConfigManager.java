@@ -55,7 +55,7 @@ public final class ELDConfigManager implements ConfigStorage {
         this.plugin = plugin;
     }
 
-    public void skipType(Class<?> type) {
+    private void skipType(Class<?> type) {
         mapper.configOverride(type)
                 .setVisibility(JsonAutoDetect.Value.construct(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE))
                 .setIsIgnoredType(true)

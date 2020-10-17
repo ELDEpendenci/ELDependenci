@@ -1,0 +1,7 @@
+prefix: "&c系統// &r"
+no-args: "&c參數不足: <args>"
+not-player: "&c你不是玩家。"
+no-permission: "&c沒有權限。"
+error:
+  - "&c出現錯誤: <message>"
+  - "&c請通知插件師。"

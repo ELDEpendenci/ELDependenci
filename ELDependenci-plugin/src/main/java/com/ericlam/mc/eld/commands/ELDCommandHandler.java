@@ -5,9 +5,9 @@ import com.ericlam.mc.eld.annotations.CommandArg;
 import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.annotations.DynamicArg;
 import com.ericlam.mc.eld.annotations.RemainArgs;
+import com.ericlam.mc.eld.bukkit.ELDMessageConfig;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.google.inject.Injector;
-import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -23,6 +23,11 @@ import java.util.stream.Collectors;
 public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
 
     private static final ELDCommandArgsHandler commandArgsHandler = new ELDCommandArgsHandler();
+    private static ELDMessageConfig msg;
+
+    public static void setMsg(ELDMessageConfig msg) {
+        ELDCommandHandler.msg = msg;
+    }
 
     public static <A extends Annotation> void registerArgAHandle(Class<A> annotation, CommandArgHandler<A> handle, Function<A, ELDCommandArgsHandler.CommonProperties> propertyGetter) {
         commandArgsHandler.registerArgAHandle(annotation, handle, propertyGetter);
@@ -60,6 +65,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
     );
 
     private ELDCommandHandler(Set<HierarchyNode> commandNodes, Injector injector, ELDArgumentManager argumentManager) {
+        if (msg == null) throw new IllegalStateException("msg config 尚未被初始化");
         this.commandNodes = commandNodes;
         this.injector = injector;
         this.parser = argumentManager;
@@ -80,7 +86,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
         var commander = node.current.getAnnotation(Commander.class);
 
         if (!commander.permission().isEmpty() && !sender.hasPermission(commander.permission())) {
-            sender.sendMessage("no permission");
+            sender.sendMessage(msg.getLang().get("no-permission"));
             return;
         }
 
@@ -100,7 +106,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
         }
 
         if (commander.playerOnly() && !(sender instanceof Player)) {
-            sender.sendMessage("you are not player");
+            sender.sendMessage(msg.getLang().get("not-player"));
             return;
         }
 
@@ -125,7 +131,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
                     placeholder.set(commandNode, instance);
                 } catch (NoSuchElementException e) {
                     if (!properties.optional) {
-                        sender.sendMessage("參數不足:" + toPlaceholderStrings(placeholders));
+                        sender.sendMessage(msg.getLang().get("no-args").replace("<args>", toPlaceholderStrings(placeholders)));
                         return;
                     }
                 }
@@ -146,8 +152,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
             }
             commandNode.execute(sender);
         } catch (IllegalAccessException e) {
-            sender.sendMessage("ERROR: " + e.getMessage());
-            sender.sendMessage("請通知本服插件師");
+            msg.getLang().getList("error").stream().map(s -> s.replace("<message>", e.getMessage())).forEach(sender::sendMessage);
             e.printStackTrace();
         } catch (ArgumentParseException e) {
             sender.sendMessage(e.getMessage());
