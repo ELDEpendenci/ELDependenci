@@ -1,7 +1,5 @@
 package com.ericlam.mc.eld.commands;
 
-import org.bukkit.Bukkit;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.AbstractMap;
@@ -9,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class ELDCommandArgsHandler {
+public final class ELDCommandArgsHandler {
 
     private final Map<Class<? extends Annotation>, ArgsHandler> argsHandler = new LinkedHashMap<>();
 
