@@ -17,6 +17,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.craftbukkit.libs.org.apache.commons.codec.binary.Hex;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,8 +25,11 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -165,7 +169,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Integer.parseInt(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException(num + " 不是有效的 Integer 。");
+                throw new ArgumentParseException("&c" + num + " 不是有效的 Integer 。");
             }
         });
         argumentManager.registerParser(Double.class, (args, sender, parser) -> {
@@ -173,7 +177,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Double.parseDouble(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException(num + " 不是有效的 Double 。");
+                throw new ArgumentParseException("&c" + num + " 不是有效的 Double 。");
             }
         });
 
@@ -182,7 +186,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Long.parseLong(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException(num + " 不是有效的 Long 。");
+                throw new ArgumentParseException("&c" + num + " 不是有效的 Long 。");
             }
         });
 
@@ -191,7 +195,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Byte.parseByte(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException(num + " 不是有效的 Byte 。");
+                throw new ArgumentParseException("&c" + num + " 不是有效的 Byte 。");
             }
         });
 
@@ -200,7 +204,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Short.parseShort(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException(num + " 不是有效的 Short 。");
+                throw new ArgumentParseException("&c" + num + " 不是有效的 Short 。");
             }
         });
 
@@ -209,18 +213,13 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Float.parseFloat(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException(num + " 不是有效的 Float 。");
+                throw new ArgumentParseException("&c" + num + " 不是有效的 Float 。");
             }
         });
 
         argumentManager.registerParser(Character.class, (args, sender, parser) -> args.next().charAt(0));
         argumentManager.registerParser(Boolean.class, (args, sender, parser) -> Boolean.parseBoolean(args.next()));
         argumentManager.registerParser(String.class, (args, sender, parser) -> args.next());
-        argumentManager.registerParser(String.class, "message", ((args, sender, parser) -> {
-            var builder = new StringBuilder();
-            args.forEachRemaining(s -> builder.append(s).append(" "));
-            return builder.toString();
-        }));
         argumentManager.registerParser(Player.class, (args, sender, parser) -> {
             var player = Bukkit.getPlayer(args.next());
             if (player == null) {
@@ -251,6 +250,33 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             var y = parser.tryParse(Double.class, args, sender);
             var z = parser.tryParse(Double.class, args, sender);
             return new Location(world, x, y, z);
+        });
+
+        argumentManager.registerParser(UUID.class, (args, sender, parser) -> {
+            try {
+                return UUID.fromString(args.next());
+            } catch (IllegalArgumentException e) {
+                throw new ArgumentParseException("&c解析UUID時出現錯誤: " + e.getMessage());
+            }
+        });
+
+
+        // named parser
+
+        argumentManager.registerParser(String.class, "message", (args, sender, parser) -> {
+            var builder = new StringBuilder();
+            args.forEachRemaining(s -> builder.append(s).append(" "));
+            return builder.toString();
+        });
+        argumentManager.registerParser(String.class, "sha-256", (arg, sender, parser) -> {
+            var str = arg.next();
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                var b = digest.digest(str.getBytes());
+                return Hex.encodeHexString(b);
+            } catch (NoSuchAlgorithmException e) {
+                throw new ArgumentParseException(e.getMessage());
+            }
         });
 
     }
