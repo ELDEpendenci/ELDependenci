@@ -53,36 +53,6 @@ jobs:
         asset_content_type: application/java-archive
     - name: 'Update javadocs'
       id: update-javadoc
-      run: |
-        mvn clean
-        echo "directory is now before checkout"
-        ls -la
-        git config --global pull.rebase false
-        git config --global user.name "Javadocs Generator Bot"
-        git config --global user.email "<>"
-        git branch -D gh-pages && echo Previous branch gh-pages successfully removed
-        git checkout --orphan gh-pages
-        for f in `ls -a`
-        do
-           remove="true"
-           for ele in "javadocs" "." ".." ".git"
-           do
-              if [ $f = $ele ]
-              then
-                remove="false"
-              fi
-           done
-           if [ $remove = "true" ]
-           then
-             rm -rfv $f
-           fi
-        done    
-        git fetch
-        git pull origin gh-pages && echo gh-pages successfully pulled
-        echo "directory is now after checkout"
-        ls -la
-        git rm -rf .
-        mv javadocs/* .
-        git add *
-        git commit -am "update javadocs"
-        git push -u origin gh-pages
+      uses: eric2788/push-javadoc-branch@main
+      with:
+        use-maven: true
