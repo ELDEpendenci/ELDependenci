@@ -103,7 +103,7 @@ public interface ScheduleService {
         <R> BukkitPromise<R> thenApplyAsync(ChainCallable<E, R> function);
 
         /**
-         * 同步運行
+         * 異步運行
          * @param function 運行
          * @return 沒有傳遞數值的 bukkit promise
          */
