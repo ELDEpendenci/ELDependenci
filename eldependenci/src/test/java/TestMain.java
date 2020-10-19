@@ -28,10 +28,10 @@ public class TestMain {
     }
 
     public void run(){
-        service.callAsync(() -> "", JavaPlugin.getPlugin(JavaPlugin.class))
-                .thenRunAsync(s -> s.equals("abc"))
-                .thenRunSync(b -> b ? 1 : 2)
-                .thenRunSync(n -> n + 123)
+        service.callAsync(JavaPlugin.getPlugin(JavaPlugin.class), () -> "")
+                .thenApplyAsync(s -> s.equals("abc"))
+                .thenApplySync(b -> b ? 1 : 2)
+                .thenApplySync(n -> n + 123)
                 .join();
     }
 }

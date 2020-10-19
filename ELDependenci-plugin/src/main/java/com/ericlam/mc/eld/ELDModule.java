@@ -2,9 +2,7 @@ package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.Overridable;
-import com.ericlam.mc.eld.services.ItemStackService;
-import com.ericlam.mc.eld.services.MessageService;
-import com.ericlam.mc.eld.services.ScheduleService;
+import com.ericlam.mc.eld.services.*;
 import com.ericlam.mc.eld.services.factory.ELDItemStackService;
 import com.ericlam.mc.eld.services.factory.ELDMessageService;
 import com.ericlam.mc.eld.services.scheduler.ELDSchedulerService;
@@ -43,6 +41,7 @@ public final class ELDModule implements Module {
         binder.bind(ScheduleService.class).to(ELDSchedulerService.class).in(Scopes.SINGLETON);
         binder.bind(ItemStackService.class).to(ELDItemStackService.class).in(Scopes.SINGLETON);
         binder.bind(MessageService.class).to(ELDMessageService.class).in(Scopes.SINGLETON);
+        binder.bind(ConfigPoolService.class).to(ELDConfigPoolService.class).in(Scopes.SINGLETON);
 
 
         singleton.forEach(cls -> binder.bind(cls).in(Scopes.SINGLETON));

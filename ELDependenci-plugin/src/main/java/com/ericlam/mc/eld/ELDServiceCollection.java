@@ -3,6 +3,7 @@ package com.ericlam.mc.eld;
 import com.ericlam.mc.eld.annotations.ELDPlugin;
 import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.ELDListener;
+import com.ericlam.mc.eld.components.GroupConfiguration;
 import com.ericlam.mc.eld.components.Overridable;
 import com.ericlam.mc.eld.configurations.ELDConfigManager;
 import com.ericlam.mc.eld.registrations.ComponentsRegistry;
@@ -92,26 +93,32 @@ public final class ELDServiceCollection implements ServiceCollection {
         return this;
     }
 
-    private ComponentsRegistry toInstanceRegistry(Class<? extends ComponentsRegistry> registry){
-        try{
+    @Override
+    public <T extends GroupConfiguration> ServiceCollection addGroupConfiguration(Class<T> config) {
+        this.configManager.loadConfigPool(config);
+        return this;
+    }
+
+    private ComponentsRegistry toInstanceRegistry(Class<? extends ComponentsRegistry> registry) {
+        try {
             var con = registry.getConstructor();
             con.setAccessible(true);
             return con.newInstance();
-        }catch (Exception e){
-            if (e instanceof NoSuchMethodException){
+        } catch (Exception e) {
+            if (e instanceof NoSuchMethodException) {
                 throw new IllegalStateException("ComponentRegistry 必須擁有無參數構造器(no-args constructor)。");
             }
             throw new RuntimeException(e);
         }
     }
 
-    private ELDLifeCycle toInstanceLifeCycle(Class<? extends ELDLifeCycle> lifeCycle){
-        try{
+    private ELDLifeCycle toInstanceLifeCycle(Class<? extends ELDLifeCycle> lifeCycle) {
+        try {
             var con = lifeCycle.getConstructor();
             con.setAccessible(true);
             return con.newInstance();
-        }catch (Exception e){
-            if (e instanceof NoSuchMethodException){
+        } catch (Exception e) {
+            if (e instanceof NoSuchMethodException) {
                 throw new IllegalStateException("LifeCycle 必須擁有無參數構造器(no-args constructor)。");
             }
             throw new RuntimeException(e);

@@ -11,6 +11,8 @@ import com.ericlam.mc.eld.managers.ArgumentManager;
 import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
 import com.ericlam.mc.eld.services.ArgParserService;
+import com.ericlam.mc.eld.services.ConfigPoolService;
+import com.ericlam.mc.eld.services.ELDConfigPoolService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.bukkit.Bukkit;
@@ -39,6 +41,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     private final ELDModule module = new ELDModule(this);
     private final Map<JavaPlugin, ELDServiceCollection> collectionMap = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
+    private ELDConfigPoolService configPoolService;
     private ItemInteractListener itemInteractListener;
     private static ELDependenciAPI api;
     private Injector injector;
@@ -75,6 +78,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         getServer().getPluginManager().registerEvents(itemInteractListener, this);
         this.injector = Guice.createInjector(module);
         injector.getInstance(InstanceInjector.class).setInjector(injector);
+        configPoolService = (ELDConfigPoolService)injector.getInstance(ConfigPoolService.class);
         getServer().getPluginManager().registerEvents(this, this);
     }
 
@@ -85,7 +89,12 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
 
-        services.configManager.setInjector(injector);
+        var configManager = services.configManager;
+
+        configPoolService.dumpAll(configManager.getConfigPoolMap()); // insert all config pool
+        configManager.getRegisteredConfigPool().forEach((cls) -> configPoolService.addInitializer(cls, () -> configManager.preloadConfigPool(cls))); // insert initializer
+
+        configManager.setInjector(injector);
 
         injector.injectMembers(services.lifeCycleHook);
 
