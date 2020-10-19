@@ -22,12 +22,20 @@ public interface ScheduleService {
 
     /**
      * 從異步呼叫數值
-     * @param callable 呼叫類
-     * @param plugin 插件
      * @param <E> 回傳數值
-     * @return 鏈式計時器
+     * @param plugin 插件
+     * @param callable 呼叫類
+     * @return bukkit promise
      */
-    <E> ChainScheduleService<E> callAsync(Callable<E> callable, Plugin plugin);
+    <E> BukkitPromise<E> callAsync(Plugin plugin, Callable<E> callable);
+
+    /***
+     * 從異步運行
+     * @param plugin 插件
+     * @param runnable 異步運行
+     * @return bukkit promise
+     */
+    BukkitPromise<Void> runAsync(Plugin plugin, Runnable runnable);
 
 
     /**
@@ -66,26 +74,40 @@ public interface ScheduleService {
     }
 
     /**
-     * 鏈式計時器
+     * 鏈式的計時及數值提取器 (bukkit promise)
      * @param <E> 回傳數值
      */
-    interface ChainScheduleService<E> {
+    interface BukkitPromise<E> {
+
+        /**
+         * 同步運行並傳遞數值
+         * @param function 運行
+         * @param <R> 新的回傳數值
+         * @return this
+         */
+        <R> BukkitPromise<R> thenApplySync(ChainCallable<E, R> function);
 
         /**
          * 同步運行
          * @param function 運行
-         * @param <R> 新的回傳數值
-         * @return this
+         * @return 沒有傳遞數值的 bukkit promise
          */
-        <R> ChainScheduleService<R> thenRunSync(ChainCallable<E, R> function);
+        BukkitPromise<Void> thenRunSync(Consumer<E> function);
 
         /**
-         * 異步運行
+         * 異步運行並傳遞數值
          * @param function 運行
          * @param <R> 新的回傳數值
          * @return this
          */
-        <R> ChainScheduleService<R> thenRunAsync(ChainCallable<E, R> function);
+        <R> BukkitPromise<R> thenApplyAsync(ChainCallable<E, R> function);
+
+        /**
+         * 同步運行
+         * @param function 運行
+         * @return 沒有傳遞數值的 bukkit promise
+         */
+        BukkitPromise<Void> thenRunAsync(Consumer<E> function);
 
         /**
          * 啟動

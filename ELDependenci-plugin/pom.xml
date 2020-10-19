@@ -5,17 +5,16 @@
     <parent>
         <artifactId>ELDependenci</artifactId>
         <groupId>org.eldependenci</groupId>
-        <version>0.0.6</version>
+        <version>0.0.7</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ELDependenci-plugin</artifactId>
-    <version>0.0.6.2</version>
 
     <dependencies>
         <dependency>
             <groupId>org.eldependenci</groupId>
-            <artifactId>eld-api</artifactId>
+            <artifactId>eldependenci</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>

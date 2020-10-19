@@ -5,11 +5,11 @@
     <parent>
         <artifactId>ELDependenci</artifactId>
         <groupId>org.eldependenci</groupId>
-        <version>0.0.6</version>
+        <version>0.0.7</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>eld-api</artifactId>
+    <artifactId>eldependenci</artifactId>
 
     <dependencies>
         <dependency>

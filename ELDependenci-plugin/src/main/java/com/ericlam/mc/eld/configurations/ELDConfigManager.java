@@ -1,9 +1,11 @@
 package com.ericlam.mc.eld.configurations;
 
 import com.ericlam.mc.eld.ELDModule;
+import com.ericlam.mc.eld.annotations.GroupResource;
 import com.ericlam.mc.eld.annotations.Prefix;
 import com.ericlam.mc.eld.annotations.Resource;
 import com.ericlam.mc.eld.components.Configuration;
+import com.ericlam.mc.eld.components.GroupConfiguration;
 import com.ericlam.mc.eld.components.LangConfiguration;
 import com.ericlam.mc.eld.controllers.FileController;
 import com.ericlam.mc.eld.controllers.LangController;
@@ -15,19 +17,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Injector;
+import io.netty.util.internal.ConcurrentSet;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -37,6 +42,8 @@ public final class ELDConfigManager implements ConfigStorage {
     private final JavaPlugin plugin;
     private final ObjectMapper mapper;
     private final Map<Class<? extends Configuration>, Configuration> configurationMap = new LinkedHashMap<>();
+    private final Map<Class<? extends GroupConfiguration>, Map<String, GroupConfiguration>> configPoolMap = new ConcurrentHashMap<>();
+    private final Set<Class<? extends GroupConfiguration>> registeredConfigPool = new ConcurrentSet<>();
     private Injector injector = null;
 
     public ELDConfigManager(ELDModule module, JavaPlugin plugin) {
@@ -53,6 +60,14 @@ public final class ELDConfigManager implements ConfigStorage {
         this.skipType(FileController.class);
         this.skipType(LangController.class);
         this.plugin = plugin;
+    }
+
+    public Map<Class<? extends GroupConfiguration>, Map<String, GroupConfiguration>> getConfigPoolMap() {
+        return ImmutableMap.copyOf(configPoolMap);
+    }
+
+    public Set<Class<? extends GroupConfiguration>> getRegisteredConfigPool() {
+        return ImmutableSet.copyOf(registeredConfigPool);
     }
 
     private void skipType(Class<?> type) {
@@ -78,37 +93,7 @@ public final class ELDConfigManager implements ConfigStorage {
         try {
             File f = new File(plugin.getDataFolder(), resource.locate());
             if (!f.exists()) plugin.saveResource(resource.locate(), true);
-            var ins = mapper.readValue(f, config);
-            class FileControllerImpl implements FileController {
-
-                @Override
-                public boolean reload() {
-                    try {
-                        if (reloadConfig(config)) {
-                            var latest = mapper.readValue(f, config);
-                            for (Field f : latest.getClass().getDeclaredFields()) {
-                                var dataField = latest.getClass().getDeclaredField(f.getName());
-                                dataField.setAccessible(true);
-                                var data = dataField.get(latest);
-                                f.setAccessible(true);
-                                f.set(ins, data);
-                            }
-                            return true;
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return false;
-                }
-
-                @Override
-                public void save() throws IOException {
-                    mapper.writeValue(f, ins);
-                }
-            }
-
-            Field controller = Configuration.class.getDeclaredField("controller");
-            setField(controller, new FileControllerImpl(), ins);
+            var ins = initConfiguration(config, f);
             if (ins instanceof LangConfiguration){
                 YamlConfiguration configuration = YamlConfiguration.loadConfiguration(f);
                 class MessageGetterImpl implements LangController {
@@ -139,7 +124,7 @@ public final class ELDConfigManager implements ConfigStorage {
                         return configuration.getStringList(path).stream().map(ELDConfigManager.this::translate).collect(Collectors.toList());
                     }
                 }
-                controller = LangConfiguration.class.getDeclaredField("lang");
+                var controller = LangConfiguration.class.getDeclaredField("lang");
                 setField(controller, new MessageGetterImpl(), ins);
             }
 
@@ -148,6 +133,83 @@ public final class ELDConfigManager implements ConfigStorage {
             plugin.getLogger().warning("Error while loading yaml " + resource.locate());
             e.printStackTrace();
         }
+    }
+
+    public <T extends GroupConfiguration> void loadConfigPool(Class<T> config){
+        registeredConfigPool.add(config);
+        preloadConfigPool(config).whenComplete((p, ex) ->{
+            if (ex != null) ex.printStackTrace();
+            else configPoolMap.put(config, p);
+        });
+    }
+
+    public <T extends GroupConfiguration> CompletableFuture<Map<String, GroupConfiguration>> preloadConfigPool(Class<T> config){
+        if (!config.isAnnotationPresent(GroupResource.class))
+            throw new IllegalStateException("config pool " + config.getSimpleName() + " 缺少 @GroupResource 標註");
+        var resource = config.getAnnotation(GroupResource.class);
+        return CompletableFuture.supplyAsync(() -> {
+            var pool = new ConcurrentHashMap<String, GroupConfiguration>();
+            try {
+                File f = new File(plugin.getDataFolder(), resource.folder());
+                if (!f.exists()) f.mkdirs();
+                if (!f.isDirectory()) throw new IllegalStateException("config pool "+config.getSimpleName()+" 的標註路徑 "+resource.folder()+" 不是文件夾!");
+                var child = f.listFiles(fi -> FilenameUtils.getExtension(fi.getName()).equals("yml"));
+                if (child == null ){
+                    return pool;
+                }
+                for (File data : child) {
+                    var id = FilenameUtils.getBaseName(data.getName());
+                    var ins = initConfiguration(config, data);
+                    var idField = GroupConfiguration.class.getDeclaredField("id");
+                    setField(idField, id, ins);
+                    pool.put(id, ins);
+                }
+                return pool;
+            } catch (Exception e) {
+                plugin.getLogger().warning("Error while loading config pool " + resource.folder());
+                e.printStackTrace();
+            }
+            return pool;
+        }).thenApply(p -> {
+            plugin.getLogger().info("folder "+resource.folder()+" 內的所有文件已經加載完成。");
+            return p;
+        });
+    }
+
+    private <T extends Configuration> T initConfiguration(Class<T> config, File f) throws Exception{
+        var ins = mapper.readValue(f, config);
+        class FileControllerImpl implements FileController {
+
+            @Override
+            public boolean reload() {
+                try {
+                    if (reloadConfig(config)) {
+                        var latest = mapper.readValue(f, config);
+                        for (Field f : latest.getClass().getDeclaredFields()) {
+                            var dataField = latest.getClass().getDeclaredField(f.getName());
+                            dataField.setAccessible(true);
+                            var data = dataField.get(latest);
+                            f.setAccessible(true);
+                            f.set(ins, data);
+                        }
+                        return true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return false;
+            }
+
+            @Override
+            public void save() throws IOException {
+                mapper.writeValue(f, ins);
+            }
+        }
+
+        Field controller = Configuration.class.getDeclaredField("controller");
+        setField(controller, new FileControllerImpl(), ins);
+
+        return ins;
     }
 
     @Override

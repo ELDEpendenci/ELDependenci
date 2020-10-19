@@ -7,9 +7,9 @@
     <groupId>org.eldependenci</groupId>
     <artifactId>ELDependenci</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
     <modules>
-        <module>eld-api</module>
+        <module>eldependenci</module>
         <module>ELDependenci-plugin</module>
     </modules>
 

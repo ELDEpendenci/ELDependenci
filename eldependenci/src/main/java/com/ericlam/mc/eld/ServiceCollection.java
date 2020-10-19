@@ -1,6 +1,7 @@
 package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
+import com.ericlam.mc.eld.components.GroupConfiguration;
 import com.ericlam.mc.eld.components.Overridable;
 
 import java.util.Map;
@@ -71,5 +72,13 @@ public interface ServiceCollection {
      * @return this
      */
     <T extends Configuration> ServiceCollection addConfiguration(Class<T> config);
+
+    /**
+     * 新增文件池
+     * @param config 文件
+     * @param <T> 映射物件類
+     * @return this
+     */
+    <T extends GroupConfiguration> ServiceCollection addGroupConfiguration(Class<T> config);
 
 }
