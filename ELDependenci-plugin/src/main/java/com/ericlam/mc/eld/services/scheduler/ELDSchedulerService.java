@@ -25,9 +25,18 @@ public final class ELDSchedulerService implements ScheduleService {
     }
 
     @Override
-    public <E> ChainScheduleService<E> callAsync(Callable<E> callable, Plugin plugin) {
+    public <E> BukkitPromise<E> callAsync(Plugin plugin, Callable<E> callable) {
         injector.inject(callable);
-        return new ELDChainScheduleService<>(callable, plugin);
+        return new ELDBukkitPromise<>(callable, plugin);
+    }
+
+    @Override
+    public BukkitPromise<Void> runAsync(Plugin plugin, Runnable runnable) {
+        injector.inject(runnable);
+        return new ELDBukkitPromise<>(() -> {
+            runnable.run();
+            return Void.TYPE.cast(null);
+        }, plugin);
     }
 
 
@@ -86,20 +95,20 @@ public final class ELDSchedulerService implements ScheduleService {
     }
 
 
-    private class ELDChainScheduleService<E> implements ChainScheduleService<E> {
+    private class ELDBukkitPromise<E> implements BukkitPromise<E> {
 
         private final Plugin plugin;
         private final BukkitCallable<E> bukkitCallable;
 
-        private ELDChainScheduleService(Callable<E> callable, Plugin plugin) {
+        private ELDBukkitPromise(Callable<E> callable, Plugin plugin) {
             injector.inject(callable);
             bukkitCallable = new BukkitCallable<>(callable);
             this.plugin = plugin;
         }
 
         @Override
-        public <R> ChainScheduleService<R> thenRunSync(ChainCallable<E, R> function) {
-            var s = new ELDChainScheduleService2<>(new LinkedList<>(List.of(bukkitCallable)), function, plugin, false);
+        public <R> BukkitPromise<R> thenApplySync(ChainCallable<E, R> function) {
+            var s = new ELDBukkitPromise2<>(new LinkedList<>(List.of(bukkitCallable)), function, plugin, false);
             bukkitCallable.setHandler(e -> {
                 s.setElement(e);
                 s.start();
@@ -108,13 +117,29 @@ public final class ELDSchedulerService implements ScheduleService {
         }
 
         @Override
-        public <R> ChainScheduleService<R> thenRunAsync(ChainCallable<E, R> function) {
-            var s = new ELDChainScheduleService2<>(new LinkedList<>(List.of(bukkitCallable)), function, plugin, true);
+        public BukkitPromise<Void> thenRunSync(Consumer<E> function) {
+            return thenApplySync(e -> {
+                function.accept(e);
+                return Void.TYPE.cast(null);
+            });
+        }
+
+        @Override
+        public <R> BukkitPromise<R> thenApplyAsync(ChainCallable<E, R> function) {
+            var s = new ELDBukkitPromise2<>(new LinkedList<>(List.of(bukkitCallable)), function, plugin, true);
             bukkitCallable.setHandler(e -> {
                 s.setElement(e);
                 s.start();
             });
             return s;
+        }
+
+        @Override
+        public BukkitPromise<Void> thenRunAsync(Consumer<E> function) {
+            return thenApplyAsync(e -> {
+                function.accept(e);
+                return Void.TYPE.cast(null);
+            });
         }
 
         @Override
@@ -130,7 +155,7 @@ public final class ELDSchedulerService implements ScheduleService {
     }
 
 
-    private class ELDChainScheduleService2<E, R> implements ChainScheduleService<R> {
+    private class ELDBukkitPromise2<E, R> implements BukkitPromise<R> {
 
         public final Plugin plugin;
         private final boolean async;
@@ -138,7 +163,7 @@ public final class ELDSchedulerService implements ScheduleService {
         private final BukkitChainCallable<E, R> bukkitChainCallable;
 
 
-        public ELDChainScheduleService2(final LinkedList<CatchableRunnable> catchableRunnableLinkedList, ChainCallable<E, R> function, Plugin plugin, boolean async) {
+        public ELDBukkitPromise2(final LinkedList<CatchableRunnable> catchableRunnableLinkedList, ChainCallable<E, R> function, Plugin plugin, boolean async) {
             injector.inject(function);
             bukkitChainCallable = new BukkitChainCallable<>(function);
             this.catchableRunnableLinkedList = catchableRunnableLinkedList;
@@ -153,8 +178,8 @@ public final class ELDSchedulerService implements ScheduleService {
 
 
         @Override
-        public <J> ChainScheduleService<J> thenRunSync(ChainCallable<R, J> function) {
-            var s = new ELDChainScheduleService2<>(catchableRunnableLinkedList, function, plugin, false);
+        public <J> BukkitPromise<J> thenApplySync(ChainCallable<R, J> function) {
+            var s = new ELDBukkitPromise2<>(catchableRunnableLinkedList, function, plugin, false);
             bukkitChainCallable.setHandler(e -> {
                 s.setElement(e);
                 s.start();
@@ -163,13 +188,29 @@ public final class ELDSchedulerService implements ScheduleService {
         }
 
         @Override
-        public <J> ChainScheduleService<J> thenRunAsync(ChainCallable<R, J> function) {
-            var s = new ELDChainScheduleService2<>(catchableRunnableLinkedList, function, plugin, true);
+        public BukkitPromise<Void> thenRunSync(Consumer<R> function) {
+            return thenApplySync(e -> {
+                function.accept(e);
+                return Void.TYPE.cast(null);
+            });
+        }
+
+        @Override
+        public <J> BukkitPromise<J> thenApplyAsync(ChainCallable<R, J> function) {
+            var s = new ELDBukkitPromise2<>(catchableRunnableLinkedList, function, plugin, true);
             bukkitChainCallable.setHandler(e -> {
                 s.setElement(e);
                 s.start();
             });
             return s;
+        }
+
+        @Override
+        public BukkitPromise<Void> thenRunAsync(Consumer<R> function) {
+            return thenApplyAsync(e ->{
+                function.accept(e);
+                return Void.TYPE.cast(null);
+            });
         }
 
         private void start() {
