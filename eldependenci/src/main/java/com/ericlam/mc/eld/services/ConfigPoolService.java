@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 public interface ConfigPoolService {
 
     /**
-     * 異步獲取文件池
+     * 異步獲取文件池。若快取已有，則直接從快取獲取。
      * @param config 文件
      * @param <C> 映射物件類
      * @return 文件池的 bukkit promise
@@ -20,7 +20,7 @@ public interface ConfigPoolService {
     <C extends GroupConfiguration> ScheduleService.BukkitPromise<Map<String, C>> getPoolAsync(Class<C> config);
 
     /**
-     * 同步獲取文件池快取
+     * 從快取獲取文件池，若快取並無此文件池，則為 null
      * @param config 文件
      * @param <C> 映射物件類
      * @return 文件池
