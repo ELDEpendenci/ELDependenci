@@ -53,7 +53,7 @@ public final class ItemInteractListener implements ItemInteractManager, Listener
 
     public void addConsumeEvent(String key, Consumer<PlayerItemConsumeEvent> eventConsumer) {
         if (eventClickerMap.putIfAbsent(key, eventConsumer) != null) {
-            plugin.getLogger().warning("clicker key " + key + " 已存在, 因此無法儲存。");
+            plugin.getLogger().warning("consume key " + key + " 已存在, 因此無法儲存。");
         }
     }
 
@@ -87,8 +87,8 @@ public final class ItemInteractListener implements ItemInteractManager, Listener
         var consumer = eventClickerMap.get(key);
         if (consumer == null) {
             if (!key.startsWith("temp")) {
-                plugin.getLogger().warning("左右鍵物品執行事件的 execute key " + key + " 並不存在，請確保插件師已經註冊!");
-                e.getPlayer().sendMessage("左右鍵物品執行事件的 execute key " + key + " 並不存在，請確保插件師已經註冊!");
+                plugin.getLogger().warning("進食事件的 execute key " + key + " 並不存在，請確保插件師已經註冊!");
+                e.getPlayer().sendMessage("進食事件的 execute key " + key + " 並不存在，請確保插件師已經註冊!");
             }
             return;
         }
