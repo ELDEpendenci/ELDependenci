@@ -151,11 +151,13 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
                 f.set(commandNode, list);
             }
             commandNode.execute(sender);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
+            if (e instanceof ArgumentParseException){
+                sender.sendMessage(msg.getLang().getPrefix()+e.getMessage());
+                return;
+            }
             msg.getLang().getList("error").stream().map(s -> s.replace("<message>", e.getMessage())).forEach(sender::sendMessage);
             e.printStackTrace();
-        } catch (ArgumentParseException e) {
-            sender.sendMessage(msg.getLang().getPrefix()+e.getMessage());
         }
     }
 

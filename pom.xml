@@ -200,7 +200,7 @@
                                 <goal>sign</goal>
                             </goals>
                             <configuration>
-                                <!-- Prevent `gpg` from using pinentry programs -->
+                                <keyname>FEC6455A08E1670A</keyname>
                                 <gpgArguments>
                                     <arg>--pinentry-mode</arg>
                                     <arg>loopback</arg>
@@ -261,6 +261,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
