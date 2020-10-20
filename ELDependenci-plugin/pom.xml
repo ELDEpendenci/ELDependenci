@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>org.eldependenci</groupId>
-            <artifactId>eldependenci</artifactId>
+            <artifactId>eldependenci-framework</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>
