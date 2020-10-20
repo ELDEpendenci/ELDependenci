@@ -50,6 +50,7 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
         asset_path: ./ELDependenci-plugin/target/ELDependenci-plugin-${{env.version}}.jar
         asset_name: ELDependenci-plugin-${{ env.version }}.jar
+        asset_content_type: application/java-archive
     - name: 'Update javadocs'
       id: update-javadoc
       uses: eric2788/push-javadoc-branch@main
