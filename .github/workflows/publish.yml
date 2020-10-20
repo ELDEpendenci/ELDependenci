@@ -44,14 +44,14 @@ jobs:
         draft: false
         prerelease: false
     - name: Upload Release jar
-      id: upload-release-asset
+      id: upload-release-asset-jar
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
         asset_path: ./ELDependenci-plugin/target/ELDependenci-plugin-${{env.version}}.jar
         asset_name: ELDependenci-plugin-${{ env.version }}.jar
     - name: Upload Release jar asc
-      id: upload-release-asset
+      id: upload-release-asset-asc
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
