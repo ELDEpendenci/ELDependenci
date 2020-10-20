@@ -9,7 +9,7 @@
     <packaging>pom</packaging>
     <version>0.0.7</version>
     <modules>
-        <module>eldependenci</module>
+        <module>eldependenci-framework</module>
         <module>ELDependenci-plugin</module>
     </modules>
 
