@@ -174,8 +174,8 @@
                         <isOffline>false</isOffline>
                         <linksource>true</linksource>
                         <encoding>UTF-8</encoding>
-                        <windowtitle>ELDependenci-Api</windowtitle>
-                        <doctitle>ELDependenci-Api v${project.version}</doctitle>
+                        <windowtitle>ELDependenci</windowtitle>
+                        <doctitle>ELDependenci Framework v${project.version}</doctitle>
                         <verbose>true</verbose>
                         <author>true</author>
                         <version>true</version>
