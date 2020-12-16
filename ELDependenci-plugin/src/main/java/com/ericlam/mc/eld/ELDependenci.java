@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, Listener {
@@ -47,6 +48,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     private Injector injector;
     // never use dump
     private final ELDConfigManager eldConfigManager = new ELDConfigManager(null, this);
+    private boolean disabled = false;
 
     @Override
     public void onLoad() {
@@ -58,7 +60,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     }
 
     public static ELDependenciAPI getApi() {
-        return api;
+        return Optional.ofNullable(api).orElseThrow(() -> new IllegalStateException("ELDependencies 加載未完成，請檢查你的插件 plugin.yml 有沒有 添加 本插件作為 depend"));
     }
 
     public ManagerProvider register(ELDBukkitPlugin plugin, Consumer<ServiceCollection> injector) {
@@ -67,6 +69,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         }
         var collection = new ELDServiceCollection(module, plugin);
         injector.accept(collection);
+        module.bindPluginInstance(plugin);
         collection.configManager.dumpAll();
         this.collectionMap.put(plugin, collection);
         return new ELDManagerProvider(collection);
@@ -74,11 +77,17 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
     @Override
     public void onEnable() {
-        registerParser();
-        getServer().getPluginManager().registerEvents(itemInteractListener, this);
-        this.injector = Guice.createInjector(module);
-        injector.getInstance(InstanceInjector.class).setInjector(injector);
-        configPoolService = (ELDConfigPoolService)injector.getInstance(ConfigPoolService.class);
+        try{
+            registerParser();
+            getServer().getPluginManager().registerEvents(itemInteractListener, this);
+            this.injector = Guice.createInjector(module);
+            injector.getInstance(InstanceInjector.class).setInjector(injector);
+            configPoolService = (ELDConfigPoolService)injector.getInstance(ConfigPoolService.class);
+        }catch (Exception e){
+            getLogger().log(Level.SEVERE, "啟用 ELDependenci 時出現錯誤: ", e);
+            getLogger().log(Level.SEVERE, "正在禁用插件...");
+            this.disabled = true;
+        }
         getServer().getPluginManager().registerEvents(this, this);
     }
 
@@ -88,6 +97,11 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         var plugin = (JavaPlugin) e.getPlugin();
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
+
+        if (disabled){
+            plugin.getLogger().log(Level.SEVERE, "由於 ELDependenci 被禁用，因此插件無法使用。");
+            return;
+        }
 
         var configManager = services.configManager;
 
@@ -142,7 +156,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         var plugin = (JavaPlugin) e.getPlugin();
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
-
+        if (disabled) return;
         services.lifeCycleHook.onDisable(plugin);
 
     }

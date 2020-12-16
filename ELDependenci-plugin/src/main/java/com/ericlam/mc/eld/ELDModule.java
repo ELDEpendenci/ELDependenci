@@ -28,6 +28,8 @@ public final class ELDModule implements Module {
 
     private final Map<Class, Configuration> configs = new ConcurrentHashMap<>();
 
+    private final Map<String, Plugin> pluginInjectors = new ConcurrentHashMap<>();
+
     public final Plugin plugin;
 
     public ELDModule(Plugin plugin) {
@@ -55,6 +57,10 @@ public final class ELDModule implements Module {
         servicesSet.forEach((services, cls) -> {
             var binding = Multibinder.newSetBinder(binder, services);
             cls.forEach(c -> binding.addBinding().to(c).in(Scopes.SINGLETON));
+        });
+        pluginInjectors.forEach((pluginName, plugin) -> {
+            var pluginBinding = MapBinder.newMapBinder(binder, String.class, Plugin.class);
+            pluginBinding.addBinding(pluginName).toInstance(plugin);
         });
     }
 
@@ -95,6 +101,10 @@ public final class ELDModule implements Module {
 
     <T> void bindInstance(Class<T> cls, T instance) {
         this.instances.putIfAbsent(cls, instance);
+    }
+
+    void bindPluginInstance(Plugin instance){
+        this.pluginInjectors.put(instance.getName(), instance);
     }
 
 
