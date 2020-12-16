@@ -1,5 +1,6 @@
 package com.ericlam.mc.eld;
 
+import com.ericlam.mc.eld.bukkit.ELDConfig;
 import com.ericlam.mc.eld.bukkit.ELDMessageConfig;
 import com.ericlam.mc.eld.bukkit.ItemInteractListener;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
@@ -49,14 +50,18 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     // never use dump
     private final ELDConfigManager eldConfigManager = new ELDConfigManager(null, this);
     private boolean disabled = false;
+    private boolean sharePluginInstance = false;
 
     @Override
     public void onLoad() {
         api = this;
         this.itemInteractListener = new ItemInteractListener(this);
         this.module.bindInstance(ArgParserService.class, argumentManager);
+        eldConfigManager.loadConfig(ELDConfig.class);
         eldConfigManager.loadConfig(ELDMessageConfig.class);
         ELDCommandHandler.setMsg(eldConfigManager.getConfigAs(ELDMessageConfig.class));
+        var eldConfig = eldConfigManager.getConfigAs(ELDConfig.class);
+        this.sharePluginInstance = eldConfig.sharePluginInstance;
     }
 
     public static ELDependenciAPI getApi() {
@@ -69,7 +74,8 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         }
         var collection = new ELDServiceCollection(module, plugin);
         injector.accept(collection);
-        module.bindPluginInstance(plugin);
+        if (sharePluginInstance) module.mapPluginInstance(plugin);
+        module.bindPluginInstance(plugin.getClass(), plugin);
         collection.configManager.dumpAll();
         this.collectionMap.put(plugin, collection);
         return new ELDManagerProvider(collection);
