@@ -45,13 +45,13 @@
             <dependency>
                 <groupId>patched</groupId>
                 <artifactId>1.16</artifactId>
-                <version>r2</version>
+                <version>r3.1</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>paper</groupId>
                 <artifactId>1.16</artifactId>
-                <version>204</version>
+                <version>265</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
