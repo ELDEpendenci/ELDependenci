@@ -98,6 +98,10 @@ public final class ELDConfigManager implements ConfigStorage {
                 YamlConfiguration configuration = YamlConfiguration.loadConfiguration(f);
                 class MessageGetterImpl implements LangController {
 
+                    private String noPath(String path){
+                        return translate("&4訊息文件資源 ("+resource.locate()+") 缺少路徑: "+path);
+                    }
+
                     @Override
                     public String getPrefix() {
                         var prefix = ins.getClass().getAnnotation(Prefix.class);
@@ -111,6 +115,9 @@ public final class ELDConfigManager implements ConfigStorage {
 
                     @Override
                     public String getPure(String path) {
+                        if (!configuration.contains(path)){
+                            return noPath(path);
+                        }
                         return translate(configuration.getString(path));
                     }
 
@@ -121,6 +128,9 @@ public final class ELDConfigManager implements ConfigStorage {
 
                     @Override
                     public List<String> getPureList(String path) {
+                        if (!configuration.contains(path)){
+                            return List.of(noPath(path));
+                        }
                         return configuration.getStringList(path).stream().map(ELDConfigManager.this::translate).collect(Collectors.toList());
                     }
                 }

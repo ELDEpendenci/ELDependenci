@@ -58,8 +58,8 @@ public final class ELDModule implements Module {
             var binding = Multibinder.newSetBinder(binder, services);
             cls.forEach(c -> binding.addBinding().to(c).in(Scopes.SINGLETON));
         });
+        var pluginBinding = MapBinder.newMapBinder(binder, String.class, Plugin.class);
         pluginInjectors.forEach((pluginName, plugin) -> {
-            var pluginBinding = MapBinder.newMapBinder(binder, String.class, Plugin.class);
             pluginBinding.addBinding(pluginName).toInstance(plugin);
         });
     }
@@ -103,7 +103,11 @@ public final class ELDModule implements Module {
         this.instances.putIfAbsent(cls, instance);
     }
 
-    void bindPluginInstance(Plugin instance){
+    <T extends ELDBukkitPlugin> void bindPluginInstance(Class<? extends ELDBukkitPlugin> cls, T instance){
+        this.instances.putIfAbsent(cls, instance);
+    }
+
+    void mapPluginInstance(Plugin instance){
         this.pluginInjectors.put(instance.getName(), instance);
     }
 
