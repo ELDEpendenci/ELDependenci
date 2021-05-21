@@ -18,4 +18,10 @@ public @interface GroupResource {
      */
     String folder();
 
+    /**
+     * 列表內的文件會被預先儲存到插件文件夾
+     * @return 文件名稱
+     */
+    String[] preloads() default {};
+
 }
