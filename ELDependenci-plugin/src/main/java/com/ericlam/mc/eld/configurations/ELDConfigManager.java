@@ -163,6 +163,11 @@ public final class ELDConfigManager implements ConfigStorage {
                 File f = new File(plugin.getDataFolder(), resource.folder());
                 if (!f.exists()) f.mkdirs();
                 if (!f.isDirectory()) throw new IllegalStateException("config pool "+config.getSimpleName()+" 的標註路徑 "+resource.folder()+" 不是文件夾!");
+                for (String preload : resource.preloads()) {
+                    String yml = preload.concat(".yml");
+                    File preLoadFile = new File(f, yml);
+                    if (!preLoadFile.exists()) plugin.saveResource(resource.folder().concat("/").concat(yml), true);
+                }
                 var child = f.listFiles(fi -> FilenameUtils.getExtension(fi.getName()).equals("yml"));
                 if (child == null ){
                     return pool;
