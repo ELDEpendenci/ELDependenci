@@ -1,6 +1,7 @@
 package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
+import com.ericlam.mc.eld.components.GroupLangConfiguration;
 import com.ericlam.mc.eld.components.Overridable;
 import com.ericlam.mc.eld.services.*;
 import com.ericlam.mc.eld.services.factory.ELDItemStackService;
@@ -27,6 +28,7 @@ public final class ELDModule implements Module {
     private final Map<Class, Object> instances = new ConcurrentHashMap<>();
 
     private final Map<Class, Configuration> configs = new ConcurrentHashMap<>();
+    private final Map<Class, Map<String, ? extends GroupLangConfiguration>> groupLangs = new ConcurrentHashMap<>();
 
     private final Map<String, Plugin> pluginInjectors = new ConcurrentHashMap<>();
 
@@ -54,6 +56,10 @@ public final class ELDModule implements Module {
             var binding = MapBinder.newMapBinder(binder, String.class, service);
             map.forEach((key, impl) -> binding.addBinding(key).to(impl).in(Scopes.SINGLETON));
         });
+        groupLangs.forEach((cls, map) -> {
+            var binding = MapBinder.newMapBinder(binder, String.class, cls);
+            map.forEach((key, lang) -> binding.addBinding(key).toInstance(lang));
+        });
         servicesSet.forEach((services, cls) -> {
             var binding = Multibinder.newSetBinder(binder, services);
             cls.forEach(c -> binding.addBinding().to(c).in(Scopes.SINGLETON));
@@ -70,7 +76,7 @@ public final class ELDModule implements Module {
 
     <T, R extends T> void bindService(Class<T> service, Class<R> implement) {
         if (services.containsKey(service) || servicesMulti.containsKey(service) || servicesSet.containsKey(service)) {
-            plugin.getLogger().warning("Service " + service.getName() + " 先前已有註冊，無法再被註冊。");
+            plugin.getLogger().warning("Service " + service.getName() + " has already registered and cannot be registered again.");
             return;
         }
         this.services.putIfAbsent(service, implement);
@@ -78,7 +84,7 @@ public final class ELDModule implements Module {
 
     <T> void addServices(Class<T> service, Map<String, Class<? extends T>> implementations) {
         if (services.containsKey(service) || servicesSet.containsKey(service)) {
-            plugin.getLogger().warning("Service " + service.getName() + " 先前已被用其他方式註冊，無法再被註冊。");
+            plugin.getLogger().warning("Service " + service.getName() + " has already registered and cannot be registered again.");
             return;
         }
         this.servicesMulti.putIfAbsent(service, new LinkedHashMap<>());
@@ -88,7 +94,7 @@ public final class ELDModule implements Module {
 
     <T, L extends T> void addService(Class<T> service, Class<L> implement){
         if (services.containsKey(service) || servicesMulti.containsKey(service)) {
-            plugin.getLogger().warning("Service " + service.getName() + " 先前已被用其他方式註冊，無法再被註冊。");
+            plugin.getLogger().warning("Service " + service.getName() + " has already registered and cannot be registered again.");
             return;
         }
         this.servicesSet.putIfAbsent(service, new LinkedHashSet<>());
@@ -114,5 +120,9 @@ public final class ELDModule implements Module {
 
     public void bindConfig(Class<? extends Configuration> cls, Configuration c) {
         this.configs.put(cls, c);
+    }
+
+    public synchronized <T extends GroupLangConfiguration> void bindLangGroup(Class<T> groupLangConfig, Map<String, T> stringMap){
+        this.groupLangs.put(groupLangConfig, stringMap);
     }
 }

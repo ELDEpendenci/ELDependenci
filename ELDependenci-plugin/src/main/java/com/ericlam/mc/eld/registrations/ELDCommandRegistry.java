@@ -23,7 +23,7 @@ public final class ELDCommandRegistry implements CommandRegistry {
 
     @Override
     public void command(Class<? extends CommandNode> node, Consumer<CommandRegistry> child) {
-        if (!node.isAnnotationPresent(Commander.class)) throw new IllegalStateException(node+" 缺少 @Commander 標註");
+        if (!node.isAnnotationPresent(Commander.class)) throw new IllegalStateException(node+" is lack of @Commander annotation");
         var n = new HierarchyNode(node);
         child.accept(new SubCommandRegistry(n));
         nodes.add(n);
