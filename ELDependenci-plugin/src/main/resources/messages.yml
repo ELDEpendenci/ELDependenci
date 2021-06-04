@@ -5,3 +5,5 @@ no-permission: "&c沒有權限。"
 error:
   - "&c出現錯誤: <message>"
   - "&c請通知插件師。"
+
+convert:

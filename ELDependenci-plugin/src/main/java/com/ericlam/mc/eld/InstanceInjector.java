@@ -15,7 +15,7 @@ public final class InstanceInjector {
         if (injector != null){
             injector.injectMembers(instance);
         }else{
-            Bukkit.getLogger().warning("cannot inject "+instance.getClass()+" due to null injector");
+            throw new IllegalStateException("cannot inject "+instance.getClass()+" due to null injector");
         }
     }
 
