@@ -27,7 +27,7 @@ public final class ELDCommandArgsHandler {
                 .filter(en -> field.isAnnotationPresent(en.getKey()))
                 .findFirst()
                 .map(en -> en.getValue().argsSorter.apply(field.getAnnotation(en.getKey())))
-                .orElseThrow(() -> new IllegalStateException("Field " + field.getName() + " 沒有參數標註!"));
+                .orElseThrow(() -> new IllegalStateException("Field " + field.getName() + " has no annotation!"));
     }
 
     public Map.Entry<WideCommandArgHandler, CommonProperties> getArgsEntry(Field field) {
@@ -41,7 +41,7 @@ public final class ELDCommandArgsHandler {
                                     return en.getValue().argsHandler.argHandle(field.getAnnotation(en.getKey()), type, argumentManager, iterator, sender);
                                 },
                                 en.getValue().argsSorter.apply(field.getAnnotation(en.getKey()))))
-                .orElseThrow(() -> new IllegalStateException("Field " + field.getName() + " 沒有參數標註!"));
+                .orElseThrow(() -> new IllegalStateException("Field " + field.getName() + " has no annotation!"));
     }
 
 

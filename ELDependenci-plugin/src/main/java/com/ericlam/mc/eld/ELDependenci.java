@@ -51,6 +51,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     private final ELDConfigManager eldConfigManager = new ELDConfigManager(null, this);
     private boolean disabled = false;
     private boolean sharePluginInstance = false;
+    private ELDMessageConfig eldMessageConfig;
 
     @Override
     public void onLoad() {
@@ -59,18 +60,19 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         this.module.bindInstance(ArgParserService.class, argumentManager);
         eldConfigManager.loadConfig(ELDConfig.class);
         eldConfigManager.loadConfig(ELDMessageConfig.class);
-        ELDCommandHandler.setMsg(eldConfigManager.getConfigAs(ELDMessageConfig.class));
+        this.eldMessageConfig = eldConfigManager.getConfigAs(ELDMessageConfig.class);
+        ELDCommandHandler.setMsg(eldMessageConfig);
         var eldConfig = eldConfigManager.getConfigAs(ELDConfig.class);
         this.sharePluginInstance = eldConfig.sharePluginInstance;
     }
 
     public static ELDependenciAPI getApi() {
-        return Optional.ofNullable(api).orElseThrow(() -> new IllegalStateException("ELDependencies 加載未完成，請檢查你的插件 plugin.yml 有沒有 添加 本插件作為 depend"));
+        return Optional.ofNullable(api).orElseThrow(() -> new IllegalStateException("ELDependencies has not yet loaded，make sure your plugin.yml has added eld-plugin as depend"));
     }
 
     public ManagerProvider register(ELDBukkitPlugin plugin, Consumer<ServiceCollection> injector) {
         if (collectionMap.containsKey(plugin)) {
-            throw new IllegalStateException("本插件已經被註冊，不得重複註冊。");
+            throw new IllegalStateException("the plugin is registered and not allowed to be registered again.");
         }
         var collection = new ELDServiceCollection(module, plugin);
         injector.accept(collection);
@@ -90,8 +92,8 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             injector.getInstance(InstanceInjector.class).setInjector(injector);
             configPoolService = (ELDConfigPoolService)injector.getInstance(ConfigPoolService.class);
         }catch (Exception e){
-            getLogger().log(Level.SEVERE, "啟用 ELDependenci 時出現錯誤: ", e);
-            getLogger().log(Level.SEVERE, "正在禁用插件...");
+            getLogger().log(Level.SEVERE, "Error while enabling ELDependenci: ", e);
+            getLogger().log(Level.SEVERE, "Disabling plugin...");
             this.disabled = true;
         }
         getServer().getPluginManager().registerEvents(this, this);
@@ -105,7 +107,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         if (services == null) return; // not eld plugin
 
         if (disabled){
-            plugin.getLogger().log(Level.SEVERE, "由於 ELDependenci 被禁用，因此插件無法使用。");
+            plugin.getLogger().log(Level.SEVERE, "This plugin is disabled due to the disabled of ELDependenci");
             return;
         }
 
@@ -122,13 +124,13 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
         //register command
         if (!services.commands.isEmpty()) {
-            plugin.getLogger().info("正在註冊插件 " + plugin.getName() + " 的所有指令...");
+            plugin.getLogger().info("Registering all of the commands of plugin " + plugin.getName());
             ELDCommandHandler.registers(plugin, services.commands, injector, argumentManager);
         }
 
         //register listener
         if (!services.listeners.isEmpty() || !services.eldListeners.isEmpty()) {
-            plugin.getLogger().info("正在註冊插件 " + plugin.getName() + " 的所有監聽器...");
+            plugin.getLogger().info("Registering all of the listeners of plugin " + plugin.getName());
             services.listeners.forEach(listenerCls -> {
                 var listener = injector.getInstance(listenerCls);
                 plugin.getServer().getPluginManager().registerEvents(listener, plugin);
@@ -178,7 +180,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
         @Override
         public ConfigStorage getConfigStorage() {
-            return Optional.ofNullable(collection.configManager).orElseThrow(() -> new IllegalStateException("插件未註冊"));
+            return Optional.ofNullable(collection.configManager).orElseThrow(() -> new IllegalStateException("plugin not registered"));
         }
 
         @Override
@@ -198,7 +200,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Integer.parseInt(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException("&c" + num + " 不是有效的 Integer 。");
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("int", num));
             }
         });
         argumentManager.registerParser(Double.class, (args, sender, parser) -> {
@@ -206,7 +208,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Double.parseDouble(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException("&c" + num + " 不是有效的 Double 。");
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("double", num));
             }
         });
 
@@ -215,7 +217,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Long.parseLong(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException("&c" + num + " 不是有效的 Long 。");
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("long", num));
             }
         });
 
@@ -224,7 +226,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Byte.parseByte(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException("&c" + num + " 不是有效的 Byte 。");
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("byte", num));
             }
         });
 
@@ -233,7 +235,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Short.parseShort(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException("&c" + num + " 不是有效的 Short 。");
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("short", num));
             }
         });
 
@@ -242,7 +244,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return Float.parseFloat(num);
             } catch (NumberFormatException e) {
-                throw new ArgumentParseException("&c" + num + " 不是有效的 Float 。");
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("float", num));
             }
         });
 
@@ -252,7 +254,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         argumentManager.registerParser(Player.class, (args, sender, parser) -> {
             var player = Bukkit.getPlayer(args.next());
             if (player == null) {
-                throw new ArgumentParseException("&c玩家未上線");
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("player-not-online"));
             }
             return player;
         });
@@ -260,7 +262,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         argumentManager.registerParser(OfflinePlayer.class, (args, sender, parser) -> {
             var uuid = Bukkit.getPlayerUniqueId(args.next());
             if (uuid == null) {
-                throw new ArgumentParseException("&c玩家不存在");
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("player-not-exist"));
             }
             return Bukkit.getOfflinePlayer(uuid);
         });
@@ -273,7 +275,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
                 world = ((Player) sender).getWorld();
             }
             if (world == null) {
-                throw new ArgumentParseException("&c未知世界");
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("unknown-world"));
             }
             var x = parser.tryParse(Double.class, args, sender);
             var y = parser.tryParse(Double.class, args, sender);
@@ -285,7 +287,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             try {
                 return UUID.fromString(args.next());
             } catch (IllegalArgumentException e) {
-                throw new ArgumentParseException("&c解析UUID時出現錯誤: " + e.getMessage());
+                throw new ArgumentParseException(eldMessageConfig.getConvertError("error-uuid", e.getMessage()));
             }
         });
 

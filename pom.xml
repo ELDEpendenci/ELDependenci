@@ -7,7 +7,7 @@
     <groupId>org.eldependenci</groupId>
     <artifactId>ELDependenci</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
     <modules>
         <module>eldependenci-framework</module>
         <module>ELDependenci-plugin</module>
@@ -42,6 +42,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>spigot</groupId>
+                <artifactId>1.16.5</artifactId>
+                <version>r3</version>
+                <scope>provided</scope>
+            </dependency>
             <dependency>
                 <groupId>patched</groupId>
                 <artifactId>1.16</artifactId>

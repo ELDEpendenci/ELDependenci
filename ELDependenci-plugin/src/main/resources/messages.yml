@@ -5,3 +5,15 @@ no-permission: "&c沒有權限。"
 error:
   - "&c出現錯誤: <message>"
   - "&c請通知插件師。"
+
+convert-error:
+  int: "&c{0} 不是有效的 Integer 。"
+  double: "&c{0} 不是有效的 Double 。"
+  long: "&c{0} 不是有效的 Long 。"
+  byte: "&c 0} 不是有效的 Byte 。"
+  short: "&c{0} 不是有效的 Short 。"
+  float: "&c{0} 不是有效的 Float 。"
+  player-not-online: "&c玩家未上線"
+  player-not-exist: "&c玩家不存在"
+  unknown-world: "&c未知世界"
+  error-uuid: "&c解析UUID時出現錯誤: {0}"

@@ -6,6 +6,7 @@ import com.ericlam.mc.eld.annotations.Prefix;
 import com.ericlam.mc.eld.annotations.Resource;
 import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.GroupConfiguration;
+import com.ericlam.mc.eld.components.GroupLangConfiguration;
 import com.ericlam.mc.eld.components.LangConfiguration;
 import com.ericlam.mc.eld.controllers.FileController;
 import com.ericlam.mc.eld.controllers.LangController;
@@ -22,10 +23,13 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Injector;
 import io.netty.util.internal.ConcurrentSet;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -88,7 +92,7 @@ public final class ELDConfigManager implements ConfigStorage {
 
     public <T extends Configuration> void loadConfig(Class<T> config) {
         if (!config.isAnnotationPresent(Resource.class))
-            throw new IllegalStateException("config " + config.getSimpleName() + " 缺少 @Resource 標註");
+            throw new IllegalStateException("config " + config.getSimpleName() + " is lack of @Resource annotation");
         var resource = config.getAnnotation(Resource.class);
         try {
             File f = new File(plugin.getDataFolder(), resource.locate());
@@ -96,46 +100,8 @@ public final class ELDConfigManager implements ConfigStorage {
             var ins = initConfiguration(config, f);
             if (ins instanceof LangConfiguration){
                 YamlConfiguration configuration = YamlConfiguration.loadConfiguration(f);
-                class MessageGetterImpl implements LangController {
-
-                    private String noPath(String path){
-                        return translate("&4訊息文件資源 ("+resource.locate()+") 缺少路徑: "+path);
-                    }
-
-                    @Override
-                    public String getPrefix() {
-                        var prefix = ins.getClass().getAnnotation(Prefix.class);
-                        return Optional.ofNullable(prefix).map(pre -> translate(configuration.getString(pre.path()))).orElseThrow(() -> new IllegalStateException(ins.getClass() + " 缺少 @Prefix 標註"));
-                    }
-
-                    @Override
-                    public String get(String path) {
-                        return getPrefix() + getPure(path);
-                    }
-
-                    @Override
-                    public String getPure(String path) {
-                        if (!configuration.contains(path)){
-                            return noPath(path);
-                        }
-                        return translate(configuration.getString(path));
-                    }
-
-                    @Override
-                    public List<String> getList(String path) {
-                        return getPureList(path).stream().map(l -> getPrefix() + l).collect(Collectors.toList());
-                    }
-
-                    @Override
-                    public List<String> getPureList(String path) {
-                        if (!configuration.contains(path)){
-                            return List.of(noPath(path));
-                        }
-                        return configuration.getStringList(path).stream().map(ELDConfigManager.this::translate).collect(Collectors.toList());
-                    }
-                }
                 var controller = LangConfiguration.class.getDeclaredField("lang");
-                setField(controller, new MessageGetterImpl(), ins);
+                setField(controller, new MessageGetterImpl(ins, configuration, f), ins);
             }
 
             this.configurationMap.putIfAbsent(config, ins);
@@ -153,18 +119,53 @@ public final class ELDConfigManager implements ConfigStorage {
         });
     }
 
+    public <T extends GroupLangConfiguration> void loadLanguagePool(Class<T> config){
+        if (!config.isAnnotationPresent(GroupResource.class))
+            throw new IllegalStateException("config pool " + config.getSimpleName() + " is lack of @GroupResource annotation");
+        var resource = config.getAnnotation(GroupResource.class);
+        CompletableFuture.runAsync(() -> {
+            File[] child = loadGroupConfigs(resource, config.getSimpleName());
+            if (child == null) return;
+            try {
+                Map<String, T> groupMap = new LinkedHashMap<>();
+                for (File data : child) {
+                    var id = FilenameUtils.getBaseName(data.getName());
+                    var ins = initConfiguration(config, data);
+                    YamlConfiguration configuration = YamlConfiguration.loadConfiguration(data);
+                    var controller = LangConfiguration.class.getDeclaredField("lang");
+                    setField(controller, new MessageGetterImpl(ins, configuration, data), ins);
+                    groupMap.put(id, ins);
+                }
+                module.bindLangGroup(config, groupMap);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Error while loading config pool " + resource.folder());
+                e.printStackTrace();
+            }
+        }).thenRun(() -> plugin.getLogger().info("All language resources in folder "+resource.folder()+" has been loaded."));
+    }
+
+    @Nullable
+    private File[] loadGroupConfigs(GroupResource resource, String simpleName) {
+        File f = new File(plugin.getDataFolder(), resource.folder());
+        if (!f.exists()) f.mkdirs();
+        if (!f.isDirectory()) throw new IllegalStateException("config pool "+ simpleName +" 's path ' "+resource.folder()+" is not a directory!");
+        for (String preload : resource.preloads()) {
+            String yml = preload.concat(".yml");
+            File preLoadFile = new File(f, yml);
+            if (!preLoadFile.exists()) plugin.saveResource(resource.folder().concat("/").concat(yml), true);
+        }
+        return f.listFiles(fi -> FilenameUtils.getExtension(fi.getName()).equals("yml"));
+    }
+
     public <T extends GroupConfiguration> CompletableFuture<Map<String, GroupConfiguration>> preloadConfigPool(Class<T> config){
         if (!config.isAnnotationPresent(GroupResource.class))
-            throw new IllegalStateException("config pool " + config.getSimpleName() + " 缺少 @GroupResource 標註");
+            throw new IllegalStateException("config pool " + config.getSimpleName() + " is lack of @GroupResource annotation");
         var resource = config.getAnnotation(GroupResource.class);
         return CompletableFuture.supplyAsync(() -> {
             var pool = new ConcurrentHashMap<String, GroupConfiguration>();
             try {
-                File f = new File(plugin.getDataFolder(), resource.folder());
-                if (!f.exists()) f.mkdirs();
-                if (!f.isDirectory()) throw new IllegalStateException("config pool "+config.getSimpleName()+" 的標註路徑 "+resource.folder()+" 不是文件夾!");
-                var child = f.listFiles(fi -> FilenameUtils.getExtension(fi.getName()).equals("yml"));
-                if (child == null ){
+                File[] child = loadGroupConfigs(resource, config.getSimpleName());
+                if (child == null){
                     return pool;
                 }
                 for (File data : child) {
@@ -181,7 +182,7 @@ public final class ELDConfigManager implements ConfigStorage {
             }
             return pool;
         }).thenApply(p -> {
-            plugin.getLogger().info("folder "+resource.folder()+" 內的所有文件已經加載完成。");
+            plugin.getLogger().info("All resources in folder "+resource.folder()+" has been loaded.");
             return p;
         });
     }
@@ -222,19 +223,71 @@ public final class ELDConfigManager implements ConfigStorage {
         return ins;
     }
 
+    private class MessageGetterImpl implements LangController {
+
+        private final Object ins;
+        private final FileConfiguration configuration;
+        private final File data;
+
+        private MessageGetterImpl(Object ins, FileConfiguration configuration, File data) {
+            this.ins = ins;
+            this.configuration = configuration;
+            this.data = data;
+        }
+
+        private String noPath(String path){
+            return translate("&4message resource ("+data.getPath()+") is lack of path: "+path);
+        }
+
+        @Override
+        public String getPrefix() {
+            var prefix = ins.getClass().getAnnotation(Prefix.class);
+            return Optional.ofNullable(prefix).map(pre -> translate(configuration.getString(pre.path()))).orElseGet(() -> {
+                plugin.getLogger().warning("Plugin "+plugin.getName()+" is trying to get message with prefix but the prefix path is not defined.");
+                return "";
+            });
+        }
+
+        @Override
+        public String get(String path) {
+            return getPrefix() + getPure(path);
+        }
+
+        @Override
+        public String getPure(String path) {
+            if (!configuration.contains(path)){
+                return noPath(path);
+            }
+            return translate(configuration.getString(path));
+        }
+
+        @Override
+        public List<String> getList(String path) {
+            return getPureList(path).stream().map(l -> getPrefix() + l).collect(Collectors.toList());
+        }
+
+        @Override
+        public List<String> getPureList(String path) {
+            if (!configuration.contains(path)){
+                return List.of(noPath(path));
+            }
+            return configuration.getStringList(path).stream().map(ELDConfigManager.this::translate).collect(Collectors.toList());
+        }
+    }
+
     @Override
     public <T extends Configuration> T getConfigAs(Class<T> config){
         if (injector != null){
             return injector.getInstance(config);
         }else{
-            return Optional.ofNullable(this.configurationMap.get(config)).map(config::cast).orElseThrow(() -> new IllegalStateException("找不到 " + config.getSimpleName() + " 的映射物件，請確保你已經註冊了 " + config.getSimpleName()));
+            return Optional.ofNullable(this.configurationMap.get(config)).map(config::cast).orElseThrow(() -> new IllegalStateException("cannot find " + config.getSimpleName() + " config object, make sure you have registered " + config.getSimpleName()));
         }
     }
 
 
     private  <T extends Configuration> boolean reloadConfig(Class<T> config) {
         if (!configurationMap.containsKey(config)) {
-            plugin.getLogger().log(Level.SEVERE, "找不到 " + config.getSimpleName() + " 的輸出文件路徑， 請確保你已經註冊了 " + config.getSimpleName());
+            plugin.getLogger().log(Level.SEVERE, "cannot find " + config.getSimpleName() + " in plugin folder, make sure you have registered " + config.getSimpleName());
             return false;
         }
         this.loadConfig(config);

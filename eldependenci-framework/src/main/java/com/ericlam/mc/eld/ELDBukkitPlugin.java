@@ -27,12 +27,12 @@ public abstract class ELDBukkitPlugin extends JavaPlugin {
 
     @Override
     public final void onEnable() {
-        getLogger().info("正在啟用插件 "+this.getName());
-        getLogger().info("該插件將使用ELDependenci framework 的生命週期。");
+        getLogger().info("Enabling plugin "+this.getName());
+        getLogger().info("This plugin is hooking the lifecycle of ELDependenci framework.");
     }
 
     @Override
     public final void onDisable() {
-        getLogger().info("正在禁用插件 "+this.getName());
+        getLogger().info("Disabling plugin "+this.getName());
     }
 }
