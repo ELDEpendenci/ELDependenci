@@ -2,6 +2,7 @@ package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.GroupConfiguration;
+import com.ericlam.mc.eld.components.GroupLangConfiguration;
 import com.ericlam.mc.eld.components.Overridable;
 
 import java.util.Map;
@@ -80,5 +81,14 @@ public interface ServiceCollection {
      * @return this
      */
     <T extends GroupConfiguration> ServiceCollection addGroupConfiguration(Class<T> config);
+
+
+    /**
+     * 新增訊息文件池
+     * @param lang 訊息文件
+     * @param <T> 映射物件類
+     * @return this
+     */
+    <T extends GroupLangConfiguration> ServiceCollection addMultipleLanguages(Class<T> lang);
 
 }

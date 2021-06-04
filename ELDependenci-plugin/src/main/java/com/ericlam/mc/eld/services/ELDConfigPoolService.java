@@ -35,7 +35,7 @@ public final class ELDConfigPoolService implements ConfigPoolService {
             if (isPoolCached(config)) {
                 return getPool(config);
             } else {
-                if (!initMap.containsKey(config)) throw new IllegalStateException("文件池 " + config + " 尚未註冊。");
+                if (!initMap.containsKey(config)) throw new IllegalStateException("config pool " + config + " is not registered.");
                 return (Map<String, C>) initMap.get(config).get().thenApply(s -> {
                     configPoolMap.put(config, s);
                     return s;
@@ -57,7 +57,7 @@ public final class ELDConfigPoolService implements ConfigPoolService {
 
     @Override
     public <C extends GroupConfiguration> CompletableFuture<Void> reloadPool(Class<C> config) {
-        if (!initMap.containsKey(config)) throw new IllegalStateException("文件池 " + config + " 尚未註冊。");
+        if (!initMap.containsKey(config)) throw new IllegalStateException("config pool " + config + " is not registered.");
         return initMap.get(config).get().thenApply(c -> {
             configPoolMap.put(config, c);
             return null;

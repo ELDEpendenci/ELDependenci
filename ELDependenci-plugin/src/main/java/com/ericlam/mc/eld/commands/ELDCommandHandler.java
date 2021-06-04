@@ -43,7 +43,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
         registerArgAHandle(
                 DynamicArg.class,
                 (annotation, type, argumentManager, iterator, sender) -> {
-                    if (type != Object.class) throw new IllegalStateException("@DynamicArgs 標註的變數必須為 Object class.");
+                    if (type != Object.class) throw new IllegalStateException("@DynamicArgs must be an Object class.");
                     return argumentManager.multiParse(annotation.types(), iterator, sender);
                 },
                 (annotation) -> new ELDCommandArgsHandler.CommonProperties(annotation.order(), annotation.optional(), annotation.labels())
@@ -65,7 +65,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
     );
 
     private ELDCommandHandler(Set<HierarchyNode> commandNodes, Injector injector, ELDArgumentManager argumentManager) {
-        if (msg == null) throw new IllegalStateException("msg config 尚未被初始化");
+        if (msg == null) throw new IllegalStateException("msg config not initialized");
         this.commandNodes = commandNodes;
         this.injector = injector;
         this.parser = argumentManager;
@@ -144,7 +144,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
                     var t = (ParameterizedType) f.getGenericType();
                     isStringList = t.getRawType() == List.class && t.getActualTypeArguments()[0] == String.class;
                 }
-                if (!isStringList) throw new IllegalStateException("@RemainArgs 標註的變數必須為 List<String>。");
+                if (!isStringList) throw new IllegalStateException("@RemainArgs must be List<String>。");
                 var list = new ArrayList<String>();
                 iterator.forEachRemaining(list::add);
                 f.setAccessible(true);
@@ -255,7 +255,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
                 return null;
             });
             if (pluginCommand == null) {
-                plugin.getLogger().warning("指令 " + cmd.name() + " 尚未於 plugin.yml 註冊。並強行註冊失敗。");
+                plugin.getLogger().warning("Command " + cmd.name() + " did not register in plugin.yml and force register failed.");
                 return;
             }
             pluginCommand.setAliases(List.of(cmd.alias()));
