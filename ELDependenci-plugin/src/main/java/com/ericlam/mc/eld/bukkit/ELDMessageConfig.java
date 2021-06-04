@@ -11,6 +11,6 @@ import java.text.MessageFormat;
 public final class ELDMessageConfig extends LangConfiguration {
 
     public String getConvertError(String path, Object... objects){
-        return MessageFormat.format(getLang().get("convert-error.".concat(path)), objects);
+        return MessageFormat.format(getLang().getPure("convert-error.".concat(path)), objects);
     }
 }
