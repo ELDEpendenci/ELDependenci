@@ -24,6 +24,7 @@ import com.google.inject.Injector;
 import io.netty.util.internal.ConcurrentSet;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -99,46 +100,8 @@ public final class ELDConfigManager implements ConfigStorage {
             var ins = initConfiguration(config, f);
             if (ins instanceof LangConfiguration){
                 YamlConfiguration configuration = YamlConfiguration.loadConfiguration(f);
-                class MessageGetterImpl implements LangController {
-
-                    private String noPath(String path){
-                        return translate("&4message resource ("+resource.locate()+") is lack of path: "+path);
-                    }
-
-                    @Override
-                    public String getPrefix() {
-                        var prefix = ins.getClass().getAnnotation(Prefix.class);
-                        return Optional.ofNullable(prefix).map(pre -> translate(configuration.getString(pre.path()))).orElseThrow(() -> new IllegalStateException(ins.getClass() + " 缺少 @Prefix 標註"));
-                    }
-
-                    @Override
-                    public String get(String path) {
-                        return getPrefix() + getPure(path);
-                    }
-
-                    @Override
-                    public String getPure(String path) {
-                        if (!configuration.contains(path)){
-                            return noPath(path);
-                        }
-                        return translate(configuration.getString(path));
-                    }
-
-                    @Override
-                    public List<String> getList(String path) {
-                        return getPureList(path).stream().map(l -> getPrefix() + l).collect(Collectors.toList());
-                    }
-
-                    @Override
-                    public List<String> getPureList(String path) {
-                        if (!configuration.contains(path)){
-                            return List.of(noPath(path));
-                        }
-                        return configuration.getStringList(path).stream().map(ELDConfigManager.this::translate).collect(Collectors.toList());
-                    }
-                }
                 var controller = LangConfiguration.class.getDeclaredField("lang");
-                setField(controller, new MessageGetterImpl(), ins);
+                setField(controller, new MessageGetterImpl(ins, configuration, f), ins);
             }
 
             this.configurationMap.putIfAbsent(config, ins);
@@ -169,46 +132,8 @@ public final class ELDConfigManager implements ConfigStorage {
                     var id = FilenameUtils.getBaseName(data.getName());
                     var ins = initConfiguration(config, data);
                     YamlConfiguration configuration = YamlConfiguration.loadConfiguration(data);
-                    class MessageGetterImpl implements LangController {
-
-                        private String noPath(String path){
-                            return translate("&4message resource ("+data.getPath()+") is lack of path: "+path);
-                        }
-
-                        @Override
-                        public String getPrefix() {
-                            var prefix = ins.getClass().getAnnotation(Prefix.class);
-                            return Optional.ofNullable(prefix).map(pre -> translate(configuration.getString(pre.path()))).orElseThrow(() -> new IllegalStateException(ins.getClass() + " 缺少 @Prefix 標註"));
-                        }
-
-                        @Override
-                        public String get(String path) {
-                            return getPrefix() + getPure(path);
-                        }
-
-                        @Override
-                        public String getPure(String path) {
-                            if (!configuration.contains(path)){
-                                return noPath(path);
-                            }
-                            return translate(configuration.getString(path));
-                        }
-
-                        @Override
-                        public List<String> getList(String path) {
-                            return getPureList(path).stream().map(l -> getPrefix() + l).collect(Collectors.toList());
-                        }
-
-                        @Override
-                        public List<String> getPureList(String path) {
-                            if (!configuration.contains(path)){
-                                return List.of(noPath(path));
-                            }
-                            return configuration.getStringList(path).stream().map(ELDConfigManager.this::translate).collect(Collectors.toList());
-                        }
-                    }
                     var controller = LangConfiguration.class.getDeclaredField("lang");
-                    setField(controller, new MessageGetterImpl(), ins);
+                    setField(controller, new MessageGetterImpl(ins, configuration, data), ins);
                     groupMap.put(id, ins);
                 }
                 module.bindLangGroup(config, groupMap);
@@ -296,6 +221,58 @@ public final class ELDConfigManager implements ConfigStorage {
         setField(controller, new FileControllerImpl(), ins);
 
         return ins;
+    }
+
+    private class MessageGetterImpl implements LangController {
+
+        private final Object ins;
+        private final FileConfiguration configuration;
+        private final File data;
+
+        private MessageGetterImpl(Object ins, FileConfiguration configuration, File data) {
+            this.ins = ins;
+            this.configuration = configuration;
+            this.data = data;
+        }
+
+        private String noPath(String path){
+            return translate("&4message resource ("+data.getPath()+") is lack of path: "+path);
+        }
+
+        @Override
+        public String getPrefix() {
+            var prefix = ins.getClass().getAnnotation(Prefix.class);
+            return Optional.ofNullable(prefix).map(pre -> translate(configuration.getString(pre.path()))).orElseGet(() -> {
+                plugin.getLogger().warning("Plugin "+plugin.getName()+" is trying to get message with prefix but the prefix path is not defined.");
+                return "";
+            });
+        }
+
+        @Override
+        public String get(String path) {
+            return getPrefix() + getPure(path);
+        }
+
+        @Override
+        public String getPure(String path) {
+            if (!configuration.contains(path)){
+                return noPath(path);
+            }
+            return translate(configuration.getString(path));
+        }
+
+        @Override
+        public List<String> getList(String path) {
+            return getPureList(path).stream().map(l -> getPrefix() + l).collect(Collectors.toList());
+        }
+
+        @Override
+        public List<String> getPureList(String path) {
+            if (!configuration.contains(path)){
+                return List.of(noPath(path));
+            }
+            return configuration.getStringList(path).stream().map(ELDConfigManager.this::translate).collect(Collectors.toList());
+        }
     }
 
     @Override
