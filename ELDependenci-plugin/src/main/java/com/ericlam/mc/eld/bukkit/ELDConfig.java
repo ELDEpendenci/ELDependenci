@@ -7,5 +7,6 @@ import com.ericlam.mc.eld.components.Configuration;
 public class ELDConfig extends Configuration {
 
     public boolean sharePluginInstance = false;
+    public boolean defaultSingleton = true;
 
 }
