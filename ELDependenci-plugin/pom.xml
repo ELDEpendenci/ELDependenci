@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ELDependenci</artifactId>
         <groupId>org.eldependenci</groupId>
-        <version>0.0.8</version>
+        <version>0.1.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,6 +16,12 @@
         <dependency>
             <groupId>org.eldependenci</groupId>
             <artifactId>eldependenci-framework</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eldependenci</groupId>
+            <artifactId>eldependenci-addon</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>

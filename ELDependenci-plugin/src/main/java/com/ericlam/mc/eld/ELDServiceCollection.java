@@ -6,12 +6,16 @@ import com.ericlam.mc.eld.configurations.ELDConfigManager;
 import com.ericlam.mc.eld.registrations.ComponentsRegistry;
 import com.ericlam.mc.eld.registrations.ELDCommandRegistry;
 import com.ericlam.mc.eld.registrations.ELDListenerRegistry;
+import com.google.inject.Module;
 import org.bukkit.event.Listener;
 
+import javax.inject.Provider;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Set;
 
-public final class ELDServiceCollection implements ServiceCollection {
+public final class ELDServiceCollection implements ServiceCollection, ModuleInstaller {
 
     final Set<HierarchyNode> commands;
 
@@ -25,7 +29,7 @@ public final class ELDServiceCollection implements ServiceCollection {
 
     private final ELDModule module;
 
-    public ELDServiceCollection(ELDModule module, ELDBukkitPlugin plugin) {
+    public ELDServiceCollection(ELDModule module, ELDBukkit plugin) {
         this.module = module;
         if (!plugin.getClass().isAnnotationPresent(ELDPlugin.class)) {
             throw new IllegalStateException("插件 " + plugin.getName() + " 缺少 @ELDPlugin 標註");
@@ -51,35 +55,41 @@ public final class ELDServiceCollection implements ServiceCollection {
 
     @Override
     public ServiceCollection addSingleton(Class<?> singleton) {
-        if (singleton.isInterface()) throw new IllegalStateException("Singleton class cannot be an Interface");
+        if (Modifier.isAbstract(singleton.getModifiers())) throw new IllegalStateException("Singleton class cannot be an abstract class");
         module.bindSingleton(singleton);
         return this;
     }
 
     @Override
     public <T, L extends T> ServiceCollection bindService(Class<T> service, Class<L> implementation) {
-        if (!service.isInterface()) throw new IllegalStateException("Service class must be an Interface");
+        if (!Modifier.isAbstract(service.getModifiers())) throw new IllegalStateException("Service class must be an abstract class");
         module.bindService(service, implementation);
         return this;
     }
 
     @Override
+    public <T, P extends Provider<T>> ServiceCollection bindServiceProvider(Class<T> service, Class<P> provider) {
+        module.addServiceProvider(service, provider);
+        return this;
+    }
+
+    @Override
     public <T extends Overridable, L extends T> ServiceCollection overrideService(Class<T> service, Class<L> implementation) {
-        if (!service.isInterface()) throw new IllegalStateException("Service class must be an Interface");
+        if (!Modifier.isAbstract(service.getModifiers())) throw new IllegalStateException("Service class must be an abstract class");
         module.overrideService(service, implementation);
         return this;
     }
 
     @Override
     public <T, L extends T> ServiceCollection addService(Class<T> service, Class<L> implementation) {
-        if (!service.isInterface()) throw new IllegalStateException("Service class must be an Interface");
+        if (!Modifier.isAbstract(service.getModifiers())) throw new IllegalStateException("Service class must be an abstract class");
         module.addService(service, implementation);
         return this;
     }
 
     @Override
     public <T> ServiceCollection addServices(Class<T> service, Map<String, Class<? extends T>> implementations) {
-        if (!service.isInterface()) throw new IllegalStateException("Service class must be an Interface");
+        if (!Modifier.isAbstract(service.getModifiers())) throw new IllegalStateException("Service class must be an abstract class");
         module.addServices(service, implementations);
         return this;
     }
@@ -128,4 +138,8 @@ public final class ELDServiceCollection implements ServiceCollection {
         }
     }
 
+    @Override
+    public void install(Module module) {
+        this.module.addModule(module);
+    }
 }
