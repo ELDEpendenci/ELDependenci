@@ -10,11 +10,17 @@ import com.ericlam.mc.eld.services.scheduler.ELDSchedulerService;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
+import com.google.inject.binder.ScopedBindingBuilder;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
 import io.netty.util.internal.ConcurrentSet;
 import org.bukkit.plugin.Plugin;
 
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Qualifier;
+import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,11 +37,26 @@ public final class ELDModule implements Module {
     private final Map<Class, Map<String, ? extends GroupLangConfiguration>> groupLangs = new ConcurrentHashMap<>();
 
     private final Map<String, Plugin> pluginInjectors = new ConcurrentHashMap<>();
+    private final Map<Class, Class<? extends Provider>> serviceProviders = new ConcurrentHashMap<>();
+
+    private final List<Module> modules = new ArrayList<>();
 
     public final Plugin plugin;
 
+    private boolean defaultSingleton = true;
+
     public ELDModule(Plugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void setDefaultSingleton(boolean defaultSingleton) {
+        this.defaultSingleton = defaultSingleton;
+    }
+
+    private void setScope(ScopedBindingBuilder bindingBuilder) {
+        if (defaultSingleton) {
+            bindingBuilder.in(Scopes.SINGLETON);
+        }
     }
 
     @Override
@@ -48,21 +69,36 @@ public final class ELDModule implements Module {
         binder.bind(ConfigPoolService.class).to(ELDConfigPoolService.class).in(Scopes.SINGLETON);
 
 
-        singleton.forEach(cls -> binder.bind(cls).in(Scopes.SINGLETON));
-        services.forEach((service, impl) -> binder.bind(service).to(impl).in(Scopes.SINGLETON));
+        modules.forEach(binder::install);
+        singleton.forEach(cls -> setScope(binder.bind(cls)));
+        serviceProviders.forEach((service, provider) -> setScope(binder.bind(service).toProvider(provider)));
+        services.forEach((service, impl) -> setScope(binder.bind(service).to(impl)));
         configs.forEach((cls, config) -> binder.bind(cls).toInstance(config));
         instances.forEach((cls, ins) -> binder.bind(cls).toInstance(ins));
         servicesMulti.forEach((service, map) -> {
             var binding = MapBinder.newMapBinder(binder, String.class, service);
-            map.forEach((key, impl) -> binding.addBinding(key).to(impl).in(Scopes.SINGLETON));
+            map.forEach((key, impl) -> {
+                setScope(binding.addBinding(key).to(impl));
+                setScope(binder.bind(service).annotatedWith(Names.named(key)).to(impl));
+            });
+        });
+        servicesSet.forEach((services, cls) -> {
+            var binding = Multibinder.newSetBinder(binder, services);
+            cls.forEach(c -> {
+                setScope(binding.addBinding().to(c));
+                Optional<Annotation> qualifierOpt = Arrays.stream(c.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class)).findAny();
+                if (c.isAnnotationPresent(Named.class)) {
+                    Named named = (Named) c.getAnnotation(Named.class);
+                    setScope(binder.bind(services).annotatedWith(Names.named(named.value())).to(c));
+                } else if (qualifierOpt.isPresent()) {
+                    Annotation annotation = qualifierOpt.get();
+                    setScope(binder.bind(services).annotatedWith(annotation).to(c));
+                }
+            });
         });
         groupLangs.forEach((cls, map) -> {
             var binding = MapBinder.newMapBinder(binder, String.class, cls);
             map.forEach((key, lang) -> binding.addBinding(key).toInstance(lang));
-        });
-        servicesSet.forEach((services, cls) -> {
-            var binding = Multibinder.newSetBinder(binder, services);
-            cls.forEach(c -> binding.addBinding().to(c).in(Scopes.SINGLETON));
         });
         var pluginBinding = MapBinder.newMapBinder(binder, String.class, Plugin.class);
         pluginInjectors.forEach((pluginName, plugin) -> {
@@ -92,7 +128,7 @@ public final class ELDModule implements Module {
         this.servicesMulti.get(service).putAll(map);
     }
 
-    <T, L extends T> void addService(Class<T> service, Class<L> implement){
+    <T, L extends T> void addService(Class<T> service, Class<L> implement) {
         if (services.containsKey(service) || servicesMulti.containsKey(service)) {
             plugin.getLogger().warning("Service " + service.getName() + " has already registered and cannot be registered again.");
             return;
@@ -101,7 +137,7 @@ public final class ELDModule implements Module {
         this.servicesSet.get(service).add(implement);
     }
 
-    <T extends Overridable, L extends T> void overrideService(Class<T> service, Class<L> implement){
+    <T extends Overridable, L extends T> void overrideService(Class<T> service, Class<L> implement) {
         this.services.put(service, implement);
     }
 
@@ -109,11 +145,11 @@ public final class ELDModule implements Module {
         this.instances.putIfAbsent(cls, instance);
     }
 
-    <T extends ELDBukkitPlugin> void bindPluginInstance(Class<? extends ELDBukkitPlugin> cls, T instance){
+    <T extends ELDBukkit> void bindPluginInstance(Class<? extends ELDBukkit> cls, T instance) {
         this.instances.putIfAbsent(cls, instance);
     }
 
-    void mapPluginInstance(Plugin instance){
+    void mapPluginInstance(Plugin instance) {
         this.pluginInjectors.put(instance.getName(), instance);
     }
 
@@ -122,7 +158,15 @@ public final class ELDModule implements Module {
         this.configs.put(cls, c);
     }
 
-    public synchronized <T extends GroupLangConfiguration> void bindLangGroup(Class<T> groupLangConfig, Map<String, T> stringMap){
+    public synchronized <T extends GroupLangConfiguration> void bindLangGroup(Class<T> groupLangConfig, Map<String, T> stringMap) {
         this.groupLangs.put(groupLangConfig, stringMap);
+    }
+
+    void addModule(Module module) {
+        this.modules.add(module);
+    }
+
+    <T, P extends Provider<T>> void addServiceProvider(Class<T> service, Class<P> provider) {
+        this.serviceProviders.put(service, provider);
     }
 }

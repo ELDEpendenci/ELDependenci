@@ -1,1 +1,2 @@
 sharePluginInstance: false
+defaultSingleton: true

@@ -7,9 +7,10 @@
     <groupId>org.eldependenci</groupId>
     <artifactId>ELDependenci</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.8</version>
+    <version>0.1.1</version>
     <modules>
         <module>eldependenci-framework</module>
+        <module>eldependenci-addon</module>
         <module>ELDependenci-plugin</module>
     </modules>
 
@@ -69,7 +70,7 @@
             <dependency>
                 <groupId>com.google.inject</groupId>
                 <artifactId>guice</artifactId>
-                <version>4.2.3</version>
+                <version>5.0.1</version>
                 <scope>compile</scope>
             </dependency>
             <dependency>

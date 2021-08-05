@@ -10,7 +10,7 @@ convert-error:
   int: "&c{0} 不是有效的 Integer 。"
   double: "&c{0} 不是有效的 Double 。"
   long: "&c{0} 不是有效的 Long 。"
-  byte: "&c 0} 不是有效的 Byte 。"
+  byte: "&c{0} 不是有效的 Byte 。"
   short: "&c{0} 不是有效的 Short 。"
   float: "&c{0} 不是有效的 Float 。"
   player-not-online: "&c玩家未上線"
