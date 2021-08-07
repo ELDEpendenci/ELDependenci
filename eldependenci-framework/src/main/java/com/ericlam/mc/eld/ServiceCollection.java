@@ -5,6 +5,8 @@ import com.ericlam.mc.eld.components.GroupConfiguration;
 import com.ericlam.mc.eld.components.GroupLangConfiguration;
 import com.ericlam.mc.eld.components.Overridable;
 
+import javax.inject.Provider;
+import java.lang.annotation.Annotation;
 import java.util.Map;
 
 /**
@@ -28,6 +30,25 @@ public interface ServiceCollection {
      * @return this
      */
     <T, L extends T> ServiceCollection bindService(Class<T> service, Class<L> implementation);
+
+    /**
+     * 使用 Provider 註冊服務
+     * @param service 服務類 (interface)
+     * @param provider 該服務的提供器
+     * @param <T> 服務
+     * @param <P> 提供器
+     * @return this
+     */
+    <T, P extends Provider<T>> ServiceCollection bindServiceProvider(Class<T> service, Class<P> provider);
+
+
+    /**
+     * 獲取自定義安裝器，沒有時拋出異常
+     * @param cls 安裝器類
+     * @param <T> 安裝類
+     * @return this
+     */
+    <T> T getInstallation(Class<T> cls);
 
 
     /**
@@ -90,5 +111,6 @@ public interface ServiceCollection {
      * @return this
      */
     <T extends GroupLangConfiguration> ServiceCollection addMultipleLanguages(Class<T> lang);
+
 
 }

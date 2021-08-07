@@ -42,6 +42,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
     private final ELDModule module = new ELDModule(this);
     private final Map<JavaPlugin, ELDServiceCollection> collectionMap = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Object> customInstallation = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
     private ELDConfigPoolService configPoolService;
     private ItemInteractListener itemInteractListener;
@@ -63,6 +64,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         this.eldMessageConfig = eldConfigManager.getConfigAs(ELDMessageConfig.class);
         ELDCommandHandler.setMsg(eldMessageConfig);
         var eldConfig = eldConfigManager.getConfigAs(ELDConfig.class);
+        this.module.setDefaultSingleton(eldConfig.defaultSingleton);
         this.sharePluginInstance = eldConfig.sharePluginInstance;
     }
 
@@ -70,11 +72,11 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         return Optional.ofNullable(api).orElseThrow(() -> new IllegalStateException("ELDependencies has not yet loaded，make sure your plugin.yml has added eld-plugin as depend"));
     }
 
-    public ManagerProvider register(ELDBukkitPlugin plugin, Consumer<ServiceCollection> injector) {
+    public ManagerProvider register(ELDBukkit plugin, Consumer<ServiceCollection> injector) {
         if (collectionMap.containsKey(plugin)) {
             throw new IllegalStateException("the plugin is registered and not allowed to be registered again.");
         }
-        var collection = new ELDServiceCollection(module, plugin);
+        var collection = new ELDServiceCollection(module, plugin, customInstallation);
         injector.accept(collection);
         if (sharePluginInstance) module.mapPluginInstance(plugin);
         module.bindPluginInstance(plugin.getClass(), plugin);
