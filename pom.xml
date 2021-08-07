@@ -182,6 +182,7 @@
                     <configuration>
                         <links>
                             <link>https://hub.spigotmc.org/javadocs/spigot/</link>
+                            <link>https://javaee.github.io/javaee-spec/javadocs/</link>
                         </links>
                         <show>public</show>
                         <isOffline>false</isOffline>
