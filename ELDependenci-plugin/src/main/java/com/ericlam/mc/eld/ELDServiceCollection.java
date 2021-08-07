@@ -10,12 +10,15 @@ import com.google.inject.Module;
 import org.bukkit.event.Listener;
 
 import javax.inject.Provider;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-public final class ELDServiceCollection implements ServiceCollection, ModuleInstaller {
+public final class ELDServiceCollection implements ServiceCollection, AddonManager {
+
+    final Map<Class<?>, Object> customInstallation;
 
     final Set<HierarchyNode> commands;
 
@@ -29,8 +32,9 @@ public final class ELDServiceCollection implements ServiceCollection, ModuleInst
 
     private final ELDModule module;
 
-    public ELDServiceCollection(ELDModule module, ELDBukkit plugin) {
+    public ELDServiceCollection(ELDModule module, ELDBukkit plugin, Map<Class<?>, Object> customInstallation) {
         this.module = module;
+        this.customInstallation = customInstallation;
         if (!plugin.getClass().isAnnotationPresent(ELDPlugin.class)) {
             throw new IllegalStateException("插件 " + plugin.getName() + " 缺少 @ELDPlugin 標註");
         }
@@ -71,6 +75,12 @@ public final class ELDServiceCollection implements ServiceCollection, ModuleInst
     public <T, P extends Provider<T>> ServiceCollection bindServiceProvider(Class<T> service, Class<P> provider) {
         module.addServiceProvider(service, provider);
         return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getInstallation(Class<T> cls) {
+        return Optional.ofNullable(customInstallation.get(cls)).map(r -> (T)r).orElseThrow(() -> new IllegalStateException("unknown installation: "+cls));
     }
 
     @Override
@@ -139,7 +149,12 @@ public final class ELDServiceCollection implements ServiceCollection, ModuleInst
     }
 
     @Override
-    public void install(Module module) {
+    public void installModule(Module module) {
         this.module.addModule(module);
+    }
+
+    @Override
+    public <T> void customInstallation(Class<T> regCls, T ins) {
+        customInstallation.put(regCls, ins);
     }
 }

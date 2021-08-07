@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("deprecated")
 public final class ELDItemStackService implements ItemStackService {
 
     @Override
