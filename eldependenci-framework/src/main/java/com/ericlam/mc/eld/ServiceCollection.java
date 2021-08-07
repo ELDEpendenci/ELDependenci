@@ -43,6 +43,15 @@ public interface ServiceCollection {
 
 
     /**
+     * 獲取自定義安裝器，沒有時拋出異常
+     * @param cls 安裝器類
+     * @param <T> 安裝類
+     * @return this
+     */
+    <T> T getInstallation(Class<T> cls);
+
+
+    /**
      * 覆蓋服務
      * @param service 可覆蓋的服務類 (interface)
      * @param implementation 新的實作
