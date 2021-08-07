@@ -42,6 +42,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
     private final ELDModule module = new ELDModule(this);
     private final Map<JavaPlugin, ELDServiceCollection> collectionMap = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Object> customInstallation = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
     private ELDConfigPoolService configPoolService;
     private ItemInteractListener itemInteractListener;
@@ -75,7 +76,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         if (collectionMap.containsKey(plugin)) {
             throw new IllegalStateException("the plugin is registered and not allowed to be registered again.");
         }
-        var collection = new ELDServiceCollection(module, plugin);
+        var collection = new ELDServiceCollection(module, plugin, customInstallation);
         injector.accept(collection);
         if (sharePluginInstance) module.mapPluginInstance(plugin);
         module.bindPluginInstance(plugin.getClass(), plugin);
