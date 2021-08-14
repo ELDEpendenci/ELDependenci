@@ -14,8 +14,10 @@ import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.google.common.collect.ImmutableMap;
@@ -61,8 +63,13 @@ public final class ELDConfigManager implements ConfigStorage {
                 .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
                 .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        Module bukkitModule = new SimpleModule()
+                .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
+                .setSerializerModifier(new BukkitBeanModifier.Serializer());
+        this.mapper.registerModule(bukkitModule);
         this.skipType(FileController.class);
         this.skipType(LangController.class);
+        if (module != null) this.module.bindInstance(ObjectMapper.class, this.mapper);
         this.plugin = plugin;
     }
 
