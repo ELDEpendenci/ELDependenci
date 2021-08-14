@@ -141,7 +141,7 @@ public final class ELDModule implements Module {
         this.services.put(service, implement);
     }
 
-    <T> void bindInstance(Class<T> cls, T instance) {
+    public <T> void bindInstance(Class<T> cls, T instance) {
         this.instances.putIfAbsent(cls, instance);
     }
 
