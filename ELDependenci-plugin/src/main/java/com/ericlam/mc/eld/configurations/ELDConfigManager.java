@@ -17,9 +17,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Injector;
@@ -67,6 +69,7 @@ public final class ELDConfigManager implements ConfigStorage {
                 .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
                 .setSerializerModifier(new BukkitBeanModifier.Serializer());
         this.mapper.registerModule(bukkitModule);
+        this.mapper.registerModule(new JavaTimeModule());
         this.skipType(FileController.class);
         this.skipType(LangController.class);
         if (module != null) this.module.bindInstance(ObjectMapper.class, this.mapper);
