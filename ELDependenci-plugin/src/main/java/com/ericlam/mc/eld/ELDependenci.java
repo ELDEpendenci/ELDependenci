@@ -16,6 +16,8 @@ import com.ericlam.mc.eld.services.ConfigPoolService;
 import com.ericlam.mc.eld.services.ELDConfigPoolService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -27,6 +29,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -54,6 +58,8 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     private boolean sharePluginInstance = false;
     private ELDMessageConfig eldMessageConfig;
 
+    private static final Logger logger = LoggerFactory.getLogger(ELDependenci.class);
+
     @Override
     public void onLoad() {
         api = this;
@@ -66,6 +72,26 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         var eldConfig = eldConfigManager.getConfigAs(ELDConfig.class);
         this.module.setDefaultSingleton(eldConfig.defaultSingleton);
         this.sharePluginInstance = eldConfig.sharePluginInstance;
+
+        // test
+
+
+        Configurator.setRootLevel(org.apache.logging.log4j.Level.ALL);
+
+        logger.info("debug enabled: " + logger.isDebugEnabled());
+
+        this.getLogger().setLevel(Level.ALL);
+        logger.info("logger2-again = " + this.getLogger().getLevel());
+
+        this.getLogger().severe("1 of 7 - alt severe!");
+        this.getLogger().config("2 of 7 - alt config!");
+        this.getLogger().warning("3 of 7 - alt warn!");
+        this.getLogger().info("4 of 7 - alt info!");
+        this.getLogger().fine("5 of 7 - alt fine!");
+        this.getLogger().finer("6 of 7 - alt finer!");
+        this.getLogger().finest("7 of 7 - alt finest!");
+
+        // test
     }
 
     public static ELDependenciAPI getApi() {
@@ -87,13 +113,15 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
     @Override
     public void onEnable() {
-        try{
+        logger.debug("THIS IS A DEBUG MESSAGE");
+        getLogger().log(Level.FINE, " this is a fine message with plugin logger");
+        try {
             registerParser();
             getServer().getPluginManager().registerEvents(itemInteractListener, this);
             this.injector = Guice.createInjector(module);
             injector.getInstance(InstanceInjector.class).setInjector(injector);
-            configPoolService = (ELDConfigPoolService)injector.getInstance(ConfigPoolService.class);
-        }catch (Exception e){
+            configPoolService = (ELDConfigPoolService) injector.getInstance(ConfigPoolService.class);
+        } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error while enabling ELDependenci: ", e);
             getLogger().log(Level.SEVERE, "Disabling plugin...");
             this.disabled = true;
@@ -108,7 +136,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
 
-        if (disabled){
+        if (disabled) {
             plugin.getLogger().log(Level.SEVERE, "This plugin is disabled due to the disabled of ELDependenci");
             return;
         }
