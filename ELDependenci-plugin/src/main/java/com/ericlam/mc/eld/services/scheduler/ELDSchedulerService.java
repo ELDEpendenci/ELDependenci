@@ -1,9 +1,9 @@
 package com.ericlam.mc.eld.services.scheduler;
 
-import com.ericlam.mc.eld.InstanceInjector;
 import com.ericlam.mc.eld.misc.ChainCallable;
 import com.ericlam.mc.eld.services.ScheduleService;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 public final class ELDSchedulerService implements ScheduleService {
 
     @Inject
-    private InstanceInjector injector;
+    private Injector injector;
 
 
     @Override
@@ -26,13 +26,11 @@ public final class ELDSchedulerService implements ScheduleService {
 
     @Override
     public <E> BukkitPromise<E> callAsync(Plugin plugin, Callable<E> callable) {
-        injector.inject(callable);
         return new ELDBukkitPromise<>(callable, plugin);
     }
 
     @Override
     public BukkitPromise<Void> runAsync(Plugin plugin, Runnable runnable) {
-        injector.inject(runnable);
         return new ELDBukkitPromise<>(() -> {
             runnable.run();
             return Void.TYPE.cast(null);
@@ -48,7 +46,7 @@ public final class ELDSchedulerService implements ScheduleService {
         private long timeout = -1;
 
         private ELDSchedulerFactory(BukkitRunnable bukkitRunnable) {
-            injector.inject(bukkitRunnable);
+            injector.injectMembers(bukkitRunnable);
             this.bukkitRunnable = bukkitRunnable;
         }
 
@@ -101,7 +99,7 @@ public final class ELDSchedulerService implements ScheduleService {
         private final BukkitCallable<E> bukkitCallable;
 
         private ELDBukkitPromise(Callable<E> callable, Plugin plugin) {
-            injector.inject(callable);
+            injector.injectMembers(callable);
             bukkitCallable = new BukkitCallable<>(callable);
             this.plugin = plugin;
         }
@@ -164,7 +162,7 @@ public final class ELDSchedulerService implements ScheduleService {
 
 
         public ELDBukkitPromise2(final LinkedList<CatchableRunnable> catchableRunnableLinkedList, ChainCallable<E, R> function, Plugin plugin, boolean async) {
-            injector.inject(function);
+            injector.injectMembers(function);
             bukkitChainCallable = new BukkitChainCallable<>(function);
             this.catchableRunnableLinkedList = catchableRunnableLinkedList;
             this.catchableRunnableLinkedList.addLast(bukkitChainCallable);
