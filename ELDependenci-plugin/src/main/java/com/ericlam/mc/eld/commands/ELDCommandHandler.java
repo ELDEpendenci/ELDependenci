@@ -100,7 +100,9 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
                     return;
                 }
             }
-        } else if (!node.nodes.isEmpty()) {
+        }
+
+        if (!node.nodes.isEmpty()) {
             sender.sendMessage(generateHelpLines(node.nodes));
             return;
         }

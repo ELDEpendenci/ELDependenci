@@ -15,4 +15,13 @@ public interface ELDependenciAPI {
      */
     ManagerProvider register(ELDBukkit plugin, Consumer<ServiceCollection> injector);
 
+
+    /**
+     * 對外提供接口服務。主要用於框架以外的插件想要存取本插件的服務的時候
+     * @param serviceCls 服務接口
+     * @param <T> 服務類
+     * @return 服務, 如無則報錯
+     */
+    <T> T exposeService(Class<T> serviceCls);
+
 }
