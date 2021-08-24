@@ -62,7 +62,6 @@ public final class ELDModule implements Module {
     @Override
     public void configure(Binder binder) {
         //services internal bind
-        binder.bind(InstanceInjector.class).in(Scopes.SINGLETON);
         binder.bind(ScheduleService.class).to(ELDSchedulerService.class).in(Scopes.SINGLETON);
         binder.bind(ItemStackService.class).to(ELDItemStackService.class).in(Scopes.SINGLETON);
         binder.bind(MessageService.class).to(ELDMessageService.class).in(Scopes.SINGLETON);
