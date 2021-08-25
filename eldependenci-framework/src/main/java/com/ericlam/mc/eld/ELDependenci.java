@@ -12,5 +12,10 @@ public class ELDependenci implements ELDependenciAPI {
         return null;
     }
 
+    @Override
+    public <T> T exposeService(Class<T> serviceCls) {
+        return null;
+    }
+
 
 }

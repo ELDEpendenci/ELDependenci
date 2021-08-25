@@ -1,7 +1,6 @@
 package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
-import com.ericlam.mc.eld.components.GroupLangConfiguration;
 import com.ericlam.mc.eld.components.Overridable;
 import com.ericlam.mc.eld.services.*;
 import com.ericlam.mc.eld.services.factory.ELDItemStackService;
@@ -34,7 +33,6 @@ public final class ELDModule implements Module {
     private final Map<Class, Object> instances = new ConcurrentHashMap<>();
 
     private final Map<Class, Configuration> configs = new ConcurrentHashMap<>();
-    private final Map<Class, Map<String, ? extends GroupLangConfiguration>> groupLangs = new ConcurrentHashMap<>();
 
     private final Map<String, Plugin> pluginInjectors = new ConcurrentHashMap<>();
     private final Map<Class, Class<? extends Provider>> serviceProviders = new ConcurrentHashMap<>();
@@ -62,11 +60,11 @@ public final class ELDModule implements Module {
     @Override
     public void configure(Binder binder) {
         //services internal bind
-        binder.bind(InstanceInjector.class).in(Scopes.SINGLETON);
         binder.bind(ScheduleService.class).to(ELDSchedulerService.class).in(Scopes.SINGLETON);
         binder.bind(ItemStackService.class).to(ELDItemStackService.class).in(Scopes.SINGLETON);
         binder.bind(MessageService.class).to(ELDMessageService.class).in(Scopes.SINGLETON);
         binder.bind(ConfigPoolService.class).to(ELDConfigPoolService.class).in(Scopes.SINGLETON);
+        binder.bind(LanguagePoolService.class).to(ELDLangPoolService.class).in(Scopes.SINGLETON);
 
 
         modules.forEach(binder::install);
@@ -77,28 +75,27 @@ public final class ELDModule implements Module {
         instances.forEach((cls, ins) -> binder.bind(cls).toInstance(ins));
         servicesMulti.forEach((service, map) -> {
             var binding = MapBinder.newMapBinder(binder, String.class, service);
+
             map.forEach((key, impl) -> {
-                setScope(binding.addBinding(key).to(impl));
-                setScope(binder.bind(service).annotatedWith(Names.named(key)).to(impl));
+                setScope(binder.bind(impl)); // only set scope here
+                binding.addBinding(key).to(impl);
+                binder.bind(service).annotatedWith(Names.named(key)).to(impl);
             });
         });
         servicesSet.forEach((services, cls) -> {
             var binding = Multibinder.newSetBinder(binder, services);
             cls.forEach(c -> {
-                setScope(binding.addBinding().to(c));
+                setScope(binder.bind(c)); // only set scope here
+                binding.addBinding().to(c);
                 Optional<Annotation> qualifierOpt = Arrays.stream(c.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class)).findAny();
                 if (c.isAnnotationPresent(Named.class)) {
                     Named named = (Named) c.getAnnotation(Named.class);
-                    setScope(binder.bind(services).annotatedWith(Names.named(named.value())).to(c));
+                    binder.bind(services).annotatedWith(named).to(c);
                 } else if (qualifierOpt.isPresent()) {
                     Annotation annotation = qualifierOpt.get();
-                    setScope(binder.bind(services).annotatedWith(annotation).to(c));
+                    binder.bind(services).annotatedWith(annotation).to(c);
                 }
             });
-        });
-        groupLangs.forEach((cls, map) -> {
-            var binding = MapBinder.newMapBinder(binder, String.class, cls);
-            map.forEach((key, lang) -> binding.addBinding(key).toInstance(lang));
         });
         var pluginBinding = MapBinder.newMapBinder(binder, String.class, Plugin.class);
         pluginInjectors.forEach((pluginName, plugin) -> {
@@ -141,7 +138,7 @@ public final class ELDModule implements Module {
         this.services.put(service, implement);
     }
 
-    <T> void bindInstance(Class<T> cls, T instance) {
+    public <T> void bindInstance(Class<T> cls, T instance) {
         this.instances.putIfAbsent(cls, instance);
     }
 
@@ -153,13 +150,8 @@ public final class ELDModule implements Module {
         this.pluginInjectors.put(instance.getName(), instance);
     }
 
-
     public void bindConfig(Class<? extends Configuration> cls, Configuration c) {
         this.configs.put(cls, c);
-    }
-
-    public synchronized <T extends GroupLangConfiguration> void bindLangGroup(Class<T> groupLangConfig, Map<String, T> stringMap) {
-        this.groupLangs.put(groupLangConfig, stringMap);
     }
 
     void addModule(Module module) {

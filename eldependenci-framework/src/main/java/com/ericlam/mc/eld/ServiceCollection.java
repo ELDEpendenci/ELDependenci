@@ -64,7 +64,7 @@ public interface ServiceCollection {
 
     /**
      * 註冊服務, 如果已被註冊，則添加新的實作
-     * <p></p>
+     * <br>
      * 使用依賴注入時，請使用 {@code Set<[Service]> } 進行註冊
      * @param service 服務類 (interface)
      * @param implementation 新的實作
@@ -77,7 +77,7 @@ public interface ServiceCollection {
 
     /**
      * 註冊含有多重實作方式的服務, 如果先前已有註冊，將直接添加新的實作
-     * <p></p>
+     * <br>
      * 使用依賴注入時，請使用 {@code Map<String, [Service]> } 進行註冊
      * @param service 服務類 (interface)
      * @param implementations 包含標識id的多重實作類比

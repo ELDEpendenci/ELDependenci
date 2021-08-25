@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ELDependenci</artifactId>
         <groupId>org.eldependenci</groupId>
-        <version>0.1.1</version>
+        <version>0.1.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,10 +15,6 @@
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.inject.extensions</groupId>
-            <artifactId>guice-multibindings</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eldependenci</groupId>

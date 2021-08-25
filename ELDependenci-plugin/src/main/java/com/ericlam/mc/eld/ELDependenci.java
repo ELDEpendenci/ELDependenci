@@ -11,9 +11,7 @@ import com.ericlam.mc.eld.listeners.ELDEventListeners;
 import com.ericlam.mc.eld.managers.ArgumentManager;
 import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
-import com.ericlam.mc.eld.services.ArgParserService;
-import com.ericlam.mc.eld.services.ConfigPoolService;
-import com.ericlam.mc.eld.services.ELDConfigPoolService;
+import com.ericlam.mc.eld.services.*;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.bukkit.Bukkit;
@@ -45,6 +43,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     private final Map<Class<?>, Object> customInstallation = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
     private ELDConfigPoolService configPoolService;
+    private ELDLangPoolService langPoolService;
     private ItemInteractListener itemInteractListener;
     private static ELDependenciAPI api;
     private Injector injector;
@@ -86,14 +85,19 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     }
 
     @Override
+    public <T> T exposeService(Class<T> serviceCls) {
+        return injector.getInstance(serviceCls);
+    }
+
+    @Override
     public void onEnable() {
-        try{
+        try {
             registerParser();
             getServer().getPluginManager().registerEvents(itemInteractListener, this);
             this.injector = Guice.createInjector(module);
-            injector.getInstance(InstanceInjector.class).setInjector(injector);
-            configPoolService = (ELDConfigPoolService)injector.getInstance(ConfigPoolService.class);
-        }catch (Exception e){
+            configPoolService = (ELDConfigPoolService) injector.getInstance(ConfigPoolService.class);
+            langPoolService = (ELDLangPoolService) injector.getInstance(LanguagePoolService.class);
+        } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error while enabling ELDependenci: ", e);
             getLogger().log(Level.SEVERE, "Disabling plugin...");
             this.disabled = true;
@@ -108,7 +112,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
 
-        if (disabled){
+        if (disabled) {
             plugin.getLogger().log(Level.SEVERE, "This plugin is disabled due to the disabled of ELDependenci");
             return;
         }
@@ -116,7 +120,10 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         var configManager = services.configManager;
 
         configPoolService.dumpAll(configManager.getConfigPoolMap()); // insert all config pool
-        configManager.getRegisteredConfigPool().forEach((cls) -> configPoolService.addInitializer(cls, () -> configManager.preloadConfigPool(cls))); // insert initializer
+        configManager.getConfigPoolMap().keySet().forEach(type -> configPoolService.addGroupConfigLoader(type, configManager::loadOneGroupConfig));// insert config group loader
+
+        langPoolService.dumpAll(configManager.getLangPoolMap()); // insert all lang config pool
+        configManager.getLangPoolMap().keySet().forEach(type -> langPoolService.addGroupConfigLoader(type, configManager::loadOneLangConfig)); // insert lang group config loader
 
         configManager.setInjector(injector);
 

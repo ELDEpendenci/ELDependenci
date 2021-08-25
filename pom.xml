@@ -7,7 +7,7 @@
     <groupId>org.eldependenci</groupId>
     <artifactId>ELDependenci</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <modules>
         <module>eldependenci-framework</module>
         <module>eldependenci-addon</module>
@@ -29,6 +29,9 @@
         </repository>
     </repositories>
 
+    <properties>
+        <jackson.version>2.12.4</jackson.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -40,6 +43,7 @@
             <artifactId>1.16</artifactId>
         </dependency>
     </dependencies>
+
 
     <dependencyManagement>
         <dependencies>
@@ -79,20 +83,22 @@
                 <scope>compile</scope>
             </dependency>
             <dependency>
-                <groupId>com.google.inject.extensions</groupId>
-                <artifactId>guice-multibindings</artifactId>
-                <version>4.2.3</version>
-            </dependency>
-            <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>2.11.3</version>
+                <version>${jackson.version}</version>
                 <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>2.11.3</version>
+                <version>${jackson.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-jsr310</artifactId>
+                <version>${jackson.version}</version>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>javax.inject</groupId>
