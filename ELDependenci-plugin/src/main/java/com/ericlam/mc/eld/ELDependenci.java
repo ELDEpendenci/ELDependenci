@@ -11,16 +11,9 @@ import com.ericlam.mc.eld.listeners.ELDEventListeners;
 import com.ericlam.mc.eld.managers.ArgumentManager;
 import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
-import com.ericlam.mc.eld.services.ArgParserService;
-import com.ericlam.mc.eld.services.ConfigPoolService;
-import com.ericlam.mc.eld.services.ELDConfigPoolService;
+import com.ericlam.mc.eld.services.*;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -32,8 +25,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -52,6 +43,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     private final Map<Class<?>, Object> customInstallation = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
     private ELDConfigPoolService configPoolService;
+    private ELDLangPoolService langPoolService;
     private ItemInteractListener itemInteractListener;
     private static ELDependenciAPI api;
     private Injector injector;
@@ -104,6 +96,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             getServer().getPluginManager().registerEvents(itemInteractListener, this);
             this.injector = Guice.createInjector(module);
             configPoolService = (ELDConfigPoolService) injector.getInstance(ConfigPoolService.class);
+            langPoolService = (ELDLangPoolService) injector.getInstance(LanguagePoolService.class);
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error while enabling ELDependenci: ", e);
             getLogger().log(Level.SEVERE, "Disabling plugin...");
@@ -127,7 +120,10 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         var configManager = services.configManager;
 
         configPoolService.dumpAll(configManager.getConfigPoolMap()); // insert all config pool
-        configManager.getRegisteredConfigPool().forEach((cls) -> configPoolService.addInitializer(cls, () -> configManager.preloadConfigPool(cls))); // insert initializer
+        configManager.getConfigPoolMap().keySet().forEach(type -> configPoolService.addGroupConfigLoader(type, configManager::loadOneGroupConfig));// insert config group loader
+
+        langPoolService.dumpAll(configManager.getLangPoolMap()); // insert all lang config pool
+        configManager.getLangPoolMap().keySet().forEach(type -> langPoolService.addGroupConfigLoader(type, configManager::loadOneLangConfig)); // insert lang group config loader
 
         configManager.setInjector(injector);
 

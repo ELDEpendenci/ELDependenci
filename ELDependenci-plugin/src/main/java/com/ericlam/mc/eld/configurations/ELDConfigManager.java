@@ -40,6 +40,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -50,8 +51,10 @@ public final class ELDConfigManager implements ConfigStorage {
     private final JavaPlugin plugin;
     private final ObjectMapper mapper;
     private final Map<Class<? extends Configuration>, Configuration> configurationMap = new LinkedHashMap<>();
+
     private final Map<Class<? extends GroupConfiguration>, Map<String, GroupConfiguration>> configPoolMap = new ConcurrentHashMap<>();
-    private final Set<Class<? extends GroupConfiguration>> registeredConfigPool = new ConcurrentSet<>();
+    private final Map<Class<? extends GroupLangConfiguration>, Map<String, GroupLangConfiguration>> langPoolMap = new ConcurrentHashMap<>();
+
     private Injector injector = null;
 
     public ELDConfigManager(ELDModule module, JavaPlugin plugin) {
@@ -80,8 +83,9 @@ public final class ELDConfigManager implements ConfigStorage {
         return ImmutableMap.copyOf(configPoolMap);
     }
 
-    public Set<Class<? extends GroupConfiguration>> getRegisteredConfigPool() {
-        return ImmutableSet.copyOf(registeredConfigPool);
+
+    public Map<Class<? extends GroupLangConfiguration>, Map<String, GroupLangConfiguration>> getLangPoolMap() {
+        return ImmutableMap.copyOf(langPoolMap);
     }
 
     private void skipType(Class<?> type) {
@@ -121,50 +125,13 @@ public final class ELDConfigManager implements ConfigStorage {
         }
     }
 
+    // === group config ===
     public <T extends GroupConfiguration> void loadConfigPool(Class<T> config){
-        registeredConfigPool.add(config);
+        configPoolMap.putIfAbsent(config, new ConcurrentHashMap<>());
         preloadConfigPool(config).whenComplete((p, ex) ->{
             if (ex != null) ex.printStackTrace();
             else configPoolMap.put(config, p);
         });
-    }
-
-    public <T extends GroupLangConfiguration> void loadLanguagePool(Class<T> config){
-        if (!config.isAnnotationPresent(GroupResource.class))
-            throw new IllegalStateException("config pool " + config.getSimpleName() + " is lack of @GroupResource annotation");
-        var resource = config.getAnnotation(GroupResource.class);
-        CompletableFuture.runAsync(() -> {
-            File[] child = loadGroupConfigs(resource, config.getSimpleName());
-            if (child == null) return;
-            try {
-                Map<String, T> groupMap = new LinkedHashMap<>();
-                for (File data : child) {
-                    var id = FilenameUtils.getBaseName(data.getName());
-                    var ins = initConfiguration(config, data);
-                    YamlConfiguration configuration = YamlConfiguration.loadConfiguration(data);
-                    var controller = LangConfiguration.class.getDeclaredField("lang");
-                    setField(controller, new MessageGetterImpl(ins, configuration, data), ins);
-                    groupMap.put(id, ins);
-                }
-                module.bindLangGroup(config, groupMap);
-            } catch (Exception e) {
-                plugin.getLogger().warning("Error while loading config pool " + resource.folder());
-                e.printStackTrace();
-            }
-        }).thenRun(() -> plugin.getLogger().info("All language resources in folder "+resource.folder()+" has been loaded."));
-    }
-
-    @Nullable
-    private File[] loadGroupConfigs(GroupResource resource, String simpleName) {
-        File f = new File(plugin.getDataFolder(), resource.folder());
-        if (!f.exists()) f.mkdirs();
-        if (!f.isDirectory()) throw new IllegalStateException("config pool "+ simpleName +" 's path ' "+resource.folder()+" is not a directory!");
-        for (String preload : resource.preloads()) {
-            String yml = preload.concat(".yml");
-            File preLoadFile = new File(f, yml);
-            if (!preLoadFile.exists()) plugin.saveResource(resource.folder().concat("/").concat(yml), true);
-        }
-        return f.listFiles(fi -> FilenameUtils.getExtension(fi.getName()).equals("yml"));
     }
 
     public <T extends GroupConfiguration> CompletableFuture<Map<String, GroupConfiguration>> preloadConfigPool(Class<T> config){
@@ -172,7 +139,7 @@ public final class ELDConfigManager implements ConfigStorage {
             throw new IllegalStateException("config pool " + config.getSimpleName() + " is lack of @GroupResource annotation");
         var resource = config.getAnnotation(GroupResource.class);
         return CompletableFuture.supplyAsync(() -> {
-            var pool = new ConcurrentHashMap<String, GroupConfiguration>();
+            var pool = new HashMap<String, GroupConfiguration>();
             try {
                 File[] child = loadGroupConfigs(resource, config.getSimpleName());
                 if (child == null){
@@ -196,6 +163,113 @@ public final class ELDConfigManager implements ConfigStorage {
             return p;
         });
     }
+
+    public <T extends GroupConfiguration> CompletableFuture<T> loadOneGroupConfig(Class<T> config, String key){
+        if (!config.isAnnotationPresent(GroupResource.class))
+            throw new IllegalStateException("config pool " + config.getSimpleName() + " is lack of @GroupResource annotation");
+        var resource = config.getAnnotation(GroupResource.class);
+        return CompletableFuture.supplyAsync(() -> {
+            File[] childs = Optional.ofNullable(loadGroupConfigs(resource, config.getSimpleName())).orElse(new File[0]);
+            Optional<File> child = Arrays.stream(childs).filter(data -> FilenameUtils.getBaseName(data.getName()).equals(key)).findAny();
+            if (child.isEmpty()) throw new IllegalStateException("unknown config: "+key+".yml");
+            try {
+                var data = child.get();
+                var ins = initConfiguration(config, data);
+                var idField = GroupConfiguration.class.getDeclaredField("id");
+                setField(idField, key, ins);
+                return ins;
+            }catch (Exception e){
+                throw new CompletionException(e);
+            }
+        });
+    }
+
+
+    // ====
+
+    // === lang group config ===
+
+    public <T extends GroupLangConfiguration> void loadLanguagePool(Class<T> config) {
+        langPoolMap.putIfAbsent(config, new ConcurrentHashMap<>());
+        preloadLanguagePool(config).whenComplete((p, ex) ->{
+            if (ex != null) ex.printStackTrace();
+            else langPoolMap.put(config, p);
+        });
+    }
+
+    public <T extends GroupLangConfiguration> CompletableFuture<Map<String, GroupLangConfiguration>> preloadLanguagePool(Class<T> config){
+        if (!config.isAnnotationPresent(GroupResource.class))
+            throw new IllegalStateException("config pool " + config.getSimpleName() + " is lack of @GroupResource annotation");
+        var resource = config.getAnnotation(GroupResource.class);
+        return CompletableFuture.supplyAsync(() -> {
+            Map<String, GroupLangConfiguration> groupMap = new LinkedHashMap<>();
+            File[] child = loadGroupConfigs(resource, config.getSimpleName());
+            if (child == null) return groupMap;
+            try {
+                for (File data : child) {
+                    var id = FilenameUtils.getBaseName(data.getName());
+                    var ins = initConfiguration(config, data);
+                    YamlConfiguration configuration = YamlConfiguration.loadConfiguration(data);
+                    var controller = LangConfiguration.class.getDeclaredField("lang");
+                    var locale = GroupLangConfiguration.class.getDeclaredField("locale");
+                    setField(controller, new MessageGetterImpl(ins, configuration, data), ins);
+                    setField(locale, id, ins);
+                    groupMap.put(id, ins);
+                }
+            } catch (Exception e) {
+                plugin.getLogger().warning("Error while loading config pool " + resource.folder());
+                e.printStackTrace();
+            }
+            return groupMap;
+        }).thenApply(p -> {
+            plugin.getLogger().info("All language resources in folder "+resource.folder()+" has been loaded.");
+            return p;
+        });
+    }
+
+    public <T extends GroupLangConfiguration> CompletableFuture<T> loadOneLangConfig(Class<T> config, String key){
+        if (!config.isAnnotationPresent(GroupResource.class))
+            throw new IllegalStateException("config pool " + config.getSimpleName() + " is lack of @GroupResource annotation");
+        var resource = config.getAnnotation(GroupResource.class);
+        return CompletableFuture.supplyAsync(() -> {
+            File[] childs = Optional.ofNullable(loadGroupConfigs(resource, config.getSimpleName())).orElse(new File[0]);
+            Optional<File> child = Arrays.stream(childs).filter(data -> FilenameUtils.getBaseName(data.getName()).equals(key)).findAny();
+            if (child.isEmpty()) throw new IllegalStateException("unknown config: "+key+".yml");
+            try {
+                var data = child.get();
+                var ins = initConfiguration(config, data);
+                YamlConfiguration configuration = YamlConfiguration.loadConfiguration(data);
+                var controller = LangConfiguration.class.getDeclaredField("lang");
+                var locale = GroupLangConfiguration.class.getDeclaredField("locale");
+                setField(controller, new MessageGetterImpl(ins, configuration, data), ins);
+                setField(locale, key, ins);
+                return ins;
+            }catch (Exception e){
+                throw new CompletionException(e);
+            }
+        });
+    }
+
+    // =====
+
+    @Nullable
+    private File[] loadGroupConfigs(GroupResource resource, String simpleName) {
+        File f = new File(plugin.getDataFolder(), resource.folder());
+        if (!f.exists()) f.mkdirs();
+        if (!f.isDirectory()) throw new IllegalStateException("config pool "+ simpleName +" 's path ' "+resource.folder()+" is not a directory!");
+        for (String preload : resource.preloads()) {
+            String yml = preload.concat(".yml");
+            File preLoadFile = new File(f, yml);
+            if (!preLoadFile.exists()) plugin.saveResource(resource.folder().concat("/").concat(yml), true);
+        }
+        return f.listFiles(fi -> FilenameUtils.getExtension(fi.getName()).equals("yml"));
+    }
+
+
+
+
+
+
 
     private <T extends Configuration> T initConfiguration(Class<T> config, File f) throws Exception{
         var ins = mapper.readValue(f, config);
