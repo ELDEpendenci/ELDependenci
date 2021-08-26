@@ -123,6 +123,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         configManager.getConfigPoolMap().keySet().forEach(type -> configPoolService.addGroupConfigLoader(type, configManager::loadOneGroupConfig));// insert config group loader
 
         langPoolService.dumpAll(configManager.getLangPoolMap()); // insert all lang config pool
+        langPoolService.addDefaultLanguages(configManager.getDefaultLanguageMap()); // add default language for each lang config group
         configManager.getLangPoolMap().keySet().forEach(type -> langPoolService.addGroupConfigLoader(type, configManager::loadOneLangConfig)); // insert lang group config loader
 
         configManager.setInjector(injector);
