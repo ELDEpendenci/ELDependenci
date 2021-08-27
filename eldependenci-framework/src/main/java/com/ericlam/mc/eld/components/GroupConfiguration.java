@@ -3,7 +3,7 @@ package com.ericlam.mc.eld.components;
 /**
  * 用於定義文件池
  */
-public abstract class GroupConfiguration extends Configuration {
+public abstract class GroupConfiguration {
 
     private String id;
 
@@ -13,6 +13,15 @@ public abstract class GroupConfiguration extends Configuration {
      */
     public String getId() {
         return id;
+    }
+
+
+    /**
+     * 設置文件 id
+     * @param id 標識 id
+     */
+    public void setId(String id) {
+        this.id = id;
     }
 
 }
