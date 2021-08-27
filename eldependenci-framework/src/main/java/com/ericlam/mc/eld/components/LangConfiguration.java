@@ -10,7 +10,7 @@ public abstract class LangConfiguration extends Configuration {
 
     /**
      * 獲取訊息文件控制器
-     * @return this
+     * @return 訊息文件控制器
      */
     public final LangController getLang() {
         return lang;

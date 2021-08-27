@@ -1,11 +1,14 @@
 package com.ericlam.mc.eld.components;
 
+import com.ericlam.mc.eld.controllers.LangController;
+
 /**
  * 用於定義語言文件池
  */
-public abstract class GroupLangConfiguration extends LangConfiguration {
+public abstract class GroupLangConfiguration {
 
     private String locale;
+    private LangController lang;
 
     /**
      * 獲取文件語言標簽
@@ -13,6 +16,14 @@ public abstract class GroupLangConfiguration extends LangConfiguration {
      */
     public String getLocale() {
         return locale;
+    }
+
+    /**
+     * 獲取訊息文件控制器
+     * @return 訊息文件控制器
+     */
+    public final LangController getLang() {
+        return lang;
     }
 
 }
