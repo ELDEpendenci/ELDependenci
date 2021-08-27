@@ -84,7 +84,6 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
     public synchronized boolean deleteById(String id) {
         File file = new File(folder, id+".yml");
         if (!file.exists()) {
-            System.out.println(id+".yml not exist, cannot delete");
             return false;
         }
         cached.remove(id);
