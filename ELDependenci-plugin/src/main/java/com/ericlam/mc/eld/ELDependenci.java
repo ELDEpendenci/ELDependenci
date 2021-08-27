@@ -12,6 +12,7 @@ import com.ericlam.mc.eld.managers.ArgumentManager;
 import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
 import com.ericlam.mc.eld.services.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.bukkit.Bukkit;
@@ -42,8 +43,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     private final Map<JavaPlugin, ELDServiceCollection> collectionMap = new ConcurrentHashMap<>();
     private final Map<Class<?>, Object> customInstallation = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
-    private ELDConfigPoolService configPoolService;
-    private ELDLangPoolService langPoolService;
+    private final ELDConfigPoolService groupConfigService = new ELDConfigPoolService();
     private ItemInteractListener itemInteractListener;
     private static ELDependenciAPI api;
     private Injector injector;
@@ -56,6 +56,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     @Override
     public void onLoad() {
         api = this;
+        this.module.bindInstance(ObjectMapper.class, ELDConfigManager.OBJECT_MAPPER);
         this.itemInteractListener = new ItemInteractListener(this);
         this.module.bindInstance(ArgParserService.class, argumentManager);
         eldConfigManager.loadConfig(ELDConfig.class);
@@ -65,6 +66,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         var eldConfig = eldConfigManager.getConfigAs(ELDConfig.class);
         this.module.setDefaultSingleton(eldConfig.defaultSingleton);
         this.sharePluginInstance = eldConfig.sharePluginInstance;
+        this.module.addModule(new ELDConfigModule(groupConfigService));
     }
 
     public static ELDependenciAPI getApi() {
@@ -79,6 +81,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         injector.accept(collection);
         if (sharePluginInstance) module.mapPluginInstance(plugin);
         module.bindPluginInstance(plugin.getClass(), plugin);
+        collection.configManager.getGroupConfigSet().forEach(gc -> groupConfigService.addTypeMapper(gc, plugin));
         collection.configManager.dumpAll();
         this.collectionMap.put(plugin, collection);
         return new ELDManagerProvider(collection);
@@ -95,8 +98,6 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             registerParser();
             getServer().getPluginManager().registerEvents(itemInteractListener, this);
             this.injector = Guice.createInjector(module);
-            configPoolService = (ELDConfigPoolService) injector.getInstance(ConfigPoolService.class);
-            langPoolService = (ELDLangPoolService) injector.getInstance(LanguagePoolService.class);
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error while enabling ELDependenci: ", e);
             getLogger().log(Level.SEVERE, "Disabling plugin...");
@@ -118,13 +119,6 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         }
 
         var configManager = services.configManager;
-
-        configPoolService.dumpAll(configManager.getConfigPoolMap()); // insert all config pool
-        configManager.getConfigPoolMap().keySet().forEach(type -> configPoolService.addGroupConfigLoader(type, configManager::loadOneGroupConfig));// insert config group loader
-
-        langPoolService.dumpAll(configManager.getLangPoolMap()); // insert all lang config pool
-        langPoolService.addDefaultLanguages(configManager.getDefaultLanguageMap()); // add default language for each lang config group
-        configManager.getLangPoolMap().keySet().forEach(type -> langPoolService.addGroupConfigLoader(type, configManager::loadOneLangConfig)); // insert lang group config loader
 
         configManager.setInjector(injector);
 

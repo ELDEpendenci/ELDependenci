@@ -14,7 +14,6 @@ import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -43,62 +42,48 @@ import java.util.stream.Collectors;
 
 import static com.ericlam.mc.eld.configurations.ELDConfigManager.ConfigUtils.setField;
 
-public final class ELDConfigManager implements ConfigStorage, ConfigInitializer {
+public final class ELDConfigManager implements ConfigStorage {
+
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(new YAMLFactory()
+            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+            .enable(JsonParser.Feature.ALLOW_YAML_COMMENTS))
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .enable(JsonParser.Feature.ALLOW_COMMENTS)
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .registerModule(new SimpleModule()
+                    .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
+                    .setSerializerModifier(new BukkitBeanModifier.Serializer()))
+            .registerModule(new JavaTimeModule());
+
+
+    static {
+        skipType(FileController.class);
+        skipType(LangController.class);
+    }
+
+    private static void skipType(Class<?> type) {
+        OBJECT_MAPPER.configOverride(type)
+                .setVisibility(JsonAutoDetect.Value.construct(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE))
+                .setIsIgnoredType(true)
+                .setSetterInfo(JsonSetter.Value.construct(Nulls.SKIP, Nulls.SKIP));
+    }
+
 
     private final ELDModule module;
     private final JavaPlugin plugin;
-    private final ObjectMapper mapper;
+
     private final Map<Class<? extends Configuration>, Configuration> configurationMap = new LinkedHashMap<>();
 
-
-    private final ELDGroupConfigManager groupConfigManager;
-    private final ELDLangConfigManager langConfigManager;
 
 
     private Injector injector = null;
 
     public ELDConfigManager(ELDModule module, JavaPlugin plugin) {
         this.module = module;
-        this.mapper = new ObjectMapper(new YAMLFactory()
-                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                .enable(JsonParser.Feature.ALLOW_YAML_COMMENTS));
-        this.mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .enable(JsonParser.Feature.ALLOW_COMMENTS)
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        Module bukkitModule = new SimpleModule()
-                .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
-                .setSerializerModifier(new BukkitBeanModifier.Serializer());
-        this.mapper.registerModule(bukkitModule);
-        this.mapper.registerModule(new JavaTimeModule());
-        this.skipType(FileController.class);
-        this.skipType(LangController.class);
-        if (module != null) this.module.bindInstance(ObjectMapper.class, this.mapper);
         this.plugin = plugin;
-
-        this.groupConfigManager = new ELDGroupConfigManager(plugin, this);
-        this.langConfigManager = new ELDLangConfigManager(plugin, this);
-    }
-
-    public Map<Class<? extends GroupConfiguration>, Map<String, GroupConfiguration>> getConfigPoolMap() {
-        return ImmutableMap.copyOf(groupConfigManager.getConfigPoolMap());
-    }
-
-    public Map<Class<? extends GroupLangConfiguration>, GroupLangConfiguration> getDefaultLanguageMap() {
-        return ImmutableMap.copyOf(langConfigManager.getDefaultLanguageMap());
-    }
-
-    public Map<Class<? extends GroupLangConfiguration>, Map<String, GroupLangConfiguration>> getLangPoolMap() {
-        return ImmutableMap.copyOf(langConfigManager.getLangPoolMap());
-    }
-
-    private void skipType(Class<?> type) {
-        mapper.configOverride(type)
-                .setVisibility(JsonAutoDetect.Value.construct(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE))
-                .setIsIgnoredType(true)
-                .setSetterInfo(JsonSetter.Value.construct(Nulls.SKIP, Nulls.SKIP));
     }
 
 
@@ -110,48 +95,33 @@ public final class ELDConfigManager implements ConfigStorage, ConfigInitializer 
         this.injector = injector;
     }
 
+    // config pool
+
+    private final Set<Class<?>> groupConfigSet = new HashSet<>();
+
     public <T extends GroupConfiguration> void loadConfigPool(Class<T> config) {
-        this.groupConfigManager.loadConfigPool(config);
+        groupConfigSet.add(config);
     }
 
     public <T extends GroupLangConfiguration> void loadLanguagePool(Class<T> config) {
-        this.langConfigManager.loadLanguagePool(config);
+        groupConfigSet.add(config);
     }
 
-    public <T extends GroupLangConfiguration> CompletableFuture<Optional<GroupLangConfiguration>> loadOneLangConfig(Class<T> config, String key) {
-        return this.langConfigManager.loadOneLangConfig(config, key);
+    public Set<Class<?>> getGroupConfigSet() {
+        return groupConfigSet;
     }
 
-    public <T extends GroupConfiguration> CompletableFuture<Optional<GroupConfiguration>> loadOneGroupConfig(Class<T> config, String key) {
-        return this.groupConfigManager.loadOneGroupConfig(config, key);
-    }
+    // =========
 
-    @Nullable
-    @Override
-    public File[] loadGroupConfigs(GroupResource resource, String simpleName) {
-        File f = new File(plugin.getDataFolder(), resource.folder());
-        if (!f.exists()) f.mkdirs();
-        if (!f.isDirectory())
-            throw new IllegalStateException("config pool " + simpleName + " 's path ' " + resource.folder() + " is not a directory!");
-        for (String preload : resource.preloads()) {
-            String yml = preload.concat(".yml");
-            File preLoadFile = new File(f, yml);
-            if (!preLoadFile.exists()) plugin.saveResource(resource.folder().concat("/").concat(yml), true);
-        }
-        return f.listFiles(fi -> FilenameUtils.getExtension(fi.getName()).equals("yml"));
-    }
-
-
-    @Override
     public <T extends Configuration> T initConfiguration(Class<T> config, File f) throws Exception {
-        var ins = mapper.readValue(f, config);
+        var ins = OBJECT_MAPPER.readValue(f, config);
         class FileControllerImpl implements FileController {
 
             @Override
             public boolean reload() {
                 try {
                     if (reloadConfig(config)) {
-                        var latest = mapper.readValue(f, config);
+                        var latest = OBJECT_MAPPER.readValue(f, config);
                         for (Field f : latest.getClass().getDeclaredFields()) {
                             var dataField = latest.getClass().getDeclaredField(f.getName());
                             dataField.setAccessible(true);
@@ -169,7 +139,7 @@ public final class ELDConfigManager implements ConfigStorage, ConfigInitializer 
 
             @Override
             public void save() throws IOException {
-                mapper.writeValue(f, ins);
+                OBJECT_MAPPER.writeValue(f, ins);
             }
         }
 
@@ -246,7 +216,7 @@ public final class ELDConfigManager implements ConfigStorage, ConfigInitializer 
 
     }
 
-     static class MessageGetterImpl implements LangController {
+    static class MessageGetterImpl implements LangController {
 
         private final Object ins;
         private final FileConfiguration configuration;
