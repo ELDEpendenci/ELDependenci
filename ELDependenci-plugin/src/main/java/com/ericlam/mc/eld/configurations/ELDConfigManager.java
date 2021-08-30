@@ -20,23 +20,19 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Injector;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -78,7 +74,6 @@ public final class ELDConfigManager implements ConfigStorage {
     private final Map<Class<? extends Configuration>, Configuration> configurationMap = new LinkedHashMap<>();
 
 
-
     private Injector injector = null;
 
     public ELDConfigManager(ELDModule module, JavaPlugin plugin) {
@@ -100,11 +95,32 @@ public final class ELDConfigManager implements ConfigStorage {
     private final Set<Class<?>> groupConfigSet = new HashSet<>();
 
     public <T extends GroupConfiguration> void loadConfigPool(Class<T> config) {
+        preloadYaml(config);
         groupConfigSet.add(config);
     }
 
     public <T extends GroupLangConfiguration> void loadLanguagePool(Class<T> config) {
+        preloadYaml(config);
         groupConfigSet.add(config);
+    }
+
+    private void preloadYaml(Class<?> config) {
+        CompletableFuture.runAsync(() -> {
+            if (!config.isAnnotationPresent(GroupResource.class))
+                throw new IllegalStateException(config.getSimpleName() + " is lack of @GroupResource annotation");
+            var resource = config.getAnnotation(GroupResource.class);
+            var folder = new File(plugin.getDataFolder(), resource.folder());
+            if (!folder.exists() && folder.mkdirs()) plugin.getLogger().info("Folder " + resource.folder() + " created.");
+            if (!folder.isDirectory())
+                throw new IllegalStateException("config pool " + config.getSimpleName() + " 's path ' " + resource.folder() + " is not a directory!");
+            for (String preload : resource.preloads()) {
+                String yml = preload.concat(".yml");
+                File preLoadFile = new File(folder, yml);
+                if (!preLoadFile.exists()) plugin.saveResource(resource.folder().concat("/").concat(yml), true);
+            }
+        }).whenComplete((v, ex) -> {
+            if (ex != null) ex.printStackTrace();
+        });
     }
 
     public Set<Class<?>> getGroupConfigSet() {
