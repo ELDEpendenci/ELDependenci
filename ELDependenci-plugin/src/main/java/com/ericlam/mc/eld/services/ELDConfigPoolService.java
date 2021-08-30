@@ -34,7 +34,6 @@ public final class ELDConfigPoolService implements ConfigPoolService {
         var resource = type.getAnnotation(GroupResource.class);
         var plugin = Optional.ofNullable(pluginMapper.get(type)).orElseThrow(() -> new IllegalStateException("cannot find suitable plugin for config pool type: " + type.getSimpleName()));
         File folder = new File(plugin.getDataFolder(), resource.folder());
-        preloadYaml(resource, folder, plugin, type.getSimpleName());
         GroupConfig<T> groupConfig = new SimpleGroupConfig<>(mapper, folder, type);
         this.groupConfigMap.put(type, groupConfig);
         return groupConfig;
@@ -51,20 +50,8 @@ public final class ELDConfigPoolService implements ConfigPoolService {
         var defaultLang = type.getAnnotation(DefaultLanguage.class).value();
         var plugin = Optional.ofNullable(pluginMapper.get(type)).orElseThrow(() -> new IllegalStateException("cannot find suitable plugin for config pool type: " + type.getSimpleName()));
         File folder = new File(plugin.getDataFolder(), resource.folder());
-        preloadYaml(resource, folder, plugin, type.getSimpleName());
         GroupLang<T> groupLang = new SimpleGroupLang<>(folder, type, plugin, defaultLang);
         this.groupLangMap.put(type, groupLang);
         return groupLang;
-    }
-
-    private void preloadYaml(GroupResource resource, File folder, Plugin plugin, String simpleName){
-        if (!folder.exists() && folder.mkdirs()) plugin.getLogger().info("Folder "+resource.folder()+" created.");
-        if (!folder.isDirectory())
-            throw new IllegalStateException("config pool " + simpleName + " 's path ' " + resource.folder() + " is not a directory!");
-        for (String preload : resource.preloads()) {
-            String yml = preload.concat(".yml");
-            File preLoadFile = new File(folder, yml);
-            if (!preLoadFile.exists()) plugin.saveResource(resource.folder().concat("/").concat(yml), true);
-        }
     }
 }

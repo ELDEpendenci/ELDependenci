@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ELDependenci-plugin</artifactId>
-    <version>${project.parent.version}</version>
+    <version>${project.parent.version}.1</version>
 
     <dependencies>
         <dependency>
