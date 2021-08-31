@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupConfig<T> {
+public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupConfig<T>, PreLoadable {
 
     private final static Logger LOGGER = ELDependenci.getProvidingPlugin(ELDependenci.class).getSLF4JLogger();
 
@@ -46,7 +46,7 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
                         cached.put(id, data);
                         return data;
                     } catch (IOException e) {
-                        LOGGER.warn("Error while loading "+id+".yml: "+e.getMessage(), e);
+                        LOGGER.warn("Error while loading " + id + ".yml: " + e.getMessage(), e);
                     }
                     return null;
                 }).filter(Objects::nonNull).collect(Collectors.toList());
@@ -55,15 +55,15 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
     @Override
     public synchronized Optional<T> findById(String id) {
         if (cached.containsKey(id)) return Optional.of(cached.get(id));
-        File file = new File(folder, id+".yml");
+        File file = new File(folder, id + ".yml");
         if (!file.exists()) return Optional.empty();
         try {
             T data = mapper.readValue(file, groupType);
             data.setId(id);
             cached.put(id, data);
             return Optional.of(data);
-        }catch (IOException e){
-            LOGGER.warn("error while loading "+id+".yml: "+e.getMessage(), e);
+        } catch (IOException e) {
+            LOGGER.warn("error while loading " + id + ".yml: " + e.getMessage(), e);
             return Optional.empty();
         }
     }
@@ -71,18 +71,18 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
     @Override
     public synchronized void save(T config) {
         validateIdExist(config);
-        File yml = new File(folder, config.getId()+".yml");
+        File yml = new File(folder, config.getId() + ".yml");
         try {
             mapper.writeValue(yml, config);
             this.cached.put(config.getId(), config);
         } catch (IOException e) {
-            LOGGER.warn("error while saving "+config.getId()+".yml: "+e.getMessage(), e);
+            LOGGER.warn("error while saving " + config.getId() + ".yml: " + e.getMessage(), e);
         }
     }
 
     @Override
     public synchronized boolean deleteById(String id) {
-        File file = new File(folder, id+".yml");
+        File file = new File(folder, id + ".yml");
         if (!file.exists()) {
             return false;
         }
@@ -110,7 +110,28 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
         this.cached.remove(id);
     }
 
-    private void validateIdExist(T data){
+    private void validateIdExist(T data) {
         Validate.notNull(data.getId(), "id is null");
+    }
+
+    @Override
+    public synchronized void loadAll() {
+        File[] child = folder.listFiles(f -> f.getName().endsWith(".yml"));
+        if (child == null) return;
+        Arrays.stream(child)
+                .parallel()
+                .forEach(f -> {
+                    String id = FilenameUtils.getBaseName(f.getName());
+                    if (cached.containsKey(id)) {
+                        return;
+                    }
+                    try {
+                        T data = mapper.readValue(f, groupType);
+                        data.setId(id);
+                        cached.put(id, data);
+                    } catch (IOException e) {
+                        LOGGER.warn("Error while loading " + id + ".yml: " + e.getMessage(), e);
+                    }
+                });
     }
 }
