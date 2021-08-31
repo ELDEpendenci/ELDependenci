@@ -11,6 +11,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("unchecked")
@@ -24,6 +25,29 @@ public final class ELDConfigPoolService implements ConfigPoolService {
 
     public void addTypeMapper(Class<?> type, Plugin plugin) {
         this.pluginMapper.put(type, plugin);
+        if (!type.isAnnotationPresent(GroupResource.class))
+            throw new IllegalStateException("config pool " + type.getSimpleName() + " is lack of @GroupResource annotation");
+        var resource = type.getAnnotation(GroupResource.class);
+        File folder = new File(plugin.getDataFolder(), resource.folder());
+        if (GroupConfiguration.class.isAssignableFrom(type)){
+            var t = (Class<? extends GroupConfiguration>) type;
+            var simpleGroup = new SimpleGroupConfig<>(mapper, folder, t);
+            CompletableFuture.runAsync(simpleGroup::loadAll).whenComplete((v, ex) -> {
+                if (ex != null) ex.printStackTrace();
+                else plugin.getLogger().info("Cache Loaded for config group: "+type.getSimpleName());
+            });
+            this.groupConfigMap.put(t, simpleGroup);
+        } else if (GroupLangConfiguration.class.isAssignableFrom(type)){
+            if (!type.isAnnotationPresent(DefaultLanguage.class))
+                throw new IllegalStateException("language pool " + type.getSimpleName() + " is lack of @DefaultLanguage annotation");
+            var defaultLang = type.getAnnotation(DefaultLanguage.class).value();
+            var t = (Class<? extends GroupLangConfiguration>) type;
+            var simpleLang = new SimpleGroupLang<>(folder, t, plugin, defaultLang);
+            CompletableFuture.runAsync(simpleLang::loadAll).whenComplete((v, ex) -> {
+                if (ex != null) ex.printStackTrace();
+                else plugin.getLogger().info("Cache Loaded for config group: "+type.getSimpleName());
+            });
+        }
     }
 
     @Override
