@@ -133,15 +133,19 @@ public final class ELDConfigManager implements ConfigStorage {
         var ins = OBJECT_MAPPER.readValue(f, config);
         class FileControllerImpl implements FileController {
 
+            private final Field[] fields;
+
+            public FileControllerImpl(){
+                this.fields = config.getDeclaredFields();
+            }
+
             @Override
             public boolean reload() {
                 try {
                     if (reloadConfig(config)) {
                         var latest = OBJECT_MAPPER.readValue(f, config);
-                        for (Field f : latest.getClass().getDeclaredFields()) {
-                            var dataField = latest.getClass().getDeclaredField(f.getName());
-                            dataField.setAccessible(true);
-                            var data = dataField.get(latest);
+                        for (Field f : fields) {
+                            var data = f.get(latest);
                             f.setAccessible(true);
                             f.set(ins, data);
                         }
