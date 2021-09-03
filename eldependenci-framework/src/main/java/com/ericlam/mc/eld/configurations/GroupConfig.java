@@ -18,6 +18,13 @@ public interface GroupConfig<T extends GroupConfiguration> {
     List<T> findAll();
 
     /**
+     * 獲取指定頁數內的所有文件實例
+     * @param pageRequest 頁面請求
+     * @return 頁面
+     */
+    Page<T> findAll(PageRequest pageRequest);
+
+    /**
      * 根據 id 尋找文件實例
      * @param id 標識 id
      * @return 文件實例
