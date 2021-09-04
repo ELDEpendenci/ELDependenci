@@ -30,4 +30,12 @@ public class SimpleFileWalker implements FileWalker{
         return s.skip(from)
                 .limit(size);
     }
+
+    @Override
+    public long totalSize(File folder, Predicate<Path> filter) throws IOException {
+        return Files.walk(folder.toPath())
+                .filter(p -> p.toString().endsWith(".yml"))
+                .filter(filter)
+                .count();
+    }
 }
