@@ -37,4 +37,11 @@ public class DirectStreamFileWalker implements FileWalker {
             return s.skip(from).limit(request.getSize());
         }
     }
+
+    @Override
+    public long totalSize(File folder, Predicate<Path> filter) throws IOException {
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(folder.toPath(), "*.yml")) {
+            return StreamSupport.stream(ds.spliterator(), false).filter(filter).count();
+        }
+    }
 }
