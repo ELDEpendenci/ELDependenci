@@ -2,6 +2,7 @@ package com.ericlam.mc.eld.configurations;
 
 import com.ericlam.mc.eld.ELDependenci;
 import com.ericlam.mc.eld.components.GroupConfiguration;
+import com.ericlam.mc.eld.configurations.filewalk.FileWalker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.Validate;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
@@ -10,11 +11,14 @@ import org.slf4j.Logger;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupConfig<T>, PreLoadable {
@@ -24,39 +28,47 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
     private final ObjectMapper mapper;
     private final File folder;
     private final Class<T> groupType;
+    private final FileWalker fileWalker;
 
     private final Map<String, T> cached = new ConcurrentHashMap<>();
 
-    public SimpleGroupConfig(ObjectMapper mapper, File folder, Class<T> groupType) {
+    public SimpleGroupConfig(ObjectMapper mapper,
+                             File folder,
+                             Class<T> groupType,
+                             FileWalker fileWalker) {
         this.mapper = mapper;
         this.folder = folder;
         this.groupType = groupType;
+        this.fileWalker = fileWalker;
     }
 
     @Override
     public synchronized List<T> findAll() {
-        File[] child = folder.listFiles(f -> f.getName().endsWith(".yml"));
-        if (child == null) return List.of();
-        return Arrays.stream(child)
-                .parallel()
-                .map(this::mapToInstance)
-                .filter(Objects::nonNull).collect(Collectors.toList());
+        try {
+            return fileWalker.walkAll(folder, (Predicate<Path>) null).map(Path::toFile).map(this::mapToInstance).collect(Collectors.toList());
+        } catch (IOException e) {
+            LOGGER.warn("Error while loading Folder " + folder.toPath() + "" + e.getMessage(), e);
+            e.printStackTrace();
+        }
+        return List.of();
     }
 
     @Override
-    public Page<T> findAll(PageRequest pageRequest) {
-        int page = pageRequest.getPage();
-        int size = pageRequest.getSize();
+    public synchronized List<T> findAll(Predicate<Path> filter) {
         try {
-            int totalPages = (int) Math.round((double)(totalSize() / size));
-            List<T> list = Files.walk(folder.toPath())
-                    .filter(p -> p.endsWith(".yml")) // adding '&& Files.isRegularFile(p)' will increase loading time
-                    .sorted(pageRequest.getComparator())
-                    .skip((long) page * size)
-                    .limit(size)
-                    .map(Path::toFile)
-                    .map(this::mapToInstance)
-                    .collect(Collectors.toList());
+            return fileWalker.walkAll(folder, filter).map(Path::toFile).map(this::mapToInstance).collect(Collectors.toList());
+        } catch (IOException e) {
+            LOGGER.warn("Error while loading Folder " + folder.toPath() + "" + e.getMessage(), e);
+            e.printStackTrace();
+        }
+        return List.of();
+    }
+
+    @Override
+    public synchronized Page<T> findAll(PageRequest pageRequest) {
+        try {
+            List<T> list = fileWalker.walkAll(folder, pageRequest).map(Path::toFile).map(this::mapToInstance).collect(Collectors.toList());
+            int totalPages = (int) Math.ceil((double)totalSize() / pageRequest.getSize());
             return new YamlPage<>(list, pageRequest, totalPages, totalSize());
         } catch (IOException e) {
             LOGGER.warn("Error while loading Folder " + folder.toPath() + "" + e.getMessage(), e);
@@ -123,7 +135,7 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
 
     @Override
     public synchronized long totalSize() {
-        return folder.length();
+        return Optional.ofNullable(folder.list()).map(l -> l.length).orElse(0);
     }
 
     @Override
