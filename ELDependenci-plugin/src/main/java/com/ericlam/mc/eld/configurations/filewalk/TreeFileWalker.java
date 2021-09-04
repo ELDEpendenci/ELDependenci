@@ -69,4 +69,9 @@ public class TreeFileWalker implements FileWalker {
         });
         return paths.stream();
     }
+
+    @Override
+    public long totalSize(File folder, Predicate<Path> filter) throws IOException {
+        return this.walkAll(folder, filter).count();
+    }
 }

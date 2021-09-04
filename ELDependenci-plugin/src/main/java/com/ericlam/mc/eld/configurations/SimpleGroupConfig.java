@@ -10,7 +10,9 @@ import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -68,14 +70,15 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
     public synchronized Page<T> findAll(PageRequest pageRequest) {
         try {
             List<T> list = fileWalker.walkAll(folder, pageRequest).map(Path::toFile).map(this::mapToInstance).collect(Collectors.toList());
-            int totalPages = (int) Math.ceil((double)totalSize() / pageRequest.getSize());
-            return new YamlPage<>(list, pageRequest, totalPages, totalSize());
+            long totalSize = pageRequest.getFilter() == null ? totalSize() : totalSize(pageRequest.getFilter());
+            LOGGER.info("size: {}, has filter = {}", totalSize, pageRequest.getFilter() != null);
+            return new YamlPage<>(list, pageRequest, totalSize);
         } catch (IOException e) {
             LOGGER.warn("Error while loading Folder " + folder.toPath() + "" + e.getMessage(), e);
             e.printStackTrace();
         }
         // empty page if error
-        return new YamlPage<>(List.of(), pageRequest, 0, 0);
+        return new YamlPage<>(List.of(), pageRequest, 0);
     }
 
     @Nullable
@@ -138,6 +141,10 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
         return Optional.ofNullable(folder.list()).map(l -> l.length).orElse(0);
     }
 
+    private long totalSize(Predicate<Path> filter) throws IOException {
+        return fileWalker.totalSize(folder, filter);
+    }
+
     @Override
     public synchronized boolean delete(T config) {
         return this.deleteById(config.getId());
@@ -189,13 +196,12 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
         private YamlPage(
                 List<T> content,
                 PageRequest pageRequest,
-                int totalPages,
                 long totalSize
         ) {
             this.content = content;
             this.pageRequest = pageRequest;
-            this.totalPages = totalPages;
             this.totalSize = totalSize;
+            this.totalPages = (int) Math.ceil((double)totalSize / pageRequest.getSize());
             this.hasNext = this.pageRequest.getPage() < this.totalPages;
         }
 
@@ -243,7 +249,7 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
         @Override
         public <U> Page<U> map(Function<T, U> converter) {
             var newList = content.stream().map(converter).collect(Collectors.toList());
-            return new YamlPage<>(newList, pageRequest, totalPages, totalSize);
+            return new YamlPage<>(newList, pageRequest, totalSize);
         }
     }
 }
