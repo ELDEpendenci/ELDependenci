@@ -2,8 +2,11 @@ package com.ericlam.mc.eld.configurations;
 
 import com.ericlam.mc.eld.components.GroupConfiguration;
 
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * 文件池。內置快取功能，需要使用 fetch 方法來清除快取
@@ -16,6 +19,13 @@ public interface GroupConfig<T extends GroupConfiguration> {
      * @return 所有文件實例
      */
     List<T> findAll();
+
+    /**
+     * 過濾路徑
+     * @param filter 自定義過濾
+     * @return 所有符合特定條件的實例
+     */
+    List<T> findAll(Predicate<Path> filter);
 
     /**
      * 獲取指定頁數內的所有文件實例
