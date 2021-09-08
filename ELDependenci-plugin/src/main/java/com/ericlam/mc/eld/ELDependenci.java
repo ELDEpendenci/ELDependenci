@@ -105,6 +105,12 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             this.disabled = true;
         }
         getServer().getPluginManager().registerEvents(this, this);
+        for (JavaPlugin plugin : collectionMap.keySet()) {
+            if (plugin.isEnabled()){ // 如果比ELD更早加載完成
+                // 強行加載ELD啟用事件
+                this.onPluginEnable(new PluginEnableEvent(plugin));
+            }
+        }
     }
 
     @EventHandler
