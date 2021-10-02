@@ -6,6 +6,7 @@ import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.annotations.DynamicArg;
 import com.ericlam.mc.eld.annotations.RemainArgs;
 import com.ericlam.mc.eld.bukkit.ELDMessageConfig;
+import com.ericlam.mc.eld.components.CommandNode;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.google.inject.Injector;
 import org.bukkit.command.*;
@@ -13,14 +14,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
+
+    private static final Map<Class<? extends CommandNode>, Field[]> nodePlaceholders = new ConcurrentHashMap<>();
+
+    private static Field[] getDeclaredFieldsForNodes(Class<? extends CommandNode> node){
+        if (nodePlaceholders.containsKey(node)) return nodePlaceholders.get(node);
+        var fields = node.getDeclaredFields();
+        nodePlaceholders.put(node, fields);
+        return fields;
+    }
 
     private static final ELDCommandArgsHandler commandArgsHandler = new ELDCommandArgsHandler();
     private static ELDMessageConfig msg;
@@ -73,7 +85,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
 
 
     @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String label, String[] strings) {
+    public boolean onCommand(@Nonnull CommandSender commandSender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] strings) {
         for (HierarchyNode node : commandNodes) {
             if (labelMatch(node.current.getAnnotation(Commander.class), label)) {
                 invokeCommand(commandSender, node, new LinkedList<>(List.of(strings)));
@@ -114,7 +126,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
 
         var commandNode = injector.getInstance(node.current);
         var placeholders = getPlaceholders(node);
-        var remainArgsOpt = Arrays.stream(node.current.getDeclaredFields()).filter(f -> f.isAnnotationPresent(RemainArgs.class)).findFirst();
+        var remainArgsOpt = Arrays.stream(getDeclaredFieldsForNodes(node.current)).filter(f -> f.isAnnotationPresent(RemainArgs.class)).findFirst();
         try {
             var iterator = new ArgIterator(strings);
             for (Field placeholder : placeholders) {
@@ -154,8 +166,8 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
             }
             commandNode.execute(sender);
         } catch (Exception e) {
-            if (e instanceof ArgumentParseException){
-                sender.sendMessage(msg.getLang().getPrefix()+e.getMessage());
+            if (e instanceof ArgumentParseException) {
+                sender.sendMessage(msg.getLang().getPrefix() + e.getMessage());
                 return;
             }
             msg.getLang().getList("error").stream().map(s -> s.replace("<message>", e.getMessage())).forEach(sender::sendMessage);
@@ -170,7 +182,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender commandSender, Command command, String label, String[] strings) {
+    public List<String> onTabComplete(@Nonnull CommandSender commandSender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] strings) {
         for (HierarchyNode node : commandNodes) {
             if (labelMatch(node.current.getAnnotation(Commander.class), label)) {
                 var result = invokeTabComplete(commandSender, node, new ArrayList<>(List.of(strings)));
@@ -216,7 +228,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
     }
 
     private List<Field> getPlaceholders(HierarchyNode node) {
-        return Arrays.stream(node.current.getDeclaredFields())
+        return Arrays.stream(getDeclaredFieldsForNodes(node.current))
                 .filter(commandArgsHandler::isCommandArg)
                 .sorted(commandArgsHandler::sortArgsField)
                 .collect(Collectors.toList());

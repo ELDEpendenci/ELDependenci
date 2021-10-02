@@ -43,7 +43,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     private final Map<JavaPlugin, ELDServiceCollection> collectionMap = new ConcurrentHashMap<>();
     private final Map<Class<?>, Object> customInstallation = new ConcurrentHashMap<>();
     private final ELDArgumentManager argumentManager = new ELDArgumentManager();
-    private final ELDConfigPoolService groupConfigService = new ELDConfigPoolService();
+    private ELDConfigPoolService groupConfigService;
     private ItemInteractListener itemInteractListener;
     private static ELDependenciAPI api;
     private Injector injector;
@@ -64,6 +64,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         this.eldMessageConfig = eldConfigManager.getConfigAs(ELDMessageConfig.class);
         ELDCommandHandler.setMsg(eldMessageConfig);
         var eldConfig = eldConfigManager.getConfigAs(ELDConfig.class);
+        groupConfigService = new ELDConfigPoolService(eldConfig);
         this.module.setDefaultSingleton(eldConfig.defaultSingleton);
         this.sharePluginInstance = eldConfig.sharePluginInstance;
         this.module.addModule(new ELDConfigModule(groupConfigService));
@@ -104,6 +105,12 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
             this.disabled = true;
         }
         getServer().getPluginManager().registerEvents(this, this);
+        for (JavaPlugin plugin : collectionMap.keySet()) {
+            if (plugin.isEnabled()){ // 如果比ELD更早加載完成
+                // 強行加載ELD啟用事件
+                this.onPluginEnable(new PluginEnableEvent(plugin));
+            }
+        }
     }
 
     @EventHandler
