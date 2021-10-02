@@ -71,7 +71,6 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
         try {
             List<T> list = fileWalker.walkAll(folder, pageRequest).map(Path::toFile).map(this::mapToInstance).collect(Collectors.toList());
             long totalSize = pageRequest.getFilter() == null ? totalSize() : totalSize(pageRequest.getFilter());
-            LOGGER.info("size: {}, has filter = {}", totalSize, pageRequest.getFilter() != null);
             return new YamlPage<>(list, pageRequest, totalSize);
         } catch (IOException e) {
             LOGGER.warn("Error while loading Folder " + folder.toPath() + "" + e.getMessage(), e);
