@@ -2,25 +2,25 @@ package com.ericlam.mc.eld.configurations;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public final class BukkitDeserializer<T extends ConfigurationSerializable> extends JsonDeserializer<T> implements ContextualDeserializer {
 
     private final Class<T> t;
+    private final JsonDeserializer<?> originalDeserializer;
 
-    public BukkitDeserializer(Class<T> t) {
+    public BukkitDeserializer(Class<T> t, JsonDeserializer<?> originalDeserializer) {
         this.t = t;
+        this.originalDeserializer = originalDeserializer;
     }
 
     @Override
@@ -30,7 +30,11 @@ public final class BukkitDeserializer<T extends ConfigurationSerializable> exten
 
     @Override
     public JsonDeserializer<?> createContextual(DeserializationContext deserializationContext, BeanProperty beanProperty) throws JsonMappingException {
-        var type = beanProperty.getType().getRawClass();
+        var typeOpt = Optional.ofNullable(beanProperty).map(BeanProperty::getType).map(JavaType::getRawClass);
+        if (typeOpt.isEmpty()){
+            return this.originalDeserializer;
+        }
+        var type = typeOpt.get();
         if (ConfigurationSerializable.class.isAssignableFrom(type)) {
             return this;
         } else {
