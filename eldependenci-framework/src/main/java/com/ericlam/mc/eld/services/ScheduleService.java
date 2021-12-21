@@ -5,6 +5,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
@@ -36,6 +37,22 @@ public interface ScheduleService {
      * @return bukkit promise
      */
     BukkitPromise<Void> runAsync(Plugin plugin, Runnable runnable);
+
+    /**
+     * 等待多個異步的數值呼叫並傳回
+     * @param plugin 插件
+     * @param promises 異步呼叫
+     * @return bukkit promise
+     */
+    BukkitPromise<Object[]> callAllAsync(Plugin plugin, List<BukkitPromise<Object>> promises);
+
+    /**
+     * 等待多個異步完成
+     * @param plugin 插件
+     * @param promises 異步運行
+     * @return bukkit promise
+     */
+    BukkitPromise<Void> runAllAsync(Plugin plugin, List<BukkitPromise<Void>> promises);
 
 
     /**

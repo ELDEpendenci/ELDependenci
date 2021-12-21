@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class TestDependencyOrder {
 
@@ -22,9 +23,12 @@ public class TestDependencyOrder {
 
 
     public static void main(String[] args) throws IOException {
-        TestPojo p = new TestPojo();
-        p.e = new TestPojo.NestedPojo();
-        MAPPER.writeValue(new File("test.yml"), p);
+        Object[] os = new Object[3];
+        System.out.println(os.length);
+        os[1] = 123;
+        os[0] = "123";
+        System.out.println(os.length);
+        System.out.println(os[2]);
     }
 
     public static class TestPojo {
