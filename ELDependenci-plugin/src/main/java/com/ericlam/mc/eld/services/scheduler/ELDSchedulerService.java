@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -229,6 +230,13 @@ public final class ELDSchedulerService implements ScheduleService {
         }
 
         @Override
+        public E block() throws Throwable {
+            CompletableFuture<E> future = new CompletableFuture<>();
+            this.thenRunAsync(future::complete).joinWithCatch(future::completeExceptionally);
+            return future.get();
+        }
+
+        @Override
         public void joinWithCatch(Consumer<Throwable> handler) {
             bukkitCallable.catcher = handler;
             this.join();
@@ -306,6 +314,13 @@ public final class ELDSchedulerService implements ScheduleService {
         public void join() {
             var runnable = catchableRunnableLinkedList.pollFirst();
             if (runnable != null) runnable.runTaskAsynchronously(plugin);
+        }
+
+        @Override
+        public R block() throws Throwable {
+            CompletableFuture<R> future = new CompletableFuture<>();
+            this.thenRunAsync(future::complete).joinWithCatch(future::completeExceptionally);
+            return future.get();
         }
 
         @Override

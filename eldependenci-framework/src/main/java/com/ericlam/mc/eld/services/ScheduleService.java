@@ -131,6 +131,11 @@ public interface ScheduleService {
          */
         void join();
 
+        /**
+         * 阻塞啟動
+         * @return 回傳數值
+         */
+        E block() throws Throwable;
 
         /**
          * 啟動並手動處理錯誤(如有)
