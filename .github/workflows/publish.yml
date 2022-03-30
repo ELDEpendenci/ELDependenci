@@ -36,7 +36,7 @@ jobs:
       with:
         tag_name: ${{ env.version }}
         release_name: Release ${{ github.repository }}-${{ env.version }}
-        body: 更新詳細請查看 [版本更新](https://eric2788.gitbook.io/eldependenci/references/version-update)
+        body: 更新詳細請查看 [版本更新](https://eric2788.gitbook.io/eldependenci/references/version-update/v0.1.5)
         draft: false
         prerelease: false
     - name: Upload Release jar
