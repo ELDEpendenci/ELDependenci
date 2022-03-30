@@ -1,10 +1,13 @@
 package com.ericlam.mc.eld.configurations;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
+
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.function.Predicate;
 
+/**
+ * 分頁請求
+ */
 public class PageRequest {
 
     /**
@@ -22,8 +25,8 @@ public class PageRequest {
     /**
      * 特定數量特定排序的指定頁數請求
      *
-     * @param page       頁數 (必須從 0 開始)
-     * @param size       數量
+     * @param page   頁數 (必須從 0 開始)
+     * @param size   數量
      * @param filter 文件路徑過濾
      * @return 頁數請求
      */
@@ -48,8 +51,8 @@ public class PageRequest {
     /**
      * 特定數量特定排序的指定頁數請求
      *
-     * @param page       頁數 (必須從 0 開始)
-     * @param size       數量
+     * @param page   頁數 (必須從 0 開始)
+     * @param size   數量
      * @param filter 文件路徑過濾
      */
     public PageRequest(int page, int size, @Nullable Predicate<Path> filter) {
@@ -78,6 +81,7 @@ public class PageRequest {
 
     /**
      * 獲取路徑過濾
+     *
      * @return 自定義過濾
      */
     @Nullable

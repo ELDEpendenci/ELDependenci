@@ -4,15 +4,13 @@ import com.ericlam.mc.eld.ELDependenci;
 import com.ericlam.mc.eld.components.GroupConfiguration;
 import com.ericlam.mc.eld.configurations.filewalk.FileWalker;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.Validate;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -82,6 +80,7 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
 
     @Nullable
     private T mapToInstance(File f) {
+
         String id = FilenameUtils.getBaseName(f.getName());
         if (cached.containsKey(id)) {
             return cached.get(id);
@@ -200,7 +199,7 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
             this.content = content;
             this.pageRequest = pageRequest;
             this.totalSize = totalSize;
-            this.totalPages = (int) Math.ceil((double)totalSize / pageRequest.getSize());
+            this.totalPages = (int) Math.ceil((double) totalSize / pageRequest.getSize());
             this.hasNext = this.pageRequest.getPage() < this.totalPages;
         }
 

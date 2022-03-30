@@ -7,16 +7,25 @@ import com.google.inject.Injector;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.checkerframework.checker.units.qual.A;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 public final class ELDSchedulerService implements ScheduleService {
 
     @Inject
     private Injector injector;
+
+    //private static Logger LOGGER = LoggerFactory.getLogger(ELDSchedulerService.class);
 
 
     @Override
@@ -35,6 +44,81 @@ public final class ELDSchedulerService implements ScheduleService {
             runnable.run();
             return Void.TYPE.cast(null);
         }, plugin);
+    }
+
+    @Override
+    public BukkitPromise<Object[]> callAllAsync(Plugin plugin, List<BukkitPromise<Object>> promises) {
+        Object[] accepts = new Object[promises.size()];
+        AtomicInteger atoi = new AtomicInteger(0);
+        ReentrantLock lock = new ReentrantLock();
+        Condition condition = lock.newCondition();
+        for (int i = 0; i < promises.size(); i++) {
+            var promise = promises.get(i);
+            int index = i;
+            toCallableHandler(promise).setHandler(e -> {
+                lock.lock();
+                accepts[index] = e;
+                atoi.incrementAndGet();
+                condition.signal();
+                lock.unlock();
+            });
+        }
+        return new ELDBukkitPromise<>(() -> {
+            for (BukkitPromise<Object> promise : promises) {
+                promise.join();
+            }
+            while (atoi.get() < promises.size()){
+                lock.lock();
+                condition.await();
+                lock.unlock();
+            }
+            return accepts;
+
+        }, plugin){
+
+            @Override
+            public void joinWithCatch(Consumer<Throwable> handler) {
+                promises.forEach(p -> toCallableHandler(p).setCatcher(handler));
+                super.joinWithCatch(handler);
+            }
+
+        };
+    }
+
+    @Override
+    public BukkitPromise<Void> runAllAsync(Plugin plugin, List<BukkitPromise<Void>> promises) {
+        AtomicInteger atoi = new AtomicInteger(0);
+        ReentrantLock lock = new ReentrantLock();
+        Condition condition = lock.newCondition();
+        for (BukkitPromise<Void> promise : promises) {
+            toCallableHandler(promise).setHandler(v -> {
+                lock.lock();
+                atoi.incrementAndGet();
+                condition.signal();
+                lock.unlock();
+            });
+        }
+        return new ELDBukkitPromise<>(() -> {
+            for (BukkitPromise<Void> promise : promises) {
+                promise.join();
+            }
+
+            while (atoi.get() < promises.size()){
+                lock.lock();
+                condition.await();
+                lock.unlock();
+            }
+
+            return Void.TYPE.cast(null);
+        }, plugin) {
+
+            @Override
+            public void joinWithCatch(Consumer<Throwable> handler) {
+                promises.forEach(p -> toCallableHandler(p).setCatcher(handler));
+                super.joinWithCatch(handler);
+            }
+
+        };
     }
 
 
@@ -146,6 +230,13 @@ public final class ELDSchedulerService implements ScheduleService {
         }
 
         @Override
+        public E block() throws Throwable {
+            CompletableFuture<E> future = new CompletableFuture<>();
+            this.thenRunAsync(future::complete).joinWithCatch(future::completeExceptionally);
+            return future.get();
+        }
+
+        @Override
         public void joinWithCatch(Consumer<Throwable> handler) {
             bukkitCallable.catcher = handler;
             this.join();
@@ -226,10 +317,61 @@ public final class ELDSchedulerService implements ScheduleService {
         }
 
         @Override
+        public R block() throws Throwable {
+            CompletableFuture<R> future = new CompletableFuture<>();
+            this.thenRunAsync(future::complete).joinWithCatch(future::completeExceptionally);
+            return future.get();
+        }
+
+        @Override
         public void joinWithCatch(Consumer<Throwable> handler) {
             catchableRunnableLinkedList.forEach(r -> r.catcher = handler);
             this.join();
         }
+    }
+
+
+    // no more than two, so else-if can be used
+    private <E> CallableHandler<E> toCallableHandler(BukkitPromise<E> promise) {
+        if (promise instanceof ELDBukkitPromise){
+            var bukkitPromise = (ELDBukkitPromise<E>) promise;
+            return new CallableHandler<>() {
+                @Override
+                public void setHandler(Consumer<E> handler) {
+                    bukkitPromise.bukkitCallable.setHandler(handler);
+                }
+
+                @Override
+                public void setCatcher(Consumer<Throwable> catcher) {
+                    bukkitPromise.bukkitCallable.catcher = catcher;
+                }
+            };
+        } else if (promise instanceof ELDBukkitPromise2) {
+            var bukkitPromise = (ELDBukkitPromise2<? , E>) promise;
+            return new CallableHandler<>() {
+                @Override
+                public void setHandler(Consumer<E> handler) {
+                    bukkitPromise.bukkitChainCallable.setHandler(handler);
+                }
+
+                @Override
+                public void setCatcher(Consumer<Throwable> catcher) {
+                    bukkitPromise.bukkitChainCallable.catcher = catcher;
+                }
+            };
+        }else{
+            throw new IllegalArgumentException("unknown implementation: "+promise.getClass().getName());
+        }
+    }
+
+
+    interface CallableHandler<E> {
+
+        void setHandler(Consumer<E> handler);
+
+
+        void setCatcher(Consumer<Throwable> catcher);
+
     }
 
 

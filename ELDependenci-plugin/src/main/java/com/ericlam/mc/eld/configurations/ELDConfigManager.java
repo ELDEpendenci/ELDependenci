@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -269,11 +270,21 @@ public final class ELDConfigManager implements ConfigStorage {
         }
 
         @Override
+        public String get(String node, Object... args) {
+            return MessageFormat.format(get(node), args);
+        }
+
+        @Override
         public String getPure(String path) {
             if (!configuration.contains(path)) {
                 return noPath(path);
             }
             return ELDConfigManager.ConfigUtils.translate(configuration.getString(path));
+        }
+
+        @Override
+        public String getPure(String node, Object... args) {
+            return MessageFormat.format(getPure(node), args);
         }
 
         @Override
@@ -288,6 +299,7 @@ public final class ELDConfigManager implements ConfigStorage {
             }
             return configuration.getStringList(path).stream().map(ELDConfigManager.ConfigUtils::translate).collect(Collectors.toList());
         }
+
     }
 
 
