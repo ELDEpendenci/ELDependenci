@@ -2,9 +2,9 @@ package com.ericlam.mc.eld.configurations;
 
 import com.ericlam.mc.eld.ELDependenci;
 import com.ericlam.mc.eld.components.GroupLangConfiguration;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
-import org.bukkit.craftbukkit.libs.org.apache.commons.lang3.Validate;
 import org.bukkit.plugin.Plugin;
 import org.slf4j.Logger;
 
@@ -81,7 +81,9 @@ public class SimpleGroupLang<T extends GroupLangConfiguration> implements GroupL
 
     @Override
     public synchronized T getDefault() {
-        return Validate.notNull(getDefaultLanguage(defaultLang));
+        var lang = getDefaultLanguage(defaultLang);
+        Validate.notNull(lang);
+        return lang;
     }
 
     @Override

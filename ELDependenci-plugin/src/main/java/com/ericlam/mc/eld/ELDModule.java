@@ -2,7 +2,9 @@ package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.Overridable;
-import com.ericlam.mc.eld.services.*;
+import com.ericlam.mc.eld.services.ItemStackService;
+import com.ericlam.mc.eld.services.MessageService;
+import com.ericlam.mc.eld.services.ScheduleService;
 import com.ericlam.mc.eld.services.factory.ELDItemStackService;
 import com.ericlam.mc.eld.services.factory.ELDMessageService;
 import com.ericlam.mc.eld.services.scheduler.ELDSchedulerService;
@@ -13,7 +15,6 @@ import com.google.inject.binder.ScopedBindingBuilder;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
-import io.netty.util.internal.ConcurrentSet;
 import org.bukkit.plugin.Plugin;
 
 import javax.inject.Named;
@@ -26,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class ELDModule implements Module {
 
-    private final Set<Class<?>> singleton = new ConcurrentSet<>();
+    private final Set<Class<?>> singleton = ConcurrentHashMap.newKeySet();
     private final Map<Class<?>, Class> services = new ConcurrentHashMap<>();
     private final Map<Class<?>, Map<String, Class>> servicesMulti = new ConcurrentHashMap<>();
     private final Map<Class<?>, Set<Class>> servicesSet = new ConcurrentHashMap<>();

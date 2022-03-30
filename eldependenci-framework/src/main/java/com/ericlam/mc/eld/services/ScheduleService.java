@@ -134,6 +134,7 @@ public interface ScheduleService {
         /**
          * 阻塞啟動
          * @return 回傳數值
+         * @throws Throwable 阻塞時可能出現的錯誤
          */
         E block() throws Throwable;
 
