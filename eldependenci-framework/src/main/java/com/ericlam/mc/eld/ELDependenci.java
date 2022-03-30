@@ -4,6 +4,10 @@ import java.util.function.Consumer;
 
 public class ELDependenci implements ELDependenciAPI {
 
+    /**
+     * 此處獲取API
+     * @return 獲取API
+     */
     public static ELDependenciAPI getApi() {
         throw new UnsupportedOperationException("not plugin");
     }

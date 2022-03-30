@@ -12,5 +12,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Resource {
 
+    /**
+     *
+     * @return 文件名稱
+     */
     String locate();
 }
