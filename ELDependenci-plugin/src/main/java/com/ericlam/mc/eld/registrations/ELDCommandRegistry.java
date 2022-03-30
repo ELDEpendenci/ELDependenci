@@ -4,9 +4,9 @@ import com.ericlam.mc.eld.HierarchyNode;
 import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.components.CommandNode;
 import com.google.common.collect.ImmutableSet;
-import io.netty.util.internal.ConcurrentSet;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public final class ELDCommandRegistry implements CommandRegistry {
@@ -14,7 +14,7 @@ public final class ELDCommandRegistry implements CommandRegistry {
     private final Set<HierarchyNode> nodes;
 
     public ELDCommandRegistry() {
-        this(new ConcurrentSet<>());
+        this(ConcurrentHashMap.newKeySet());
     }
 
     public ELDCommandRegistry(Set<HierarchyNode> nodes) {
@@ -23,7 +23,8 @@ public final class ELDCommandRegistry implements CommandRegistry {
 
     @Override
     public void command(Class<? extends CommandNode> node, Consumer<CommandRegistry> child) {
-        if (!node.isAnnotationPresent(Commander.class)) throw new IllegalStateException(node+" is lack of @Commander annotation");
+        if (!node.isAnnotationPresent(Commander.class))
+            throw new IllegalStateException(node + " is lack of @Commander annotation");
         var n = new HierarchyNode(node);
         child.accept(new SubCommandRegistry(n));
         nodes.add(n);
@@ -38,7 +39,7 @@ public final class ELDCommandRegistry implements CommandRegistry {
         return ImmutableSet.copyOf(nodes);
     }
 
-    private static class SubCommandRegistry implements CommandRegistry{
+    private static class SubCommandRegistry implements CommandRegistry {
 
         private final HierarchyNode node;
 

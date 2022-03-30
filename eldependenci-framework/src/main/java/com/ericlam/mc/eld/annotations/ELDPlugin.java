@@ -15,8 +15,16 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ELDPlugin {
 
+    /**
+     *
+     * @return 組件註冊類定位
+     */
     Class<? extends ComponentsRegistry> registry();
 
+    /**
+     *
+     * @return 生命週期類定位
+     */
     Class<? extends ELDLifeCycle> lifeCycle();
 
 

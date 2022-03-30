@@ -7,3 +7,4 @@
 **/javadocs/
 **/dependency-reduced-pom.xml
 **/target
+/.m2/

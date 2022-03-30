@@ -11,5 +11,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Prefix {
+    /**
+     *
+     * @return 前綴路徑
+     */
     String path();
 }

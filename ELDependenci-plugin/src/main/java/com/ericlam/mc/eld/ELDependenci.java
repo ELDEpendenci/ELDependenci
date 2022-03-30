@@ -11,15 +11,16 @@ import com.ericlam.mc.eld.listeners.ELDEventListeners;
 import com.ericlam.mc.eld.managers.ArgumentManager;
 import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
-import com.ericlam.mc.eld.services.*;
+import com.ericlam.mc.eld.services.ArgParserService;
+import com.ericlam.mc.eld.services.ELDConfigPoolService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import org.apache.commons.codec.binary.Hex;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.libs.org.apache.commons.codec.binary.Hex;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -106,7 +107,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         }
         getServer().getPluginManager().registerEvents(this, this);
         for (JavaPlugin plugin : collectionMap.keySet()) {
-            if (plugin.isEnabled()){ // 如果比ELD更早加載完成
+            if (plugin.isEnabled()) { // 如果比ELD更早加載完成
                 // 強行加載ELD啟用事件
                 this.onPluginEnable(new PluginEnableEvent(plugin));
             }
