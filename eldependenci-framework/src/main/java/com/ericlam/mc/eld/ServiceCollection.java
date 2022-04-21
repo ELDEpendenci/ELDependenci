@@ -6,7 +6,6 @@ import com.ericlam.mc.eld.components.GroupLangConfiguration;
 import com.ericlam.mc.eld.components.Overridable;
 
 import javax.inject.Provider;
-import java.lang.annotation.Annotation;
 import java.util.Map;
 
 /**

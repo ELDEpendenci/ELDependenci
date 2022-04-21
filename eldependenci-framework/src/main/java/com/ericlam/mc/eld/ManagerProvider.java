@@ -1,7 +1,7 @@
 package com.ericlam.mc.eld;
 
-import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ArgumentManager;
+import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
 
 /**
