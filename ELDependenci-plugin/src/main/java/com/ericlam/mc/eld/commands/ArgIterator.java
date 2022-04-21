@@ -1,7 +1,6 @@
 package com.ericlam.mc.eld.commands;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
 
 public final class ArgIterator implements ListIterator<String> {
