@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -64,14 +65,14 @@ public final class ELDSchedulerService implements ScheduleService {
             for (BukkitPromise<Object> promise : promises) {
                 promise.join();
             }
-            while (atoi.get() < promises.size()){
+            while (atoi.get() < promises.size()) {
                 lock.lock();
                 condition.await();
                 lock.unlock();
             }
             return accepts;
 
-        }, plugin){
+        }, plugin) {
 
             @Override
             public void joinWithCatch(Consumer<Throwable> handler) {
@@ -100,11 +101,79 @@ public final class ELDSchedulerService implements ScheduleService {
                 promise.join();
             }
 
-            while (atoi.get() < promises.size()){
+            while (atoi.get() < promises.size()) {
                 lock.lock();
                 condition.await();
                 lock.unlock();
             }
+
+            return Void.TYPE.cast(null);
+        }, plugin) {
+
+            @Override
+            public void joinWithCatch(Consumer<Throwable> handler) {
+                promises.forEach(p -> toCallableHandler(p).setCatcher(handler));
+                super.joinWithCatch(handler);
+            }
+
+        };
+    }
+
+    @Override
+    public BukkitPromise<Object> callAnyAsync(Plugin plugin, List<BukkitPromise<Object>> promises) {
+        AtomicReference<Object> atoi = new AtomicReference<>();
+        ReentrantLock lock = new ReentrantLock();
+        Condition condition = lock.newCondition();
+        for (BukkitPromise<Object> promise : promises) {
+            toCallableHandler(promise).setHandler(e -> {
+                lock.lock();
+                atoi.set(e);
+                condition.signal();
+                lock.unlock();
+            });
+        }
+        return new ELDBukkitPromise<>(() -> {
+
+            for (BukkitPromise<Object> promise : promises) {
+                promise.join();
+            }
+
+            lock.lock();
+            condition.await();
+            lock.unlock();
+
+            return atoi.get();
+
+        }, plugin) {
+
+            @Override
+            public void joinWithCatch(Consumer<Throwable> handler) {
+                promises.forEach(p -> toCallableHandler(p).setCatcher(handler));
+                super.joinWithCatch(handler);
+            }
+
+        };
+    }
+
+    @Override
+    public BukkitPromise<Void> runAnyAsync(Plugin plugin, List<BukkitPromise<Void>> promises) {
+        ReentrantLock lock = new ReentrantLock();
+        Condition condition = lock.newCondition();
+        for (BukkitPromise<Void> promise : promises) {
+            toCallableHandler(promise).setHandler(v -> {
+                lock.lock();
+                condition.signal();
+                lock.unlock();
+            });
+        }
+        return new ELDBukkitPromise<>(() -> {
+            for (BukkitPromise<Void> promise : promises) {
+                promise.join();
+            }
+
+            lock.lock();
+            condition.await();
+            lock.unlock();
 
             return Void.TYPE.cast(null);
         }, plugin) {
@@ -163,7 +232,7 @@ public final class ELDSchedulerService implements ScheduleService {
                 } else {
                     return bukkitRunnable.runTaskLater(plugin, timeout);
                 }
-            } else  {
+            } else {
                 if (async) {
                     return bukkitRunnable.runTaskTimerAsynchronously(plugin, timeout, interval);
                 } else {
@@ -293,7 +362,7 @@ public final class ELDSchedulerService implements ScheduleService {
 
         @Override
         public BukkitPromise<Void> thenRunAsync(Consumer<R> function) {
-            return thenApplyAsync(e ->{
+            return thenApplyAsync(e -> {
                 function.accept(e);
                 return Void.TYPE.cast(null);
             });
@@ -330,7 +399,7 @@ public final class ELDSchedulerService implements ScheduleService {
 
     // no more than two, so else-if can be used
     private <E> CallableHandler<E> toCallableHandler(BukkitPromise<E> promise) {
-        if (promise instanceof ELDBukkitPromise){
+        if (promise instanceof ELDBukkitPromise) {
             var bukkitPromise = (ELDBukkitPromise<E>) promise;
             return new CallableHandler<>() {
                 @Override
@@ -344,7 +413,7 @@ public final class ELDSchedulerService implements ScheduleService {
                 }
             };
         } else if (promise instanceof ELDBukkitPromise2) {
-            var bukkitPromise = (ELDBukkitPromise2<? , E>) promise;
+            var bukkitPromise = (ELDBukkitPromise2<?, E>) promise;
             return new CallableHandler<>() {
                 @Override
                 public void setHandler(Consumer<E> handler) {
@@ -356,8 +425,8 @@ public final class ELDSchedulerService implements ScheduleService {
                     bukkitPromise.bukkitChainCallable.catcher = catcher;
                 }
             };
-        }else{
-            throw new IllegalArgumentException("unknown implementation: "+promise.getClass().getName());
+        } else {
+            throw new IllegalArgumentException("unknown implementation: " + promise.getClass().getName());
         }
     }
 
