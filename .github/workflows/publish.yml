@@ -19,7 +19,7 @@ jobs:
     - uses: eric2788/maven-jar-publish@v2
       with:
         java-version: 16
-        body: 更新詳細請查看 [版本更新](https://eric2788.gitbook.io/eldependenci/references/version-update/v0.1.5)
+        body: 更新詳細請查看 [版本更新](https://eric2788.gitbook.io/eldependenci/references/version-update/v0.1.6)
         upload-module: './ELDependenci-plugin'
     - name: 'Update javadocs'
       id: update-javadoc
