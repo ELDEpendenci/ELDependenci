@@ -1,5 +1,6 @@
-package com.ericlam.mc.eld;
+package com.ericlam.mc.eld.module;
 
+import com.ericlam.mc.eld.ELDTypeListener;
 import com.ericlam.mc.eld.services.ConfigPoolService;
 import com.ericlam.mc.eld.services.ELDConfigPoolService;
 import com.google.inject.AbstractModule;

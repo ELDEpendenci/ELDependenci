@@ -2,18 +2,17 @@ package com.ericlam.mc.eld.services.logging;
 
 import com.ericlam.mc.eld.bukkit.ELDConfig;
 import com.ericlam.mc.eld.misc.DebugLogger;
+import org.bukkit.Bukkit;
 
 import javax.inject.Inject;
 import java.text.MessageFormat;
 import java.util.MissingResourceException;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 public final class ELDLogger extends Logger implements DebugLogger {
 
-    @Inject
-    private ELDConfig config;
+    private final ELDConfig config;
 
 
     /**
@@ -33,26 +32,28 @@ public final class ELDLogger extends Logger implements DebugLogger {
      * @throws MissingResourceException if the resourceBundleName is non-null and
      *                                  no corresponding resource can be found.
      */
-    private ELDLogger(String name, String resourceBundleName) {
+    private ELDLogger(String name, String resourceBundleName, ELDConfig config) {
         super(name, resourceBundleName);
+        this.config = config;
+        setParent(Bukkit.getLogger());
+        setLevel(Level.ALL);
+    }
+
+    public ELDLogger(String name, ELDConfig config) {
+        this(name, null, config);
     }
 
 
-    public ELDLogger(String name) {
-        this(name, null);
-    }
-
-
-    public ELDLogger(Class<?> cls){
-        this(cls.getName(), cls.getPackageName());
+    public ELDLogger(Class<?> cls, ELDConfig config) {
+        this(cls.getName(), null, config);
     }
 
 
     @Override
     public void debug(String message, Object... args) {
         if (config.debugLogging) {
-            this.info("[DEBUG] " + MessageFormat.format(message, args));
-        }else{
+            super.info("[DEBUG] " + MessageFormat.format(message, args));
+        } else {
             super.config(MessageFormat.format(message, args));
         }
     }
@@ -60,8 +61,8 @@ public final class ELDLogger extends Logger implements DebugLogger {
     @Override
     public void debug(Throwable throwable, String message, Object... args) {
         if (config.debugLogging) {
-            this.info("[DEBUG] " + MessageFormat.format(message, args));
-        }else{
+            super.log(Level.INFO, "[DEBUG] " + MessageFormat.format(message, args), throwable);
+        } else {
             super.log(Level.CONFIG, MessageFormat.format(message, args), throwable);
         }
     }
@@ -70,7 +71,7 @@ public final class ELDLogger extends Logger implements DebugLogger {
     public void debug(Throwable throwable) {
         if (config.debugLogging) {
             super.log(Level.INFO, "[DEBUG] " + throwable.getMessage(), throwable);
-        }else{
+        } else {
             super.log(Level.CONFIG, throwable.getMessage(), throwable);
         }
     }
