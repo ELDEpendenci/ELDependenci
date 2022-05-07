@@ -56,6 +56,23 @@ public interface ScheduleService {
 
 
     /**
+     * 等待其中一個異步事件完成後立刻傳回
+     * @param plugin 插件
+     * @param promises 異步呼叫
+     * @return bukkit promise
+     */
+    BukkitPromise<Object> callAnyAsync(Plugin plugin, List<BukkitPromise<Object>> promises);
+
+    /**
+     * 等待其中一個異步事件完成後立刻返回
+     * @param plugin 插件
+     * @param promises 異步運行
+     * @return bukkit promise
+     */
+    BukkitPromise<Void> runAnyAsync(Plugin plugin, List<BukkitPromise<Void>> promises);
+
+
+    /**
      * 計時器工廠
      */
     interface ScheduleFactory {

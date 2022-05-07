@@ -11,8 +11,11 @@ import com.ericlam.mc.eld.listeners.ELDEventListeners;
 import com.ericlam.mc.eld.managers.ArgumentManager;
 import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
+import com.ericlam.mc.eld.module.ELDConfigModule;
+import com.ericlam.mc.eld.module.ELDLoggingModule;
 import com.ericlam.mc.eld.services.ArgParserService;
 import com.ericlam.mc.eld.services.ELDConfigPoolService;
+import com.ericlam.mc.eld.services.logging.ELDLoggingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -69,6 +72,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         this.module.setDefaultSingleton(eldConfig.defaultSingleton);
         this.sharePluginInstance = eldConfig.sharePluginInstance;
         this.module.addModule(new ELDConfigModule(groupConfigService));
+        this.module.addModule(new ELDLoggingModule(new ELDLoggingService(eldConfig)));
     }
 
     public static ELDependenciAPI getApi() {
@@ -116,13 +120,20 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
     @EventHandler
     public void onPluginEnable(final PluginEnableEvent e) {
-        if (!(e.getPlugin() instanceof JavaPlugin)) return;
-        var plugin = (JavaPlugin) e.getPlugin();
+        if (!(e.getPlugin() instanceof ELDBukkit plugin)) return;
+
+        if (ELDServiceCollection.DISABLED.contains(plugin)) {
+            plugin.getLogger().log(Level.SEVERE, "此插件由於註冊不完整，已被禁用。");
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            return;
+        }
+
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
 
         if (disabled) {
-            plugin.getLogger().log(Level.SEVERE, "This plugin is disabled due to the disabled of ELDependenci");
+            plugin.getLogger().log(Level.SEVERE, "由於 ELDependenci 無法啟動，此插件已被禁用。");
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
             return;
         }
 
@@ -172,11 +183,10 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
     @EventHandler
     public void onPluginDisable(final PluginDisableEvent e) {
-        if (!(e.getPlugin() instanceof JavaPlugin)) return;
-        var plugin = (JavaPlugin) e.getPlugin();
+        if (!(e.getPlugin() instanceof ELDBukkit plugin)) return;
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
-        if (disabled) return;
+        if (disabled && ELDServiceCollection.DISABLED.contains(plugin)) return;
         services.lifeCycleHook.onDisable(plugin);
 
     }
