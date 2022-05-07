@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 
 public class TestDependencyOrder {
 
@@ -17,6 +18,17 @@ public class TestDependencyOrder {
     public void testDependency() {
         // if throws unsupported operation error, it means dependency order not correct
         Assertions.assertThrows(IllegalStateException.class, ELDependenci::getApi);
+    }
+
+
+    @Test
+    public void testMessageFormat(){
+       var s =  "{0} is &3{1} and &6{2}";
+       Assertions.assertEquals("123 is &3456 and &6789", mf(s, 123, 456.0, (Double)789.0));
+    }
+
+    private String mf(String s, Object... args){
+        return MessageFormat.format(s, args);
     }
 
 
