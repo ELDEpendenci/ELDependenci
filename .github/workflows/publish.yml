@@ -18,7 +18,7 @@ jobs:
       uses: actions/checkout@v2
     - uses: eric2788/maven-jar-publish@v2
       with:
-        java-version: 16
+        java-version: 18
         body: 更新詳細請查看 [版本更新](https://eric2788.gitbook.io/eldependenci/references/version-update/v0.1.6)
         upload-module: './ELDependenci-plugin'
     - name: 'Update javadocs'
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
-          java-version: '16'
+          java-version: '18'
           distribution: 'adopt'
       - name: Publish package
         run: mvn --batch-mode deploy
