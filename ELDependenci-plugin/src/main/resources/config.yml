@@ -1,3 +1,4 @@
 sharePluginInstance: false
 defaultSingleton: true
 fileWalker: TREE
+debugLogging: false

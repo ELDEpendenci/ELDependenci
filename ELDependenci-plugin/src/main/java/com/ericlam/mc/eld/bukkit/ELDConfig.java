@@ -11,4 +11,6 @@ public class ELDConfig extends Configuration {
     public boolean defaultSingleton = true;
     public ELDConfigPoolService.WalkerWay fileWalker = ELDConfigPoolService.WalkerWay.TREE;
 
+    public boolean debugLogging = false;
+
 }
