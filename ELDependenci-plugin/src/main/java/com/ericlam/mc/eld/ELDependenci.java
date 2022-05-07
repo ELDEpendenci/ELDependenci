@@ -120,18 +120,19 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
     @EventHandler
     public void onPluginEnable(final PluginEnableEvent e) {
-        if (!(e.getPlugin() instanceof JavaPlugin plugin)) return;
+        if (!(e.getPlugin() instanceof ELDBukkit plugin)) return;
+
+        if (ELDServiceCollection.DISABLED.contains(plugin)) {
+            plugin.getLogger().log(Level.SEVERE, "此插件由於註冊不完整，已被禁用。");
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            return;
+        }
+
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
 
         if (disabled) {
             plugin.getLogger().log(Level.SEVERE, "由於 ELDependenci 無法啟動，此插件已被禁用。");
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
-            return;
-        }
-
-        if (services.isDisabled){
-            plugin.getLogger().log(Level.SEVERE, "此插件由於註冊不完整，已被禁用。");
             plugin.getServer().getPluginManager().disablePlugin(plugin);
             return;
         }
@@ -182,11 +183,10 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
 
     @EventHandler
     public void onPluginDisable(final PluginDisableEvent e) {
-        if (!(e.getPlugin() instanceof JavaPlugin)) return;
-        var plugin = (JavaPlugin) e.getPlugin();
+        if (!(e.getPlugin() instanceof ELDBukkit plugin)) return;
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
-        if (disabled && services.isDisabled) return;
+        if (disabled && ELDServiceCollection.DISABLED.contains(plugin)) return;
         services.lifeCycleHook.onDisable(plugin);
 
     }

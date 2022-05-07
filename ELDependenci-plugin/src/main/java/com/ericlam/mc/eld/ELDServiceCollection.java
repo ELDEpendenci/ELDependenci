@@ -8,9 +8,11 @@ import com.ericlam.mc.eld.registrations.ELDCommandRegistry;
 import com.ericlam.mc.eld.registrations.ELDListenerRegistry;
 import com.google.inject.Module;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 
 import javax.inject.Provider;
 import java.lang.reflect.Modifier;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -31,13 +33,13 @@ public final class ELDServiceCollection implements ServiceCollection, AddonManag
 
     private final ELDModule module;
 
-    boolean isDisabled = false;
+    static Set<ELDBukkit> DISABLED = new HashSet<>();
 
     public ELDServiceCollection(ELDModule module, ELDBukkit plugin, Map<Class<?>, Object> customInstallation) {
         this.module = module;
         this.customInstallation = customInstallation;
         if (!plugin.getClass().isAnnotationPresent(ELDPlugin.class)) {
-            this.isDisabled = true;
+            DISABLED.add(plugin);
             throw new IllegalStateException("插件 " + plugin.getName() + " 缺少 @ELDPlugin 標註");
         }
         var eld = plugin.getClass().getAnnotation(ELDPlugin.class);
