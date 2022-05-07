@@ -31,10 +31,13 @@ public final class ELDServiceCollection implements ServiceCollection, AddonManag
 
     private final ELDModule module;
 
+    boolean isDisabled = false;
+
     public ELDServiceCollection(ELDModule module, ELDBukkit plugin, Map<Class<?>, Object> customInstallation) {
         this.module = module;
         this.customInstallation = customInstallation;
         if (!plugin.getClass().isAnnotationPresent(ELDPlugin.class)) {
+            this.isDisabled = true;
             throw new IllegalStateException("插件 " + plugin.getName() + " 缺少 @ELDPlugin 標註");
         }
         var eld = plugin.getClass().getAnnotation(ELDPlugin.class);
