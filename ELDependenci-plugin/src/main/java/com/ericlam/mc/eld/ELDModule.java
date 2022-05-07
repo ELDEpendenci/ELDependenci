@@ -66,8 +66,6 @@ public final class ELDModule implements Module {
         binder.bind(ScheduleService.class).to(ELDSchedulerService.class).in(Scopes.SINGLETON);
         binder.bind(ItemStackService.class).to(ELDItemStackService.class).in(Scopes.SINGLETON);
         binder.bind(MessageService.class).to(ELDMessageService.class).in(Scopes.SINGLETON);
-        binder.bind(LoggingService.class).to(ELDLoggingService.class).in(Scopes.SINGLETON);
-
 
         modules.forEach(binder::install);
         singleton.forEach(cls -> setScope(binder.bind(cls)));

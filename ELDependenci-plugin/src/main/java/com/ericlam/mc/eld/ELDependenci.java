@@ -11,8 +11,11 @@ import com.ericlam.mc.eld.listeners.ELDEventListeners;
 import com.ericlam.mc.eld.managers.ArgumentManager;
 import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
+import com.ericlam.mc.eld.module.ELDConfigModule;
+import com.ericlam.mc.eld.module.ELDLoggingModule;
 import com.ericlam.mc.eld.services.ArgParserService;
 import com.ericlam.mc.eld.services.ELDConfigPoolService;
+import com.ericlam.mc.eld.services.logging.ELDLoggingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -69,6 +72,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         this.module.setDefaultSingleton(eldConfig.defaultSingleton);
         this.sharePluginInstance = eldConfig.sharePluginInstance;
         this.module.addModule(new ELDConfigModule(groupConfigService));
+        this.module.addModule(new ELDLoggingModule(new ELDLoggingService(eldConfig)));
     }
 
     public static ELDependenciAPI getApi() {
