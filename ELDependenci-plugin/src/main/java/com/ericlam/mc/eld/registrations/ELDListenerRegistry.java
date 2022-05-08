@@ -13,12 +13,12 @@ public final class ELDListenerRegistry implements ListenerRegistry{
     private final Set<Class<? extends ELDListener>> eldListenerClass = new HashSet<>();
 
     @Override
-    public <T extends Listener> void listeners(Collection<Class<T>> listener) {
+    public void listeners(Collection<Class< ? extends Listener>> listener) {
         bukkitListenerClass.addAll(listener);
     }
 
     @Override
-    public <T extends ELDListener> void ELDListeners(Collection<Class<T>> listener) {
+    public void ELDListeners(Collection<Class<? extends ELDListener>> listener) {
         eldListenerClass.addAll(listener);
     }
 
