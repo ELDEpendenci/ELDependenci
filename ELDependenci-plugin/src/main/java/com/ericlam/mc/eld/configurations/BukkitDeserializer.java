@@ -1,5 +1,8 @@
 package com.ericlam.mc.eld.configurations;
 
+import com.ericlam.mc.eld.ELDependenci;
+import com.ericlam.mc.eld.misc.DebugLogger;
+import com.ericlam.mc.eld.services.LoggingService;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
@@ -16,11 +19,9 @@ import java.util.stream.Collectors;
 public final class BukkitDeserializer<T extends ConfigurationSerializable> extends JsonDeserializer<T> implements ContextualDeserializer {
 
     private final Class<T> t;
-    private final JsonDeserializer<?> originalDeserializer;
 
-    public BukkitDeserializer(Class<T> t, JsonDeserializer<?> originalDeserializer) {
+    public BukkitDeserializer(Class<T> t) {
         this.t = t;
-        this.originalDeserializer = originalDeserializer;
     }
 
     @Override
@@ -30,16 +31,7 @@ public final class BukkitDeserializer<T extends ConfigurationSerializable> exten
 
     @Override
     public JsonDeserializer<?> createContextual(DeserializationContext deserializationContext, BeanProperty beanProperty) throws JsonMappingException {
-        var typeOpt = Optional.ofNullable(beanProperty).map(BeanProperty::getType).map(JavaType::getRawClass);
-        if (typeOpt.isEmpty()){
-            return this.originalDeserializer;
-        }
-        var type = typeOpt.get();
-        if (ConfigurationSerializable.class.isAssignableFrom(type)) {
-            return this;
-        } else {
-            return deserializationContext.findRootValueDeserializer(beanProperty.getType());
-        }
+        return this;
     }
 
     @Override
@@ -49,12 +41,12 @@ public final class BukkitDeserializer<T extends ConfigurationSerializable> exten
     }
 
     private <CS extends ConfigurationSerializable> CS toDeserializeObject(Map<String, Object> map) {
-        //Bukkit.getLogger().warning("before map: "+map.toString());
+        //logger.debug("before map: "+map.toString());
         var mapp = map.entrySet().stream().map(en -> {
             var value = en.getValue() instanceof Map && ((Map<String, Object>) en.getValue()).containsKey("==") ? toDeserializeObject((Map<String, Object>) en.getValue()) : en.getValue();
             return new BukkitBeanModifier.Entry(en.getKey(), value);
         }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        //Bukkit.getLogger().warning("after map: " + mapp.toString());
+        //logger.debug("after map: " + mapp.toString());
         return (CS) ConfigurationSerialization.deserializeObject(mapp);
     }
 

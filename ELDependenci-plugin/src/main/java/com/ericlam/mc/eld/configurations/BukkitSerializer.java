@@ -1,5 +1,8 @@
 package com.ericlam.mc.eld.configurations;
 
+import com.ericlam.mc.eld.ELDependenci;
+import com.ericlam.mc.eld.misc.DebugLogger;
+import com.ericlam.mc.eld.services.LoggingService;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
@@ -15,11 +18,10 @@ import java.util.stream.Collectors;
 public final class BukkitSerializer<T extends ConfigurationSerializable> extends JsonSerializer<T> implements ContextualSerializer {
 
     private final Class<T> t;
-    private final JsonSerializer<?> originalSerializer;
 
-    public BukkitSerializer(Class<T> t, JsonSerializer<?> originalSerializer) {
+
+    public BukkitSerializer(Class<T> t) {
         this.t = t;
-        this.originalSerializer = originalSerializer;
     }
 
     @Override
@@ -39,16 +41,7 @@ public final class BukkitSerializer<T extends ConfigurationSerializable> extends
 
     @Override
     public JsonSerializer<?> createContextual(SerializerProvider serializerProvider, BeanProperty beanProperty) throws JsonMappingException {
-        var typeOpt = Optional.ofNullable(beanProperty).map(BeanProperty::getType).map(JavaType::getRawClass);
-        if (typeOpt.isEmpty()){
-            return this.originalSerializer;
-        }
-        var type = typeOpt.get();
-        if (ConfigurationSerializable.class.isAssignableFrom(type)) {
-            return this;
-        } else {
-            return serializerProvider.findValueSerializer(type);
-        }
+        return this;
     }
 
     @Override
