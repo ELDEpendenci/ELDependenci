@@ -57,10 +57,9 @@ public final class ELDItemStackService implements ItemStackService {
 
         @Override
         public ItemFactory durability(int damage) {
-            if (this.itemStack.getItemMeta() instanceof Damageable){
-                var meta = (Damageable)this.itemStack.getItemMeta();
+            if (this.itemStack.getItemMeta() instanceof Damageable meta){
                 meta.setDamage(damage);
-                this.itemStack.setItemMeta((ItemMeta) meta);
+                this.itemStack.setItemMeta(meta);
             }
             return this;
         }
@@ -78,7 +77,7 @@ public final class ELDItemStackService implements ItemStackService {
         public ItemFactory lore(String... lore) {
             var meta = itemStack.getItemMeta();
             var list = Optional.ofNullable(meta.getLore()).orElseGet(ArrayList::new);
-            list.addAll(Arrays.stream(lore).map(s -> ChatColor.translateAlternateColorCodes('&', s)).collect(Collectors.toList()));
+            list.addAll(Arrays.stream(lore).map(s -> ChatColor.translateAlternateColorCodes('&', s)).toList());
             meta.setLore(list);
             itemStack.setItemMeta(meta);
             return this;
