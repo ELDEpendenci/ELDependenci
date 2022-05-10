@@ -60,7 +60,6 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     @Override
     public void onLoad() {
         api = this;
-        this.module.bindInstance(ObjectMapper.class, ELDConfigManager.OBJECT_MAPPER);
         this.itemInteractListener = new ItemInteractListener(this);
         this.module.bindInstance(ArgParserService.class, argumentManager);
         eldConfigManager.loadConfig(ELDConfig.class);
