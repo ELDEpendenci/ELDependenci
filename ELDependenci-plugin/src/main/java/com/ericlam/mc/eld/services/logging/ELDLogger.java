@@ -68,6 +68,24 @@ public final class ELDLogger extends Logger implements DebugLogger {
     }
 
     @Override
+    public void debugF(String message, Object... args) {
+        if (config.debugLogging) {
+            super.info("[DEBUG] " + String.format(message, args));
+        } else {
+            super.config(String.format(message, args));
+        }
+    }
+
+    @Override
+    public void debugF(Throwable throwable, String message, Object... args) {
+        if (config.debugLogging) {
+            super.log(Level.INFO, "[DEBUG] " + String.format(message, args), throwable);
+        } else {
+            super.log(Level.CONFIG, String.format(message, args), throwable);
+        }
+    }
+
+    @Override
     public void debug(Throwable throwable) {
         if (config.debugLogging) {
             super.log(Level.INFO, "[DEBUG] " + throwable.getMessage(), throwable);
@@ -87,6 +105,16 @@ public final class ELDLogger extends Logger implements DebugLogger {
     }
 
     @Override
+    public void infoF(String message, Object... args) {
+        super.info(String.format(message, args));
+    }
+
+    @Override
+    public void infoF(Throwable throwable, String message, Object... args) {
+        super.log(Level.INFO, String.format(message, args), throwable);
+    }
+
+    @Override
     public void info(Throwable throwable) {
         super.log(Level.INFO, throwable.getMessage(), throwable);
     }
@@ -99,6 +127,16 @@ public final class ELDLogger extends Logger implements DebugLogger {
     @Override
     public void warn(Throwable throwable, String message, Object... args) {
         super.log(Level.WARNING, MessageFormat.format(message, args), throwable);
+    }
+
+    @Override
+    public void warnF(String message, Object... args) {
+        super.warning(String.format(message, args));
+    }
+
+    @Override
+    public void warnF(Throwable throwable, String message, Object... args) {
+        super.log(Level.WARNING, String.format(message, args), throwable);
     }
 
     @Override
