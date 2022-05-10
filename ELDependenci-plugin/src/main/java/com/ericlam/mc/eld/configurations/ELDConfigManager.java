@@ -286,6 +286,11 @@ public final class ELDConfigManager implements ConfigStorage {
         }
 
         @Override
+        public String getF(String node, Object... args) {
+            return String.format(get(node), args);
+        }
+
+        @Override
         public String getPure(String path) {
             if (!configuration.contains(path)) {
                 return noPath(path);
@@ -296,6 +301,11 @@ public final class ELDConfigManager implements ConfigStorage {
         @Override
         public String getPure(String node, Object... args) {
             return MessageFormat.format(getPure(node), args);
+        }
+
+        @Override
+        public String getPureF(String node, Object... args) {
+            return String.format(getPure(node), args);
         }
 
         @Override
