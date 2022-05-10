@@ -12,7 +12,7 @@ import java.text.MessageFormat;
 
 public class TestDependencyOrder {
 
-    private static ObjectMapper MAPPER = ELDConfigManager.OBJECT_MAPPER;
+    private static ObjectMapper MAPPER = ELDConfigManager.YAML_MAPPER;
 
     @Test
     public void testDependency() {
