@@ -22,6 +22,15 @@ public interface LangController {
      */
     String get(String node, Object... args);
 
+
+    /**
+     * 獲取訊息，連帶訊息參數 %s %d %2.f...
+     * @param node 節點
+     * @param args 訊息參數
+     * @return 包含前綴的訊息
+     */
+    String getF(String node, Object... args);
+
     /**
      * 獲取無前綴的訊息
      * @param node 節點
@@ -36,6 +45,15 @@ public interface LangController {
      * @return 無前綴訊息
      */
     String getPure(String node, Object... args);
+
+
+    /**
+     * 獲取無前綴的訊息，連帶訊息參數  %s %d %2.f...
+     * @param node 節點
+     * @param args 訊息參數
+     * @return 無前綴訊息
+     */
+    String getPureF(String node, Object... args);
 
     /**
      * 獲取訊息列表

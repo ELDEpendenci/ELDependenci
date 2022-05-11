@@ -60,7 +60,6 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
     @Override
     public void onLoad() {
         api = this;
-        this.module.bindInstance(ObjectMapper.class, ELDConfigManager.OBJECT_MAPPER);
         this.itemInteractListener = new ItemInteractListener(this);
         this.module.bindInstance(ArgParserService.class, argumentManager);
         eldConfigManager.loadConfig(ELDConfig.class);
@@ -186,7 +185,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         if (!(e.getPlugin() instanceof ELDBukkit plugin)) return;
         var services = collectionMap.get(plugin);
         if (services == null) return; // not eld plugin
-        if (disabled && ELDServiceCollection.DISABLED.contains(plugin)) return;
+        if (disabled || ELDServiceCollection.DISABLED.contains(plugin)) return;
         services.lifeCycleHook.onDisable(plugin);
 
     }

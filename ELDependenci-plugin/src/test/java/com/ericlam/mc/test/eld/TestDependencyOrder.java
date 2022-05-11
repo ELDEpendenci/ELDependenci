@@ -12,19 +12,12 @@ import java.text.MessageFormat;
 
 public class TestDependencyOrder {
 
-    private static ObjectMapper MAPPER = ELDConfigManager.OBJECT_MAPPER;
+    private static final ObjectMapper MAPPER = ELDConfigManager.YAML_MAPPER;
 
     @Test
     public void testDependency() {
         // if throws unsupported operation error, it means dependency order not correct
         Assertions.assertThrows(IllegalStateException.class, ELDependenci::getApi);
-    }
-
-
-    @Test
-    public void testMessageFormat(){
-       var s =  "{0} is &3{1} and &6{2}";
-       Assertions.assertEquals("123 is &3456 and &6789", mf(s, 123, 456.0, (Double)789.0));
     }
 
     private String mf(String s, Object... args){

@@ -33,7 +33,7 @@ public final class ELDConfigPoolService implements ConfigPoolService {
     }
 
 
-    private final ObjectMapper mapper = ELDConfigManager.OBJECT_MAPPER;
+    private final ObjectMapper mapper = ELDConfigManager.YAML_MAPPER;
     private final Map<Class<?>, Plugin> pluginMapper = new ConcurrentHashMap<>();
 
     private final Map<Class<? extends GroupConfiguration>, GroupConfig<? extends GroupConfiguration>> groupConfigMap = new ConcurrentHashMap<>();

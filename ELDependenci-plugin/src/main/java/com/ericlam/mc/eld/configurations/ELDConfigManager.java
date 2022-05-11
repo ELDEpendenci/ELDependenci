@@ -41,28 +41,38 @@ import static com.ericlam.mc.eld.configurations.ELDConfigManager.ConfigUtils.set
 
 public final class ELDConfigManager implements ConfigStorage {
 
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(new YAMLFactory()
-            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-            .enable(JsonParser.Feature.ALLOW_YAML_COMMENTS))
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .enable(JsonParser.Feature.ALLOW_COMMENTS)
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-            .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            .registerModule(new SimpleModule()
-                    .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
-                    .setSerializerModifier(new BukkitBeanModifier.Serializer()))
-            .registerModule(new JavaTimeModule());
+    public static final ObjectMapper YAML_MAPPER = new ObjectMapper(
+            new YAMLFactory()
+                    .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                    .enable(JsonParser.Feature.ALLOW_YAML_COMMENTS)
+    );
 
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     static {
+
+        setup(YAML_MAPPER);
+        setup(JSON_MAPPER);
+
         skipType(FileController.class);
         skipType(LangController.class);
     }
 
+    private static void setup(ObjectMapper mapper) {
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .enable(JsonParser.Feature.ALLOW_COMMENTS)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .registerModule(new SimpleModule()
+                        .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
+                        .setSerializerModifier(new BukkitBeanModifier.Serializer()))
+                .registerModule(new JavaTimeModule());
+    }
+
     private static void skipType(Class<?> type) {
-        OBJECT_MAPPER.configOverride(type)
+        YAML_MAPPER.configOverride(type)
                 .setVisibility(JsonAutoDetect.Value.construct(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE))
                 .setIsIgnoredType(true)
                 .setSetterInfo(JsonSetter.Value.construct(Nulls.SKIP, Nulls.SKIP));
@@ -111,7 +121,8 @@ public final class ELDConfigManager implements ConfigStorage {
                 throw new IllegalStateException(config.getSimpleName() + " is lack of @GroupResource annotation");
             var resource = config.getAnnotation(GroupResource.class);
             var folder = new File(plugin.getDataFolder(), resource.folder());
-            if (!folder.exists() && folder.mkdirs()) plugin.getLogger().info("Folder " + resource.folder() + " created.");
+            if (!folder.exists() && folder.mkdirs())
+                plugin.getLogger().info("Folder " + resource.folder() + " created.");
             if (!folder.isDirectory())
                 throw new IllegalStateException("config pool " + config.getSimpleName() + " 's path ' " + resource.folder() + " is not a directory!");
             for (String preload : resource.preloads()) {
@@ -131,12 +142,12 @@ public final class ELDConfigManager implements ConfigStorage {
     // =========
 
     public <T extends Configuration> T initConfiguration(Class<T> config, File f) throws Exception {
-        var ins = OBJECT_MAPPER.readValue(f, config);
+        var ins = YAML_MAPPER.readValue(f, config);
         class FileControllerImpl implements FileController {
 
             private final Field[] fields;
 
-            public FileControllerImpl(){
+            public FileControllerImpl() {
                 this.fields = config.getDeclaredFields();
             }
 
@@ -144,7 +155,7 @@ public final class ELDConfigManager implements ConfigStorage {
             public boolean reload() {
                 try {
                     if (reloadConfig(config)) {
-                        var latest = OBJECT_MAPPER.readValue(f, config);
+                        var latest = YAML_MAPPER.readValue(f, config);
                         for (Field f : fields) {
                             var data = f.get(latest);
                             f.setAccessible(true);
@@ -160,7 +171,7 @@ public final class ELDConfigManager implements ConfigStorage {
 
             @Override
             public void save() throws IOException {
-                OBJECT_MAPPER.writeValue(f, ins);
+                YAML_MAPPER.writeValue(f, ins);
             }
         }
 
@@ -275,6 +286,11 @@ public final class ELDConfigManager implements ConfigStorage {
         }
 
         @Override
+        public String getF(String node, Object... args) {
+            return String.format(get(node), args);
+        }
+
+        @Override
         public String getPure(String path) {
             if (!configuration.contains(path)) {
                 return noPath(path);
@@ -285,6 +301,11 @@ public final class ELDConfigManager implements ConfigStorage {
         @Override
         public String getPure(String node, Object... args) {
             return MessageFormat.format(getPure(node), args);
+        }
+
+        @Override
+        public String getPureF(String node, Object... args) {
+            return String.format(getPure(node), args);
         }
 
         @Override
