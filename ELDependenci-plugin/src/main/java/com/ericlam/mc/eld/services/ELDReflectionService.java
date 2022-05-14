@@ -13,12 +13,12 @@ public class ELDReflectionService implements ReflectionService {
 
     @Override
     public List<Field> getDeclaredFieldsUpTo(@NotNull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
-        return getDeclaredFieldsUpToStatic(startClass, exclusiveParent);
+        return getDeclaredFieldsUpToStatic(startClass, exclusiveParent != null ? exclusiveParent : Object.class);
     }
 
     @Override
     public List<Method> getDeclaredMethodsUpTo(@NotNull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
-        return getDeclaredMethodsUpToStatic(startClass, exclusiveParent);
+        return getDeclaredMethodsUpToStatic(startClass, exclusiveParent != null ? exclusiveParent : Object.class);
     }
 
     public static List<Field> getDeclaredFieldsUpToStatic(@NotNull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
