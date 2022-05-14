@@ -15,6 +15,7 @@ import com.ericlam.mc.eld.module.ELDConfigModule;
 import com.ericlam.mc.eld.module.ELDLoggingModule;
 import com.ericlam.mc.eld.services.ArgParserService;
 import com.ericlam.mc.eld.services.ELDConfigPoolService;
+import com.ericlam.mc.eld.services.ELDReflectionService;
 import com.ericlam.mc.eld.services.logging.ELDLoggingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Guice;
@@ -70,7 +71,7 @@ public final class ELDependenci extends JavaPlugin implements ELDependenciAPI, L
         groupConfigService = new ELDConfigPoolService(eldConfig);
         this.module.setDefaultSingleton(eldConfig.defaultSingleton);
         this.sharePluginInstance = eldConfig.sharePluginInstance;
-        this.module.addModule(new ELDConfigModule(groupConfigService));
+        this.module.addModule(new ELDConfigModule(groupConfigService, new ELDReflectionService()));
         this.module.addModule(new ELDLoggingModule(new ELDLoggingService(eldConfig)));
     }
 
