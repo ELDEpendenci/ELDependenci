@@ -29,7 +29,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
 
     private static Field[] getDeclaredFieldsForNodes(Class<? extends CommandNode> node){
         if (nodePlaceholders.containsKey(node)) return nodePlaceholders.get(node);
-        var fields = node.getDeclaredFields();
+        var fields = node.getFields();
         nodePlaceholders.put(node, fields);
         return fields;
     }

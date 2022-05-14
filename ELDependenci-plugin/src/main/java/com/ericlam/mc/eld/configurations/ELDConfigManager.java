@@ -148,7 +148,7 @@ public final class ELDConfigManager implements ConfigStorage {
             private final Field[] fields;
 
             public FileControllerImpl() {
-                this.fields = config.getDeclaredFields();
+                this.fields = config.getFields();
             }
 
             @Override
