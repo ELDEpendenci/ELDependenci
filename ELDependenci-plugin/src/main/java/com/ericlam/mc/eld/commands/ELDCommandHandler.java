@@ -8,6 +8,7 @@ import com.ericlam.mc.eld.annotations.RemainArgs;
 import com.ericlam.mc.eld.bukkit.ELDMessageConfig;
 import com.ericlam.mc.eld.components.CommandNode;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
+import com.ericlam.mc.eld.services.ELDReflectionService;
 import com.google.inject.Injector;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -29,7 +30,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
 
     private static Field[] getDeclaredFieldsForNodes(Class<? extends CommandNode> node){
         if (nodePlaceholders.containsKey(node)) return nodePlaceholders.get(node);
-        var fields = node.getFields();
+        var fields = ELDReflectionService.getDeclaredFieldsUpToStatic(node, null).toArray(Field[]::new);
         nodePlaceholders.put(node, fields);
         return fields;
     }
