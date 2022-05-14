@@ -7,7 +7,7 @@
     <groupId>org.eldependenci</groupId>
     <artifactId>eldependenci</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.8</version>
+    <version>0.1.8-SNAPSHOT</version>
     <modules>
         <module>eldependenci-framework</module>
         <module>eldependenci-addon</module>
@@ -243,8 +243,13 @@
             <id>github</id>
             <name>Github ELDependenci Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/ELDependenci/eldependenci</url>
-            <uniqueVersion>false</uniqueVersion>
         </repository>
+        <snapshotRepository>
+            <id>github</id>
+            <name>Github ELDependenci Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/ELDependenci/eldependenci</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
     </distributionManagement>
 
 </project>
