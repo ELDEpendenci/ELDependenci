@@ -25,7 +25,7 @@ public final class ELDTypeListener implements TypeListener {
 
     @Override
     public <I> void hear(TypeLiteral<I> typeLiteral, TypeEncounter<I> typeEncounter) {
-        for (Field field : typeLiteral.getRawType().getDeclaredFields()) {
+        for (Field field : typeLiteral.getRawType().getFields()) {
             if (!field.isAnnotationPresent(InjectPool.class)) continue;
             if (!(field.getGenericType() instanceof ParameterizedType)) continue;
             if (field.getType() == GroupConfig.class) {
