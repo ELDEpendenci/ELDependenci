@@ -10,6 +10,10 @@ import com.ericlam.mc.eld.components.CommandNode;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.services.ELDReflectionService;
 import com.google.inject.Injector;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -116,9 +120,11 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
         }
 
         if (!node.nodes.isEmpty()) {
-            List<String> helps = generateHelpLines(node.nodes);
-            helps.add(0, msg.getLang().get("command-header", getHeader(node)));
-            sender.sendMessage(helps.toArray(String[]::new));
+            List<TextComponent> helps = new ArrayList<>(generateHelpLines(node.nodes));
+            helps.add(0, Component.text(msg.getLang().getPure("command-header", getHeader(node))));
+            TextComponent.Builder component = Component.text();
+            helps.forEach(c -> component.append(c).append(Component.text('\n')));
+            sender.sendMessage(component.build());
             return;
         }
 
@@ -147,7 +153,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
                     placeholder.setAccessible(true);
                     placeholder.set(commandNode, instance);
                 } catch (NoSuchElementException e) {
-                    if (!properties.optional) {
+                    if (!properties.optional()) {
                         sender.sendMessage(msg.getLang().get("no-args").replace("<args>", toPlaceholderStrings(placeholders)));
                         return;
                     }
@@ -238,8 +244,8 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
         return builder.toString();
     }
 
-    private List<String> generateHelpLines(Set<HierarchyNode> nodes) {
-        return nodes.stream().map(this::getHelpLine).toList();
+    private List<TextComponent> generateHelpLines(Set<HierarchyNode> nodes) {
+        return nodes.stream().map(this::getHelpComponent).toList();
     }
 
     private List<Field> getPlaceholders(HierarchyNode node) {
@@ -254,7 +260,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
         return " " + placeholders.stream().map(commandArgsHandler::getPlaceholderLabel).collect(Collectors.joining(" "));
     }
 
-    private String getHelpLine(final HierarchyNode node) {
+    private TextComponent getHelpComponent(final HierarchyNode node) {
         final var cmd = node.current.getAnnotation(Commander.class);
         final var builder = new StringBuilder(cmd.name());
         var topCmd = cmd;
@@ -264,7 +270,21 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
             topCmd = topNode.current.getAnnotation(Commander.class);
             builder.insert(0, topCmd.name() + " ");
         }
-        return msg.getLang().get("command-help-line", builder.toString(), toPlaceholderStrings(getPlaceholders(node)), cmd.description());
+        var placeholders = getPlaceholders(node);
+        var placeholderStrings = toPlaceholderStrings(placeholders);
+        var execute = String.format("/%s %s", builder, placeholderStrings);
+        var line =  msg.getLang().getPure("command-help-line", builder.toString(), placeholderStrings, cmd.description());
+
+        return Component.text(line)
+                .clickEvent(ClickEvent.clickEvent(
+                        placeholders.isEmpty() ? ClickEvent.Action.RUN_COMMAND : ClickEvent.Action.SUGGEST_COMMAND,
+                        execute
+                ))
+                .hoverEvent(HoverEvent.showText(
+                        Component.text(
+                                msg.getLang().getPure("command-help-hover", cmd.description())
+                        )
+                ));
     }
 
     public static void registers(JavaPlugin plugin, Set<HierarchyNode> commands, Injector injector, ELDArgumentManager manager) {

@@ -69,27 +69,11 @@ public final class ELDCommandArgsHandler {
     }
 
 
-    public static class CommonProperties {
+    public record CommonProperties(int order, boolean optional, String[] labels) {
 
-        public final int order;
-        public final boolean optional;
-        public final String[] labels;
-
-
-        public CommonProperties(int order, boolean optional, String[] labels) {
-            this.order = order;
-            this.optional = optional;
-            this.labels = labels;
-        }
     }
 
-    private static class ArgsHandler {
-        private final CommandArgHandler<Annotation> argsHandler;
-        private final Function<Annotation, CommonProperties> argsSorter;
-
-        private ArgsHandler(CommandArgHandler<Annotation> argsHandler, Function<Annotation, CommonProperties> argsSorter) {
-            this.argsHandler = argsHandler;
-            this.argsSorter = argsSorter;
-        }
+    private record ArgsHandler(CommandArgHandler<Annotation> argsHandler,
+                               Function<Annotation, CommonProperties> argsSorter) {
     }
 }
