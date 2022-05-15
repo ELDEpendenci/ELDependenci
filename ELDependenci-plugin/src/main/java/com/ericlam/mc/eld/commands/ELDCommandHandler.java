@@ -116,7 +116,9 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
         }
 
         if (!node.nodes.isEmpty()) {
-            sender.sendMessage(generateHelpLines(node.nodes));
+            List<String> helps = generateHelpLines(node.nodes);
+            helps.add(0, msg.getLang().get("command-header", getHeader(node)));
+            sender.sendMessage(helps.toArray(String[]::new));
             return;
         }
 
@@ -224,8 +226,20 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
         return commandNode.tabComplete(sender, args);
     }
 
-    private String[] generateHelpLines(Set<HierarchyNode> nodes) {
-        return nodes.stream().map(this::getHelpLine).toArray(String[]::new);
+    private String getHeader(HierarchyNode node){
+        final var cmd = node.current.getAnnotation(Commander.class);
+        final var builder = new StringBuilder(cmd.name());
+        var topNoe = node;
+        while (topNoe.parent != null){
+            topNoe = topNoe.parent;
+            var topCmd = topNoe.current.getAnnotation(Commander.class);
+            builder.insert(0, topCmd.name() + " ");
+        }
+        return builder.toString();
+    }
+
+    private List<String> generateHelpLines(Set<HierarchyNode> nodes) {
+        return nodes.stream().map(this::getHelpLine).toList();
     }
 
     private List<Field> getPlaceholders(HierarchyNode node) {
@@ -250,7 +264,7 @@ public final class ELDCommandHandler implements CommandExecutor, TabCompleter {
             topCmd = topNode.current.getAnnotation(Commander.class);
             builder.insert(0, topCmd.name() + " ");
         }
-        return "/" + builder.toString() + toPlaceholderStrings(getPlaceholders(node)) + " - " + cmd.description();
+        return msg.getLang().get("command-help-line", builder.toString(), toPlaceholderStrings(getPlaceholders(node)), cmd.description());
     }
 
     public static void registers(JavaPlugin plugin, Set<HierarchyNode> commands, Injector injector, ELDArgumentManager manager) {
