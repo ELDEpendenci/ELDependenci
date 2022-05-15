@@ -6,6 +6,9 @@ error:
   - "&c出現錯誤: <message>"
   - "&c請通知插件師。"
 
+command-header: "&7========== [ &a{0} 的指令&7 ] =========="
+command-help-line: "&8/&7{0} {1} &e- &a{2}"
+
 convert-error:
   int: "&c{0} 不是有效的 Integer 。"
   double: "&c{0} 不是有效的 Double 。"
