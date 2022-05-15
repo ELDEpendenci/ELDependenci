@@ -8,6 +8,7 @@ error:
 
 command-header: "&7========== [ &a{0} 的指令&7 ] =========="
 command-help-line: "&8/&7{0} {1} &e- &a{2}"
+command-help-hover: "&a點擊以輸入"
 
 convert-error:
   int: "&c{0} 不是有效的 Integer 。"
