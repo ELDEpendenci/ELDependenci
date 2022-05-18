@@ -1,0 +1,47 @@
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+name: Publish WorkFlows for ELDependenci develop
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        id: checkout-source
+        uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '18'
+          distribution: 'adopt'
+      - run: mvn --batch-mode clean package
+        name: build plugins
+      - uses: actions/upload-artifact@v1
+        with:
+          name: 'plugins'
+          path: 'outputs/'
+          mime-type: 'application/zip'
+
+  upload_github_pkg_snapshot:
+    runs-on: ubuntu-latest
+    needs: [build]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '18'
+          distribution: 'adopt'
+      - run: ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        id: project
+      - name: Publish package
+        run: mvn --batch-mode deploy
+        if: endWith(${{steps.project.outputs.version}}, '-SNAPSHOT')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

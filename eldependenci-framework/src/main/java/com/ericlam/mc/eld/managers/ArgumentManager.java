@@ -4,8 +4,9 @@ import com.ericlam.mc.eld.misc.ArgParser;
 
 /**
  * 參數解析管理器
+ * @param <Sender> 平台所屬指令發送者類型
  */
-public interface ArgumentManager {
+public interface ArgumentManager<Sender> {
 
     /**
      * 註冊參數解析
@@ -13,7 +14,7 @@ public interface ArgumentManager {
      * @param getter 解析器
      * @param <T> 類型
      */
-    <T> void registerParser(Class<T> parser, ArgParser<T> getter);
+    <T> void registerParser(Class<T> parser, ArgParser<T, Sender> getter);
 
     /**
      * 註冊有標識文字的參數解析
@@ -22,6 +23,6 @@ public interface ArgumentManager {
      * @param getter 解析器
      * @param <T> 類型
      */
-    <T> void registerParser(Class<T> parser, String identifier, ArgParser<T> getter);
+    <T> void registerParser(Class<T> parser, String identifier, ArgParser<T, Sender> getter);
 
 }
