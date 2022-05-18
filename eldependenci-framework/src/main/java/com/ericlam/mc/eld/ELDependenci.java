@@ -12,7 +12,7 @@ public class ELDependenci implements ELDependenciAPI {
         throw new UnsupportedOperationException("not plugin");
     }
 
-    public ManagerProvider register(ELDBukkit plugin, Consumer<ServiceCollection> injector) {
+    public ManagerProvider<?> register(ELDPlugin plugin, Consumer<ServiceCollection> injector) {
         return null;
     }
 
