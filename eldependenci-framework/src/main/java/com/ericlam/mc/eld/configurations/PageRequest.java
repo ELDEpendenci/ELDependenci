@@ -1,7 +1,7 @@
 package com.ericlam.mc.eld.configurations;
 
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 

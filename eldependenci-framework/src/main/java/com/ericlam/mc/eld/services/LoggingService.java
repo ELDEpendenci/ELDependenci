@@ -2,7 +2,6 @@ package com.ericlam.mc.eld.services;
 
 
 import com.ericlam.mc.eld.misc.DebugLogger;
-import org.bukkit.plugin.Plugin;
 
 /**
  * 日誌輸出服務
