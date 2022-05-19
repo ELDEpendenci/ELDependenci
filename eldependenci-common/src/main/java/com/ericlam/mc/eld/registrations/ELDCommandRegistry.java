@@ -2,7 +2,7 @@ package com.ericlam.mc.eld.registrations;
 
 import com.ericlam.mc.eld.HierarchyNode;
 import com.ericlam.mc.eld.annotations.Commander;
-import com.ericlam.mc.eld.components.CommonCommandNode;
+import com.ericlam.mc.eld.common.CommonCommandNode;
 import com.ericlam.mc.eld.registration.CommandRegistry;
 import com.google.common.collect.ImmutableSet;
 

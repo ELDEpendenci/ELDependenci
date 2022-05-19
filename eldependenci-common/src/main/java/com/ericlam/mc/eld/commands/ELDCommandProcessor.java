@@ -1,9 +1,11 @@
 package com.ericlam.mc.eld.commands;
 
 import com.ericlam.mc.eld.HierarchyNode;
+import com.ericlam.mc.eld.annotations.CommandArg;
 import com.ericlam.mc.eld.annotations.Commander;
+import com.ericlam.mc.eld.annotations.DynamicArg;
 import com.ericlam.mc.eld.annotations.RemainArgs;
-import com.ericlam.mc.eld.components.CommonCommandNode;
+import com.ericlam.mc.eld.common.CommonCommandNode;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import com.ericlam.mc.eld.services.ELDReflectionService;
@@ -41,6 +43,23 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
         this.injector = injector;
         this.parser = parser;
         this.msg = msg;
+
+
+        this.registerArgAHandle(
+                CommandArg.class,
+                (annotation, type, argumentManager, iterator, sender) -> argumentManager.tryParse(type, annotation.identifier(), iterator, sender),
+                (annotation) -> new ELDCommandArgsHandler.CommonProperties(annotation.order(), annotation.optional(), annotation.labels())
+        );
+        this.registerArgAHandle(
+                DynamicArg.class,
+                (annotation, type, argumentManager, iterator, sender) -> {
+                    if (type != Object.class)
+                        throw new IllegalStateException("@DynamicArgs must be an Object class.");
+                    return argumentManager.multiParse(annotation.types(), iterator, sender);
+                },
+                (annotation) -> new ELDCommandArgsHandler.CommonProperties(annotation.order(), annotation.optional(), annotation.labels())
+        );
+
     }
 
 

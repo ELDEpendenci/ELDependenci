@@ -75,7 +75,8 @@ public class SimpleGroupLang<T extends GroupLangConfiguration> implements GroupL
         T ins = groupType.getConstructor().newInstance();
         var controllerField = GroupLangConfiguration.class.getDeclaredField("lang");
         var localeField = GroupLangConfiguration.class.getDeclaredField("locale");
-        setField(controllerField, handler.loadLangController(file, plugin, ins), ins);
+        var messageYaml = handler.loadYaml(file);
+        setField(controllerField, new ELDConfigManager.MessageGetterImpl(ins, messageYaml, file, plugin), ins);
         setField(localeField, locale, ins);
         return ins;
     }

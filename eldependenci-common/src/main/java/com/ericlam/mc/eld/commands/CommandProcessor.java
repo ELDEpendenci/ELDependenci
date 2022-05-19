@@ -2,7 +2,7 @@ package com.ericlam.mc.eld.commands;
 
 import com.ericlam.mc.eld.HierarchyNode;
 import com.ericlam.mc.eld.annotations.Commander;
-import com.ericlam.mc.eld.components.CommonCommandNode;
+import com.ericlam.mc.eld.common.CommonCommandNode;
 
 import java.lang.annotation.Annotation;
 import java.util.LinkedList;

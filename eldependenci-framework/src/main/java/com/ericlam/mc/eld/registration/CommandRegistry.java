@@ -1,6 +1,6 @@
 package com.ericlam.mc.eld.registration;
 
-import com.ericlam.mc.eld.components.CommonCommandNode;
+import com.ericlam.mc.eld.common.CommonCommandNode;
 
 import java.util.function.Consumer;
 

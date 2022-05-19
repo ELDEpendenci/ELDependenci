@@ -1,0 +1,4 @@
+name: ELDependenci
+version: ${project.version}
+main: com.ericlam.mc.eld.ELDependenci
+api-version: "1.17"
