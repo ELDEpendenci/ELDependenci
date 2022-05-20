@@ -22,5 +22,10 @@ public final class BukkitModule extends ELDPluginModule<JavaPlugin> {
         return instance.getName();
     }
 
+    @Override
+    public Class<JavaPlugin> getPluginClass() {
+        return JavaPlugin.class;
+    }
+
 
 }

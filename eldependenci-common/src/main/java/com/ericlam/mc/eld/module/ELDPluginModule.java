@@ -14,7 +14,7 @@ public abstract class ELDPluginModule<Plugin> extends AbstractModule {
 
     @Override
     protected void configure() {
-        var pluginBinding = MapBinder.newMapBinder(binder(), new TypeLiteral<String>(){}, new TypeLiteral<Plugin>(){});
+        var pluginBinding = MapBinder.newMapBinder(binder(), String.class, getPluginClass());
         pluginInjectors.forEach((pluginName, plugin) -> pluginBinding.addBinding(pluginName).toInstance(plugin));
     }
 
@@ -24,5 +24,7 @@ public abstract class ELDPluginModule<Plugin> extends AbstractModule {
 
 
     public abstract String getName(Plugin instance);
+
+    public abstract Class<Plugin> getPluginClass();
 
 }

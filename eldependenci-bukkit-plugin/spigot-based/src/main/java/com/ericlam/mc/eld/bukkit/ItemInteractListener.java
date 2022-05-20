@@ -18,20 +18,20 @@ import java.util.function.Consumer;
 
 public final class ItemInteractListener implements ItemInteractManager, Listener {
 
-    public static final NamespacedKey CONSUME_EVENT_KEY = new NamespacedKey(BukkitPlugin.getProvidingPlugin(ELDependenci.class), "event.consume.key");
-    public static final NamespacedKey INTERACT_EVENT_KEY = new NamespacedKey(BukkitPlugin.getProvidingPlugin(ELDependenci.class), "event.interact.key");
+    private final Map<String, Consumer<PlayerInteractEvent>> eventInteractMap = new ConcurrentHashMap<>();
+    private final Map<String, Consumer<PlayerItemConsumeEvent>> eventClickerMap = new ConcurrentHashMap<>();
 
-    private static final Map<String, Consumer<PlayerInteractEvent>> eventInteractMap = new ConcurrentHashMap<>();
-    private static final Map<String, Consumer<PlayerItemConsumeEvent>> eventClickerMap = new ConcurrentHashMap<>();
+    public final NamespacedKey CONSUME_EVENT_KEY;
+    public final NamespacedKey INTERACT_EVENT_KEY;
 
 
-    public static String setInteractKeyTemp(Consumer<PlayerInteractEvent> consumer) {
+    public String setInteractKeyTemp(Consumer<PlayerInteractEvent> consumer) {
         var key = "temp:".concat(UUID.randomUUID().toString());
         eventInteractMap.putIfAbsent(key, consumer);
         return key;
     }
 
-    public static String setConsumeKeyTemp(Consumer<PlayerItemConsumeEvent> consumer) {
+    public String setConsumeKeyTemp(Consumer<PlayerItemConsumeEvent> consumer) {
         var key = "temp:".concat(UUID.randomUUID().toString());
         eventClickerMap.putIfAbsent(key, consumer);
         return key;
@@ -41,6 +41,8 @@ public final class ItemInteractListener implements ItemInteractManager, Listener
 
     public ItemInteractListener(Plugin plugin) {
         this.plugin = plugin;
+        CONSUME_EVENT_KEY = new NamespacedKey(plugin, "event.consume.key");
+        INTERACT_EVENT_KEY = new NamespacedKey(plugin, "event.interact.key");
     }
 
 

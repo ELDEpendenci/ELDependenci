@@ -1,6 +1,7 @@
 package com.ericlam.mc.eld.services.factory;
 
 import com.ericlam.mc.eld.bukkit.ItemInteractListener;
+import com.ericlam.mc.eld.managers.ItemInteractManager;
 import com.ericlam.mc.eld.services.ItemStackService;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -14,12 +15,21 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import javax.inject.Inject;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecated")
 public final class ELDItemStackService implements ItemStackService {
+    
+    
+    private final ItemInteractListener itemInteractManager;
+
+    @Inject
+    public ELDItemStackService(ItemInteractManager itemInteractManager) {
+        this.itemInteractManager = (ItemInteractListener) itemInteractManager;
+    }
 
     @Override
     public ItemFactory build(Material material) {
@@ -31,7 +41,7 @@ public final class ELDItemStackService implements ItemStackService {
         return new ELDItemFactory(stack);
     }
 
-    private static class ELDItemFactory implements ItemFactory{
+    private class ELDItemFactory implements ItemFactory{
 
         private final ItemStack itemStack;
 
@@ -170,32 +180,32 @@ public final class ELDItemStackService implements ItemStackService {
 
         @Override
         public ItemFactory onInteractEvent(String keyExecute) {
-            return this.editPersisData(data -> data.set(ItemInteractListener.INTERACT_EVENT_KEY, PersistentDataType.STRING, keyExecute));
+            return this.editPersisData(data -> data.set(itemInteractManager.INTERACT_EVENT_KEY, PersistentDataType.STRING, keyExecute));
         }
 
         @Override
         public ItemFactory onInteractEventTemp(Consumer<PlayerInteractEvent> handler) {
-            return this.editPersisData(data -> data.set(ItemInteractListener.INTERACT_EVENT_KEY, PersistentDataType.STRING, ItemInteractListener.setInteractKeyTemp(handler)));
+            return this.editPersisData(data -> data.set(itemInteractManager.INTERACT_EVENT_KEY, PersistentDataType.STRING, itemInteractManager.setInteractKeyTemp(handler)));
         }
 
         @Override
         public ItemFactory onConsumeEventTemp(Consumer<PlayerItemConsumeEvent> handler) {
-            return this.editPersisData(data -> data.set(ItemInteractListener.CONSUME_EVENT_KEY, PersistentDataType.STRING, ItemInteractListener.setConsumeKeyTemp(handler)));
+            return this.editPersisData(data -> data.set(itemInteractManager.CONSUME_EVENT_KEY, PersistentDataType.STRING, itemInteractManager.setConsumeKeyTemp(handler)));
         }
 
         @Override
         public ItemFactory onConsumeEvent(String keyExecute) {
-            return this.editPersisData(data -> data.set(ItemInteractListener.CONSUME_EVENT_KEY, PersistentDataType.STRING, keyExecute));
+            return this.editPersisData(data -> data.set(itemInteractManager.CONSUME_EVENT_KEY, PersistentDataType.STRING, keyExecute));
         }
 
         @Override
         public ItemFactory destroyInteractEvent() {
-            return this.editPersisData(data -> data.remove(ItemInteractListener.INTERACT_EVENT_KEY));
+            return this.editPersisData(data -> data.remove(itemInteractManager.INTERACT_EVENT_KEY));
         }
 
         @Override
         public ItemFactory destroyClickerEvent() {
-            return this.editPersisData(data -> data.remove(ItemInteractListener.CONSUME_EVENT_KEY));
+            return this.editPersisData(data -> data.remove(itemInteractManager.CONSUME_EVENT_KEY));
         }
 
         @Override
