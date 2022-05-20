@@ -21,9 +21,15 @@ jobs:
       - run: mvn --batch-mode clean package
         name: build plugins
       - uses: actions/upload-artifact@v1
+        name: 'upload plugins'
         with:
           name: 'plugins'
           path: 'outputs/'
+      - uses: actions/upload-artifact@v1
+        name: 'upload javadocs'
+        with:
+          name: 'javadocs'
+          path: 'javadocs/'
 
   upload_github_pkg_snapshot:
     runs-on: ubuntu-latest
