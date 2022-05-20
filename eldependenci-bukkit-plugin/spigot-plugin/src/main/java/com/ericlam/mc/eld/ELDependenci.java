@@ -3,7 +3,7 @@ package com.ericlam.mc.eld;
 import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.commands.BukkitCommandHandler;
 import com.ericlam.mc.eld.commands.CommandProcessor;
-import com.ericlam.mc.eld.components.CommandNode;
+import com.ericlam.mc.eld.components.BukkitCommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,9 +32,9 @@ public class ELDependenci extends BukkitPlugin {
     }
 
     @Override
-    public void registerCommand(JavaPlugin javaPlugin, Set<HierarchyNode<? extends CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
+    public void registerCommand(JavaPlugin javaPlugin, Set<HierarchyNode<? extends BukkitCommand>> commands, CommandProcessor<CommandSender, BukkitCommand> processor) {
         var executor = new BukkitCommandHandler(commands, processor);
-        for (HierarchyNode<? extends CommandNode> command : commands) {
+        for (HierarchyNode<? extends BukkitCommand> command : commands) {
             var cmd = command.current.getAnnotation(Commander.class);
             PluginCommand pluginCommand = javaPlugin.getCommand(cmd.name());
             if (pluginCommand == null) {

@@ -4,7 +4,7 @@ import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.commands.CommandProcessor;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
 import com.ericlam.mc.eld.commands.BukkitCommandHandler;
-import com.ericlam.mc.eld.components.CommandNode;
+import com.ericlam.mc.eld.components.BukkitCommand;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import org.bukkit.Bukkit;
@@ -44,7 +44,7 @@ public class ELDependenci extends BukkitPlugin {
     }
 
     @Override
-    public void registerCommand(JavaPlugin plugin, Set<HierarchyNode<? extends CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
+    public void registerCommand(JavaPlugin plugin, Set<HierarchyNode<? extends BukkitCommand>> commands, CommandProcessor<CommandSender, BukkitCommand> processor) {
         var executor = new BukkitCommandHandler(commands, processor);
         commands.forEach(hir -> {
             var cmd = hir.current.getAnnotation(Commander.class);
