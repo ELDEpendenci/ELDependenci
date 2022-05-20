@@ -77,7 +77,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
     }
 
     @Override
-    public void invokeCommand(Sender commandSender, HierarchyNode<Command> node, LinkedList<String> strings) {
+    public void invokeCommand(Sender commandSender, HierarchyNode<? extends Command> node, LinkedList<String> strings) {
         var commander = node.current.getAnnotation(Commander.class);
         var sender = toSender(commandSender);
         if (!commander.permission().isEmpty() && !sender.hasPermission(commander.permission())) {
@@ -86,7 +86,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
         }
 
         if (strings.size() > 0) {
-            for (HierarchyNode<Command> n : node.nodes) {
+            for (HierarchyNode<? extends Command> n : node.nodes) {
                 var cmder = n.current.getAnnotation(Commander.class);
                 if (labelMatch(cmder, strings.get(0))) {
                     var passArg = new LinkedList<>(strings);
@@ -163,7 +163,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
     }
 
     @Override
-    public List<String> invokeTabComplete(Sender sender, HierarchyNode<Command> node, List<String> args) {
+    public List<String> invokeTabComplete(Sender sender, HierarchyNode<? extends Command> node, List<String> args) {
         var commander = node.current.getAnnotation(Commander.class);
         var commandSender = toSender(sender);
         if (!commander.permission().isEmpty() && !commandSender.hasPermission(commander.permission())) {
@@ -171,7 +171,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
         }
 
         if (args.size() > 0) {
-            for (HierarchyNode<Command> n : node.nodes) {
+            for (HierarchyNode<? extends Command> n : node.nodes) {
                 var cmder = n.current.getAnnotation(Commander.class);
                 if (labelMatch(cmder, args.get(0))) {
                     var passArg = new LinkedList<>(args);
@@ -198,7 +198,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
         return alias.stream().anyMatch(s -> s.equalsIgnoreCase(label));
     }
 
-    private String getHeader(HierarchyNode<Command> node){
+    private String getHeader(HierarchyNode<? extends Command> node){
         final var cmd = node.current.getAnnotation(Commander.class);
         final var builder = new StringBuilder(cmd.name());
         var topNoe = node;
@@ -210,11 +210,11 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
         return builder.toString();
     }
 
-    private BaseComponent[][] generateHelpLines(Set<HierarchyNode<Command>> nodes) {
+    private <T extends Command> BaseComponent[][] generateHelpLines(Set<HierarchyNode<T>> nodes) {
         return nodes.stream().map(this::getHelpComponent).toArray(BaseComponent[][]::new);
     }
 
-    private List<Field> getPlaceholders(HierarchyNode<Command> node) {
+    private List<Field> getPlaceholders(HierarchyNode<? extends Command> node) {
         return Arrays.stream(getDeclaredFieldsForNodes(node.current))
                 .filter(commandArgsHandler::isCommandArg)
                 .sorted(commandArgsHandler::sortArgsField)
@@ -226,7 +226,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
         return " " + placeholders.stream().map(commandArgsHandler::getPlaceholderLabel).collect(Collectors.joining(" "));
     }
 
-    private BaseComponent[] getHelpComponent(final HierarchyNode<Command> node) {
+    private BaseComponent[] getHelpComponent(final HierarchyNode<? extends Command> node) {
         final var cmd = node.current.getAnnotation(Commander.class);
         final var builder = new StringBuilder(cmd.name());
         var topCmd = cmd;

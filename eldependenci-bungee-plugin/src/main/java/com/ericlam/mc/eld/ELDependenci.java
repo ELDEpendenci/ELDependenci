@@ -80,9 +80,9 @@ public class ELDependenci extends Plugin implements Registration<Plugin, Listene
     }
 
     @Override
-    public void registerCommand(Plugin plugin, Set<HierarchyNode<CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
+    public void registerCommand(Plugin plugin, Set<HierarchyNode<? extends CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
         var executor = new BungeeCommandHandler(commands, processor);
-        for (HierarchyNode<CommandNode> node : commands) {
+        for (HierarchyNode<? extends CommandNode> node : commands) {
             var commander = node.current.getAnnotation(Commander.class);
             var cmd = new BungeeCommand(commander, executor);
             getProxy().getPluginManager().registerCommand(plugin, cmd);

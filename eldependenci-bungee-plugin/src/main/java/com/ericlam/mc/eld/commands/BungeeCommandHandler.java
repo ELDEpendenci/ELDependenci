@@ -12,17 +12,17 @@ import java.util.Set;
 
 public class BungeeCommandHandler {
 
-    private final Set<HierarchyNode<CommandNode>> commandNodes;
+    private final Set<HierarchyNode<? extends CommandNode>> commandNodes;
     private final CommandProcessor<CommandSender, CommandNode> processor;
 
-    public BungeeCommandHandler(Set<HierarchyNode<CommandNode>> nodes, CommandProcessor<CommandSender, CommandNode> processor) {
+    public BungeeCommandHandler(Set<HierarchyNode<? extends CommandNode>> nodes, CommandProcessor<CommandSender, CommandNode> processor) {
         this.commandNodes = nodes;
         this.processor = processor;
     }
 
 
     public void executeCommand(CommandSender commandSender, String command, String[] strings) {
-        for (HierarchyNode<CommandNode> node : commandNodes) {
+        for (HierarchyNode<? extends CommandNode> node : commandNodes) {
             if (processor.labelMatch(node.current.getAnnotation(Commander.class), command)) {
                 processor.invokeCommand(commandSender, node, new LinkedList<>(List.of(strings)));
             }
@@ -30,7 +30,7 @@ public class BungeeCommandHandler {
     }
 
     public List<String> executeTabComplete(CommandSender sender, String command, String[] strings) {
-        for (HierarchyNode<CommandNode> node : commandNodes) {
+        for (HierarchyNode<? extends CommandNode> node : commandNodes) {
             if (processor.labelMatch(node.current.getAnnotation(Commander.class), command)) {
                 var result = processor.invokeTabComplete(sender, node, new LinkedList<>(List.of(strings)));
                 String lastAug = strings[strings.length - 1];

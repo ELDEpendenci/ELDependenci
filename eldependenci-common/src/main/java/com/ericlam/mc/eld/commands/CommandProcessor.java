@@ -13,9 +13,9 @@ public interface CommandProcessor<CommandSender, CommandNode extends CommonComma
 
     <A extends Annotation> void registerArgAHandle(Class<A> annotation, CommandArgHandler<A, CommandSender> handle, Function<A, ELDCommandArgsHandler.CommonProperties> propertyGetter);
 
-    void invokeCommand(CommandSender sender, HierarchyNode<CommandNode> node, LinkedList<String> strings);
+    void invokeCommand(CommandSender sender, HierarchyNode<? extends CommandNode> node, LinkedList<String> strings);
 
-    List<String> invokeTabComplete(CommandSender sender, HierarchyNode<CommandNode> node, List<String> args);
+    List<String> invokeTabComplete(CommandSender sender, HierarchyNode<? extends CommandNode> node, List<String> args);
 
     boolean labelMatch(Commander commander, String label);
 
