@@ -38,7 +38,7 @@ jobs:
         with:
           java-version: '18'
           distribution: 'adopt'
-      - run: ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+      - run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
         id: project
       - name: Publish package
         run: mvn --batch-mode deploy
