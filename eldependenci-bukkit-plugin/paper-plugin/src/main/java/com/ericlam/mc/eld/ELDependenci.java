@@ -2,18 +2,15 @@ package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.commands.CommandProcessor;
-import com.ericlam.mc.eld.commands.CommonCommandSender;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
 import com.ericlam.mc.eld.commands.BukkitCommandHandler;
 import com.ericlam.mc.eld.components.CommandNode;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -47,7 +44,7 @@ public class ELDependenci extends BukkitPlugin {
     }
 
     @Override
-    public void registerCommand(JavaPlugin plugin, Set<HierarchyNode<CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
+    public void registerCommand(JavaPlugin plugin, Set<HierarchyNode<? extends CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
         var executor = new BukkitCommandHandler(commands, processor);
         commands.forEach(hir -> {
             var cmd = hir.current.getAnnotation(Commander.class);

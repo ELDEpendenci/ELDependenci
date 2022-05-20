@@ -25,7 +25,7 @@ public abstract class ELDServiceCollection<CommandNode extends CommonCommandNode
 
     private final ELDCommonModule module;
 
-    final Set<HierarchyNode<CommandNode>> commands;
+    final Set<HierarchyNode<? extends CommandNode>> commands;
     final Set<Class<? extends Listener>> listeners;
     final LifeCycle<Plugin> lifeCycleHook;
 
