@@ -42,6 +42,6 @@ jobs:
         id: project
       - name: Publish package
         run: mvn --batch-mode deploy
-        if: ${{ endWith(steps.project.outputs.version, '-SNAPSHOT') }}
+        if: endWith(${{steps.project.outputs.version}}, '-SNAPSHOT')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
