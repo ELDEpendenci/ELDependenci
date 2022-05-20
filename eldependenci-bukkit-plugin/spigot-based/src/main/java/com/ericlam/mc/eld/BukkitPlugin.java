@@ -7,9 +7,9 @@ import com.ericlam.mc.eld.components.CommandNode;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import com.ericlam.mc.eld.listener.LifeCycleListener;
+import com.ericlam.mc.eld.managers.ItemInteractManager;
 import com.ericlam.mc.eld.module.ELDPluginModule;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -32,6 +32,7 @@ public abstract class BukkitPlugin extends JavaPlugin implements Registration<Ja
     @Override
     public void onLoad() {
         this.elDependenciCore.onMainLoad();
+        this.elDependenciCore.baseModule.bindInstance(ItemInteractManager.class, itemInteractManager);
     }
 
     @Override

@@ -16,4 +16,9 @@ public class BungeePluginModule extends ELDPluginModule<Plugin> {
         return instance.getDescription().getName();
     }
 
+    @Override
+    public Class<Plugin> getPluginClass() {
+        return Plugin.class;
+    }
+
 }
