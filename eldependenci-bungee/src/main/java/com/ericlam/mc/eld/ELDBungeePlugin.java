@@ -1,5 +1,7 @@
 package com.ericlam.mc.eld;
 
+import com.ericlam.mc.eld.event.PluginDisableEvent;
+import com.ericlam.mc.eld.event.PluginEnableEvent;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.io.File;
@@ -19,11 +21,13 @@ public abstract class ELDBungeePlugin extends Plugin implements ELDPlugin {
     public final void onEnable() {
         getLogger().info("Enabling plugin " + this.getName());
         getLogger().info("This plugin is hooking the lifecycle of ELDependenci framework.");
+        getProxy().getPluginManager().callEvent(new PluginEnableEvent(this));
     }
 
     @Override
     public final void onDisable() {
         getLogger().info("Disabling plugin " + this.getName());
+        getProxy().getPluginManager().callEvent(new PluginDisableEvent(this));
     }
 
     /**
@@ -35,7 +39,7 @@ public abstract class ELDBungeePlugin extends Plugin implements ELDPlugin {
 
 
     @Override
-    public void saveResource(String path, boolean replace) {
+    public void saveResource(String path) {
         var target = new File(getDataFolder(), path);
         var ins = this.getResourceAsStream(path);
         try {

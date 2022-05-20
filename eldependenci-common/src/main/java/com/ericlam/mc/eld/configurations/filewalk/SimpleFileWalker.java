@@ -1,8 +1,8 @@
 package com.ericlam.mc.eld.configurations.filewalk;
 
 import com.ericlam.mc.eld.configurations.PageRequest;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

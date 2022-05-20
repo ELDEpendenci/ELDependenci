@@ -9,7 +9,7 @@ import java.util.List;
 public class BukkitConfigHandler implements ConfigHandler {
 
     @Override
-    public MessageYaml loadYaml(File file) {
+    public MessageYaml loadYaml(File file) throws Exception {
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
         return new MessageYaml() {
             @Override

@@ -3,7 +3,7 @@ package com.ericlam.mc.eld;
 import com.google.inject.Module;
 
 /**
- * Addon 管理器
+ * Addon 安裝器
  */
 public interface AddonInstallation {
 

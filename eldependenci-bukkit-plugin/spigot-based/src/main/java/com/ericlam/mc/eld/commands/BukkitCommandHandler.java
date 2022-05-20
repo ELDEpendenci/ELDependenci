@@ -14,11 +14,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public final class ELDCommandHandler implements TabCompleter, CommandExecutor {
+public final class BukkitCommandHandler implements TabCompleter, CommandExecutor {
     private final Set<HierarchyNode<CommandNode>> commandNodes;
     private final CommandProcessor<CommandSender, CommandNode> processor;
 
-    public ELDCommandHandler(Set<HierarchyNode<CommandNode>> commandNodes, CommandProcessor<CommandSender, CommandNode> processor) {
+    public BukkitCommandHandler(Set<HierarchyNode<CommandNode>> commandNodes, CommandProcessor<CommandSender, CommandNode> processor) {
         this.commandNodes = commandNodes;
         this.processor = processor;
     }

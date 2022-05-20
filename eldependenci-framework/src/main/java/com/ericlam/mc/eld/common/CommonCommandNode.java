@@ -3,7 +3,8 @@ package com.ericlam.mc.eld.common;
 import java.util.List;
 
 /**
- * 用於定義指令
+ * 泛平台指令類，用於不同平台作擴展
+ * @param <CommandSender> 平台所屬的指令發送者
  */
 public interface CommonCommandNode<CommandSender> {
 

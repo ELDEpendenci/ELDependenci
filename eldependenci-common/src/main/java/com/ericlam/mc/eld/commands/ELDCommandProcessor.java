@@ -10,6 +10,8 @@ import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import com.ericlam.mc.eld.services.ELDReflectionService;
 import com.google.inject.Injector;
+import net.md_5.bungee.api.chat.*;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -63,7 +65,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
     }
 
 
-    private Field[] getDeclaredFieldsForNodes(Class<? extends Command> node){
+    private Field[] getDeclaredFieldsForNodes(Class<? extends Command> node) {
         if (nodePlaceholders.containsKey(node)) return nodePlaceholders.get(node);
         var fields = ELDReflectionService.getDeclaredFieldsUpToStatic(node, null).toArray(Field[]::new);
         nodePlaceholders.put(node, fields);
@@ -75,7 +77,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
     }
 
     @Override
-    public void invokeCommand(Sender commandSender , HierarchyNode<Command> node, LinkedList<String> strings) {
+    public void invokeCommand(Sender commandSender, HierarchyNode<Command> node, LinkedList<String> strings) {
         var commander = node.current.getAnnotation(Commander.class);
         var sender = toSender(commandSender);
         if (!commander.permission().isEmpty() && !sender.hasPermission(commander.permission())) {
@@ -96,7 +98,12 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
         }
 
         if (!node.nodes.isEmpty()) {
-            sender.sendMessage(generateHelpLines(node.nodes));
+            ComponentBuilder md5Builder = new ComponentBuilder();
+            md5Builder.append(msg.getLang().getPure("command-header", getHeader(node))).append("\n");
+            for (BaseComponent[] components : generateHelpLines(node.nodes)) {
+                md5Builder.append(components).append("\n");
+            }
+            sender.sendMessage(md5Builder.create());
             return;
         }
 
@@ -191,8 +198,20 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
         return alias.stream().anyMatch(s -> s.equalsIgnoreCase(label));
     }
 
-    private String[] generateHelpLines(Set<HierarchyNode<Command>> nodes) {
-        return nodes.stream().map(this::getHelpLine).toArray(String[]::new);
+    private String getHeader(HierarchyNode<Command> node){
+        final var cmd = node.current.getAnnotation(Commander.class);
+        final var builder = new StringBuilder(cmd.name());
+        var topNoe = node;
+        while (topNoe.parent != null){
+            topNoe = topNoe.parent;
+            var topCmd = topNoe.current.getAnnotation(Commander.class);
+            builder.insert(0, topCmd.name() + " ");
+        }
+        return builder.toString();
+    }
+
+    private BaseComponent[][] generateHelpLines(Set<HierarchyNode<Command>> nodes) {
+        return nodes.stream().map(this::getHelpComponent).toArray(BaseComponent[][]::new);
     }
 
     private List<Field> getPlaceholders(HierarchyNode<Command> node) {
@@ -207,7 +226,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
         return " " + placeholders.stream().map(commandArgsHandler::getPlaceholderLabel).collect(Collectors.joining(" "));
     }
 
-    private String getHelpLine(final HierarchyNode<Command> node) {
+    private BaseComponent[] getHelpComponent(final HierarchyNode<Command> node) {
         final var cmd = node.current.getAnnotation(Commander.class);
         final var builder = new StringBuilder(cmd.name());
         var topCmd = cmd;
@@ -217,6 +236,24 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
             topCmd = topNode.current.getAnnotation(Commander.class);
             builder.insert(0, topCmd.name() + " ");
         }
-        return "/" + builder.toString() + toPlaceholderStrings(getPlaceholders(node)) + " - " + cmd.description();
+        var placeholders = getPlaceholders(node);
+        var placeholderStrings = toPlaceholderStrings(placeholders);
+        var execute = String.format("/%s %s", builder, placeholderStrings);
+        var line = msg.getLang().getPure("command-help-line", builder.toString(), placeholderStrings, cmd.description());
+        ComponentBuilder md5Builder = new ComponentBuilder();
+
+        return md5Builder
+                .append(line)
+                .event(
+                        new ClickEvent(
+                                placeholders.isEmpty() ? ClickEvent.Action.RUN_COMMAND : ClickEvent.Action.SUGGEST_COMMAND,
+                                execute
+                        )
+                ).event(
+                        new HoverEvent(
+                                HoverEvent.Action.SHOW_TEXT,
+                                new Text(msg.getLang().getPure("command-help-hover", cmd.description()))
+                        )
+                ).create();
     }
 }

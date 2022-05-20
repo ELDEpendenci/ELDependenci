@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 /**
  * 指令註冊
+ * @param <T> 該平台所屬的指令類型
  */
 public interface CommandRegistry<T extends CommonCommandNode<?>> {
 

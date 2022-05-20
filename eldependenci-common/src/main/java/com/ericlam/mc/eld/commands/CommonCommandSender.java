@@ -1,6 +1,7 @@
 package com.ericlam.mc.eld.commands;
 
-import net.kyori.adventure.text.TextComponent;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public interface CommonCommandSender {
 
@@ -10,7 +11,7 @@ public interface CommonCommandSender {
 
     void sendMessage(String[] messages);
 
-    void sendMessage(TextComponent component);
+    void sendMessage(BaseComponent[] component);
 
 
     boolean isPlayer();

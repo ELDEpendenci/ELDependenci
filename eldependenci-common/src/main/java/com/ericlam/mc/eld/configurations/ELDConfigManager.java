@@ -124,7 +124,7 @@ public final class ELDConfigManager implements ConfigStorage {
             for (String preload : resource.preloads()) {
                 String yml = preload.concat(".yml");
                 File preLoadFile = new File(folder, yml);
-                if (!preLoadFile.exists()) plugin.saveResource(resource.folder().concat("/").concat(yml), true);
+                if (!preLoadFile.exists()) plugin.saveResource(resource.folder().concat("/").concat(yml));
             }
         }).whenComplete((v, ex) -> {
             if (ex != null) ex.printStackTrace();
@@ -184,7 +184,7 @@ public final class ELDConfigManager implements ConfigStorage {
         var resource = config.getAnnotation(Resource.class);
         try {
             File f = new File(plugin.getDataFolder(), resource.locate());
-            if (!f.exists()) plugin.saveResource(resource.locate(), true);
+            if (!f.exists()) plugin.saveResource(resource.locate());
             var ins = initConfiguration(config, f);
             if (ins instanceof LangConfiguration) {
                 var messageYaml = configHandler.loadYaml(f);

@@ -1,10 +1,14 @@
 package com.ericlam.mc.eld;
 
+import com.ericlam.mc.eld.common.CommonCommandNode;
+import com.ericlam.mc.eld.common.CommonRegistry;
 import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.GroupConfiguration;
 import com.ericlam.mc.eld.components.GroupLangConfiguration;
 import com.ericlam.mc.eld.components.Overridable;
 import com.ericlam.mc.eld.configurations.ELDConfigManager;
+import com.ericlam.mc.eld.registrations.ELDCommandRegistry;
+import com.ericlam.mc.eld.registrations.ELDListenerRegistry;
 
 import javax.inject.Provider;
 import java.lang.reflect.Modifier;
@@ -13,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public abstract class ELDServiceCollection implements ServiceCollection {
+public abstract class ELDServiceCollection<CommandNode extends CommonCommandNode<?>, Listener, Plugin> implements ServiceCollection {
 
     final Map<Class<?>, Object> customInstallation;
 
@@ -21,13 +25,40 @@ public abstract class ELDServiceCollection implements ServiceCollection {
 
     private final ELDCommonModule module;
 
+    final Set<HierarchyNode<CommandNode>> commands;
+    final Set<Class<? extends Listener>> listeners;
+    final LifeCycle<Plugin> lifeCycleHook;
+
     static Set<MCPlugin> DISABLED = new HashSet<>();
 
     public ELDServiceCollection(ELDCommonModule module, MCPlugin plugin, Map<Class<?>, Object> customInstallation, ConfigHandler handler) {
         this.module = module;
         this.customInstallation = customInstallation;
         this.configManager = new ELDConfigManager(module, plugin, handler);
+
+        var en = getComponents(plugin);
+        var registryCls = en.getKey();
+        var lifeCycleCls = en.getValue();
+
+        var registry = this.toInstance(registryCls);
+        this.lifeCycleHook = this.toInstance(lifeCycleCls);
+
+        //register command
+        var cmdregistry = new ELDCommandRegistry<CommandNode>();
+        registry.registerCommand(cmdregistry);
+        this.commands = cmdregistry.getNodes();
+
+        //register listeners
+        var listenerRegistry = new ELDListenerRegistry<Listener>();
+        registry.registerListeners(listenerRegistry);
+
+        this.listeners = listenerRegistry.getListenersCls();
     }
+
+    public abstract Map.Entry<
+            Class<? extends CommonRegistry<CommandNode, Listener>>,
+            Class<? extends LifeCycle<Plugin>>
+            > getComponents(MCPlugin plugin);
 
     @Override
     public ServiceCollection addSingleton(Class<?> singleton) {

@@ -1,29 +1,15 @@
 package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.bukkit.ItemInteractListener;
-import com.ericlam.mc.eld.commands.CommandProcessor;
-import com.ericlam.mc.eld.commands.CommandRegister;
+import com.ericlam.mc.eld.commands.CommonCommandSender;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
 import com.ericlam.mc.eld.components.CommandNode;
-import com.ericlam.mc.eld.configurations.BukkitBeanModifier;
-import com.ericlam.mc.eld.configurations.ELDConfigManager;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
-import com.ericlam.mc.eld.implement.ELDConfig;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
-import com.ericlam.mc.eld.managers.ArgumentManager;
-import com.ericlam.mc.eld.managers.ConfigStorage;
-import com.ericlam.mc.eld.managers.ItemInteractManager;
-import com.ericlam.mc.eld.module.ELDConfigModule;
-import com.ericlam.mc.eld.module.ELDLoggingModule;
-import com.ericlam.mc.eld.services.ArgParserService;
-import com.ericlam.mc.eld.services.ELDConfigPoolService;
-import com.ericlam.mc.eld.services.ELDReflectionService;
-import com.ericlam.mc.eld.services.logging.ELDLoggingService;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import org.apache.commons.codec.binary.Hex;
+import com.ericlam.mc.eld.listener.LifeCycleListener;
+import com.ericlam.mc.eld.module.ELDPluginModule;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -31,203 +17,88 @@ import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.logging.Level;
+import java.util.Set;
 
-public abstract class BukkitPlugin extends JavaPlugin implements ELDependenciAPI, Listener, MCPlugin, AddonInstallation {
-
-    protected final ELDCommonModule module = new ELDCommonModule(this);
-    protected final ELDBukkitModule bukkitModule = new ELDBukkitModule();
+public abstract class BukkitPlugin extends JavaPlugin implements Registration<JavaPlugin, Listener, CommandSender, CommandNode>, MCPlugin {
+    protected final BukkitModule bukkitModule = new BukkitModule();
     protected final BukkitConfigHandler configHandler = new BukkitConfigHandler();
-    protected final Map<JavaPlugin, BukkitServiceCollection> collectionMap = new ConcurrentHashMap<>();
-    protected final Map<Class<?>, Object> customInstallation = new ConcurrentHashMap<>();
-    protected final ELDArgumentManager<CommandSender> argumentManager = new ELDArgumentManager<>();
-    protected ELDConfigPoolService groupConfigService;
-    protected ItemInteractListener itemInteractListener;
-    protected static ELDependenciAPI api;
-    protected Injector injector;
-    // never use dump
-    protected final ELDConfigManager eldConfigManager = new ELDConfigManager(null, this, configHandler);
-    protected boolean sharePluginInstance = false;
-    protected ELDMessageConfig eldMessageConfig;
+    protected final ItemInteractListener itemInteractManager = new ItemInteractListener(this);
+    protected final ELDependenciCore<JavaPlugin, CommandSender, Listener, CommandNode> elDependenciCore = new ELDependenciCore<>(this);
 
-
-    static {
-        ELDConfigManager.YAML_MAPPER.registerModule(new SimpleModule()
-                .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
-                .setSerializerModifier(new BukkitBeanModifier.Serializer()));
-        ELDConfigManager.JSON_MAPPER.registerModule(new SimpleModule()
-                .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
-                .setSerializerModifier(new BukkitBeanModifier.Serializer()));
-    }
-
-    public abstract CommandProcessor<CommandSender, CommandNode> getCommandProcessor();
-
-    public abstract CommandRegister getCommandRegister();
 
     @Override
     public void onLoad() {
-        api = this;
-        this.itemInteractListener = new ItemInteractListener(this);
-        this.module.bindInstance(ArgParserService.class, argumentManager);
-        eldConfigManager.loadConfig(ELDConfig.class);
-        eldConfigManager.loadConfig(ELDMessageConfig.class);
-        this.eldMessageConfig = eldConfigManager.getConfigAs(ELDMessageConfig.class);
-        var eldConfig = eldConfigManager.getConfigAs(ELDConfig.class);
-        groupConfigService = new ELDConfigPoolService(eldConfig.fileWalker, configHandler);
-        this.module.setDefaultSingleton(eldConfig.defaultSingleton);
-        this.sharePluginInstance = eldConfig.sharePluginInstance;
-        this.module.addModule(new ELDConfigModule(groupConfigService, new ELDReflectionService()));
-        this.module.addModule(new ELDLoggingModule(new ELDLoggingService(eldConfig, Bukkit.getLogger())));
-        this.customInstallation(AddonInstallation.class, this);
-        this.installModule(bukkitModule);
-    }
-
-    public static ELDependenciAPI getApi() {
-        return Optional.ofNullable(api).orElseThrow(() -> new IllegalStateException("ELDependencies has not yet loaded，make sure your plugin.yml has added eld-plugin as depend"));
-    }
-
-    public ManagerProvider<?> register(ELDPlugin eld, Consumer<ServiceCollection> injector) {
-        if (!(eld instanceof ELDBukkitPlugin plugin))
-            throw new IllegalStateException("ELDependencies only support ELDPaperPlugin");
-        if (collectionMap.containsKey(plugin)) {
-            throw new IllegalStateException("the plugin is registered and not allowed to be registered again.");
-        }
-        var collection = new BukkitServiceCollection(module, plugin, customInstallation, configHandler);
-        injector.accept(collection);
-        if (sharePluginInstance) bukkitModule.mapPluginInstance(plugin);
-        module.bindPluginInstance(plugin.getClass(), plugin);
-        collection.configManager.getGroupConfigSet().forEach(gc -> groupConfigService.addTypeMapper(gc, plugin));
-        collection.configManager.dumpAll();
-        this.collectionMap.put(plugin, collection);
-        return new ELDManagerProvider(collection);
-    }
-
-    @Override
-    public <T> T exposeService(Class<T> serviceCls) {
-        return injector.getInstance(serviceCls);
+        this.elDependenciCore.onMainLoad();
     }
 
     @Override
     public void onEnable() {
+        this.elDependenciCore.onMainEnable(this);
+        var argumentManager = elDependenciCore.argumentManager;
+        var eldMessageConfig = elDependenciCore.eldMessageConfig;
+        this.registerParser(argumentManager, eldMessageConfig);
+        getServer().getPluginManager().registerEvents(itemInteractManager, this);
+    }
 
-        var commandProcessor = getCommandProcessor();
-        var commandRegister = getCommandRegister();
+    @Override
+    public ConfigHandler getConfigHandler() {
+        return configHandler;
+    }
 
-        var lifeCycleListener = new PluginLifeCycleListener(collectionMap, injector, commandProcessor, commandRegister);
+    @Override
+    public MCPlugin getPlugin() {
+        return this;
+    }
 
-        try {
-            getServer().getPluginManager().registerEvents(lifeCycleListener, this);
-            registerParser();
-            getServer().getPluginManager().registerEvents(itemInteractListener, this);
-            this.injector = Guice.createInjector(module);
+    @Override
+    public ELDPluginModule<JavaPlugin> getPluginModule() {
+        return bukkitModule;
+    }
 
-        } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "Error while enabling ELDependenci: ", e);
-            getLogger().log(Level.SEVERE, "Disabling plugin...");
-            lifeCycleListener.setDisabled(true);
-        }
-        getServer().getPluginManager().registerEvents(this, this);
-        for (JavaPlugin plugin : collectionMap.keySet()) {
+    @Override
+    public CommonManagerProvider<CommandSender, CommandNode, Listener, JavaPlugin> toManagerProvider(ELDServiceCollection<CommandNode, Listener, JavaPlugin> collection,
+                                                                                                     ELDArgumentManager<CommandSender> argumentManager) {
+        return new ELDBukkitManagerProvider(collection, argumentManager, itemInteractManager);
+    }
+
+    @Override
+    public ELDServiceCollection<CommandNode, Listener, JavaPlugin> toServiceCollection(ELDCommonModule module, MCPlugin plugin, Map<Class<?>, Object> customInstallation, ConfigHandler handler) {
+        return new BukkitServiceCollection(module, plugin, customInstallation, handler);
+    }
+
+    @Override
+    public JavaPlugin toRealPlugin(ELDPlugin plugin) {
+        if (!(plugin instanceof ELDBukkitPlugin jplugin))
+            throw new IllegalStateException("plugin is not ELDBukkitPlugin");
+        return jplugin;
+    }
+
+    @Override
+    public void registerLifeCycleListener(JavaPlugin javaPlugin, LifeCycleListener<JavaPlugin> listener, Set<JavaPlugin> keySet) {
+        var pluginListener = new BukkitLifeCycleListener(listener);
+        javaPlugin.getServer().getPluginManager().registerEvents(pluginListener, this);
+        for (JavaPlugin plugin : keySet) {
             if (plugin.isEnabled()) { // 如果比ELD更早加載完成
                 // 強行加載ELD啟用事件
-                lifeCycleListener.onPluginEnable(new PluginEnableEvent(plugin));
+                listener.onPluginEnable(plugin);
             }
         }
     }
 
-
-    private class ELDManagerProvider implements BukkitManagerProvider {
-
-        private final ELDServiceCollection collection;
-
-        private ELDManagerProvider(ELDServiceCollection collection) {
-            this.collection = collection;
-        }
-
-        @Override
-        public ConfigStorage getConfigStorage() {
-            return collection.configManager;
-        }
-
-        @Override
-        public ArgumentManager<CommandSender> getArgumentManager() {
-            return argumentManager;
-        }
-
-        @Override
-        public ItemInteractManager getItemInteractManager() {
-            return itemInteractListener;
-        }
-
+    @Override
+    public void disablePlugin(JavaPlugin target) {
+        target.getServer().getPluginManager().disablePlugin(target);
     }
 
-    private void registerParser() {
-        argumentManager.registerParser(Integer.class, (args, sender, parser) -> {
-            var num = args.next();
-            try {
-                return Integer.parseInt(num);
-            } catch (NumberFormatException e) {
-                throw new ArgumentParseException(eldMessageConfig.getConvertError("int", num));
-            }
-        });
-        argumentManager.registerParser(Double.class, (args, sender, parser) -> {
-            var num = args.next();
-            try {
-                return Double.parseDouble(num);
-            } catch (NumberFormatException e) {
-                throw new ArgumentParseException(eldMessageConfig.getConvertError("double", num));
-            }
-        });
+    @Override
+    public void registerEvents(JavaPlugin javaPlugin, Listener listener) {
+        javaPlugin.getServer().getPluginManager().registerEvents(listener, javaPlugin);
+    }
 
-        argumentManager.registerParser(Long.class, (args, sender, parser) -> {
-            var num = args.next();
-            try {
-                return Long.parseLong(num);
-            } catch (NumberFormatException e) {
-                throw new ArgumentParseException(eldMessageConfig.getConvertError("long", num));
-            }
-        });
-
-        argumentManager.registerParser(Byte.class, (args, sender, parser) -> {
-            var num = args.next();
-            try {
-                return Byte.parseByte(num);
-            } catch (NumberFormatException e) {
-                throw new ArgumentParseException(eldMessageConfig.getConvertError("byte", num));
-            }
-        });
-
-        argumentManager.registerParser(Short.class, (args, sender, parser) -> {
-            var num = args.next();
-            try {
-                return Short.parseShort(num);
-            } catch (NumberFormatException e) {
-                throw new ArgumentParseException(eldMessageConfig.getConvertError("short", num));
-            }
-        });
-
-        argumentManager.registerParser(Float.class, (args, sender, parser) -> {
-            var num = args.next();
-            try {
-                return Float.parseFloat(num);
-            } catch (NumberFormatException e) {
-                throw new ArgumentParseException(eldMessageConfig.getConvertError("float", num));
-            }
-        });
-
-        argumentManager.registerParser(Character.class, (args, sender, parser) -> args.next().charAt(0));
-        argumentManager.registerParser(Boolean.class, (args, sender, parser) -> Boolean.parseBoolean(args.next()));
-        argumentManager.registerParser(String.class, (args, sender, parser) -> args.next());
+    protected void registerParser(ELDArgumentManager<CommandSender> argumentManager, ELDMessageConfig eldMessageConfig) {
         argumentManager.registerParser(Player.class, (args, sender, parser) -> {
             var player = Bukkit.getPlayer(args.next());
             if (player == null) {
@@ -235,9 +106,7 @@ public abstract class BukkitPlugin extends JavaPlugin implements ELDependenciAPI
             }
             return player;
         });
-
         argumentManager.registerParser(OfflinePlayer.class, (args, sender, parser) -> Bukkit.getOfflinePlayer(args.next()));
-
         argumentManager.registerParser(Location.class, (args, sender, parser) -> {
             World world;
             if (!(sender instanceof Player)) {
@@ -254,43 +123,41 @@ public abstract class BukkitPlugin extends JavaPlugin implements ELDependenciAPI
             return new Location(world, x, y, z);
         });
 
-        argumentManager.registerParser(UUID.class, (args, sender, parser) -> {
-            try {
-                return UUID.fromString(args.next());
-            } catch (IllegalArgumentException e) {
-                throw new ArgumentParseException(eldMessageConfig.getConvertError("error-uuid", e.getMessage()));
-            }
-        });
-
-
-        // named parser
-
-        argumentManager.registerParser(String.class, "message", (args, sender, parser) -> {
-            var builder = new StringBuilder();
-            args.forEachRemaining(s -> builder.append(s).append(" "));
-            return builder.toString();
-        });
-        argumentManager.registerParser(String.class, "sha-256", (arg, sender, parser) -> {
-            var str = arg.next();
-            try {
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                var b = digest.digest(str.getBytes());
-                return Hex.encodeHexString(b);
-            } catch (NoSuchAlgorithmException e) {
-                throw new ArgumentParseException(e.getMessage());
-            }
-        });
-
     }
 
     @Override
-    public void installModule(Module module) {
-        this.module.addModule(module);
+    public CommonCommandSender toCommandSender(CommandSender commandSender) {
+        return new CommonCommandSender() {
+            @Override
+            public boolean hasPermission(String permission) {
+                return commandSender.hasPermission(permission);
+            }
+
+            @Override
+            public void sendMessage(String message) {
+                commandSender.sendMessage(message);
+            }
+
+            @Override
+            public void sendMessage(String[] messages) {
+                commandSender.sendMessage(messages);
+            }
+
+            @Override
+            public void sendMessage(BaseComponent[] component) {
+                commandSender.spigot().sendMessage(component);
+            }
+
+
+            @Override
+            public boolean isPlayer() {
+                return commandSender instanceof Player;
+            }
+        };
     }
 
     @Override
-    public <T> void customInstallation(Class<T> regCls, T ins) {
-        this.customInstallation.put(regCls, ins);
+    public void saveResource(String path) {
+        saveResource(path, true);
     }
 }
-

@@ -1,7 +1,7 @@
 package com.ericlam.mc.eld;
 
 /**
- * 生命週期
+ * 生命週期，用於不同平台的擴展
  */
 public interface LifeCycle<Plugin> {
 

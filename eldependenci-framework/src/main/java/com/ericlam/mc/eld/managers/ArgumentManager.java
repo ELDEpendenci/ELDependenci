@@ -4,6 +4,7 @@ import com.ericlam.mc.eld.misc.ArgParser;
 
 /**
  * 參數解析管理器
+ * @param <Sender> 平台所屬指令發送者類型
  */
 public interface ArgumentManager<Sender> {
 

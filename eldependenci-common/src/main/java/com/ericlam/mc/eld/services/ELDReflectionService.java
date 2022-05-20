@@ -1,8 +1,8 @@
 package com.ericlam.mc.eld.services;
 
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -11,16 +11,16 @@ import java.util.List;
 public class ELDReflectionService implements ReflectionService {
 
     @Override
-    public List<Field> getDeclaredFieldsUpTo(@NotNull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
+    public List<Field> getDeclaredFieldsUpTo(@Nonnull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
         return getDeclaredFieldsUpToStatic(startClass, exclusiveParent != null ? exclusiveParent : Object.class);
     }
 
     @Override
-    public List<Method> getDeclaredMethodsUpTo(@NotNull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
+    public List<Method> getDeclaredMethodsUpTo(@Nonnull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
         return getDeclaredMethodsUpToStatic(startClass, exclusiveParent != null ? exclusiveParent : Object.class);
     }
 
-    public static List<Field> getDeclaredFieldsUpToStatic(@NotNull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
+    public static List<Field> getDeclaredFieldsUpToStatic(@Nonnull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
         List<Field> currentClassFields = Lists.newArrayList(startClass.getDeclaredFields());
         Class<?> parentClass = startClass.getSuperclass();
 
@@ -33,7 +33,7 @@ public class ELDReflectionService implements ReflectionService {
         return currentClassFields;
     }
 
-    public List<Method> getDeclaredMethodsUpToStatic(@NotNull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
+    public List<Method> getDeclaredMethodsUpToStatic(@Nonnull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
         List<Method> currentClassMethods = Lists.newArrayList(startClass.getDeclaredMethods());
         Class<?> parentClass = startClass.getSuperclass();
 

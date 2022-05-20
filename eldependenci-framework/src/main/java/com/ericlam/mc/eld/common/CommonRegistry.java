@@ -4,7 +4,9 @@ import com.ericlam.mc.eld.registration.CommandRegistry;
 import com.ericlam.mc.eld.registration.ListenerRegistry;
 
 /**
- * 註冊部件
+ * 泛平台指令註冊類，用於不同平台作擴展
+ * @param <CommandNode> 平台所屬的指令類
+ * @param <Listener> 平台所屬的事件監聽類
  */
 public interface CommonRegistry<CommandNode extends CommonCommandNode<?>, Listener> {
 
