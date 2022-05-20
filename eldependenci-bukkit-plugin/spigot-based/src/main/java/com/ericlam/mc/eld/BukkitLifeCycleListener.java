@@ -16,14 +16,14 @@ public class BukkitLifeCycleListener extends PluginEventListeners<JavaPlugin> im
 
     @EventHandler
     public void onPluginEnable(PluginEnableEvent e){
-        if (!(e.getPlugin() instanceof JavaPlugin plugin)) return;
+        if (!(e.getPlugin() instanceof ELDBukkitPlugin plugin)) return;
         lifeCycleListener.onPluginEnable(plugin);
     }
 
 
     @EventHandler
     public void onPluginDisable(PluginDisableEvent e){
-        if (!(e.getPlugin() instanceof JavaPlugin plugin)) return;
+        if (!(e.getPlugin() instanceof ELDBukkitPlugin plugin)) return;
         lifeCycleListener.onPluginDisable(plugin);
     }
 

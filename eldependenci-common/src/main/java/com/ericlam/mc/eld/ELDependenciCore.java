@@ -10,12 +10,14 @@ import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDConfig;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import com.ericlam.mc.eld.listener.LifeCycleListener;
+import com.ericlam.mc.eld.misc.DebugLogger;
 import com.ericlam.mc.eld.module.ELDConfigModule;
 import com.ericlam.mc.eld.module.ELDLoggingModule;
 import com.ericlam.mc.eld.module.ELDPluginModule;
 import com.ericlam.mc.eld.services.ArgParserService;
 import com.ericlam.mc.eld.services.ELDConfigPoolService;
 import com.ericlam.mc.eld.services.ELDReflectionService;
+import com.ericlam.mc.eld.services.LoggingService;
 import com.ericlam.mc.eld.services.logging.ELDLoggingService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -44,7 +46,7 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
 
     protected final ELDCommonModule baseModule;
 
-    protected final Map<Plugin, ? extends ELDServiceCollection<CommandNode, Listener, Plugin>> collectionMap = new ConcurrentHashMap<>();
+    protected final Map<Plugin, ELDServiceCollection<CommandNode, Listener, Plugin>> collectionMap = new ConcurrentHashMap<>();
 
     protected final Map<Class<?>, Object> customInstallation = new ConcurrentHashMap<>();
 
@@ -63,6 +65,8 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
     protected ELDMessageConfig eldMessageConfig;
 
     protected ELDConfig coreConfig;
+
+    protected DebugLogger logger;
 
     public ELDependenciCore(Registration<Plugin, Listener, CommandSender, CommandNode> registration) {
         this.registration = registration;
@@ -92,6 +96,7 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
         try {
             this.registerParser(argumentManager, eldMessageConfig);
             this.injector = Guice.createInjector(baseModule);
+            this.logger = injector.getInstance(LoggingService.class).getLogger(ELDependenciCore.class);
         } catch (Exception e) {
             mcPlugin.getLogger().log(Level.SEVERE, "Error while enabling ELDependenci: ", e);
             mcPlugin.getLogger().log(Level.SEVERE, "Disabling plugin...");
@@ -109,7 +114,10 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
 
     @Override
     public void onPluginEnable(Plugin realPlugin) {
-        if (!(realPlugin instanceof ELDPlugin plugin)) return;
+        if (!(realPlugin instanceof ELDPlugin plugin)) {
+            logger.debug("Plugin is not an ELDPlugin: " + realPlugin.getClass().getSimpleName());
+            return;
+        }
         if (ELDServiceCollection.DISABLED.contains(plugin)) {
             plugin.getLogger().log(Level.SEVERE, "此插件由於註冊不完整，已被禁用。");
             registration.disablePlugin(realPlugin);
@@ -117,7 +125,10 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
         }
 
         var services = collectionMap.get(realPlugin);
-        if (services == null) return; // not eld plugin
+        if (services == null) {
+            logger.debug("No services found for plugin: " + plugin.getName());
+            return; // not eld plugin
+        }
 
         if (disabled) {
             plugin.getLogger().log(Level.SEVERE, "由於 ELDependenci 無法啟動，此插件已被禁用。");
@@ -266,6 +277,7 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
         baseModule.bindPluginInstance(eld.getClass(), eld);
         collection.configManager.getGroupConfigSet().forEach(gc -> groupConfigService.addTypeMapper(gc, eld));
         collection.configManager.dumpAll();
+        this.collectionMap.put(plugin, collection);
         return registration.toManagerProvider(collection, argumentManager);
     }
 

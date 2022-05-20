@@ -80,7 +80,7 @@ public abstract class BukkitPlugin extends JavaPlugin implements Registration<Ja
     @Override
     public void registerLifeCycleListener(JavaPlugin javaPlugin, LifeCycleListener<JavaPlugin> listener, Set<JavaPlugin> keySet) {
         var pluginListener = new BukkitLifeCycleListener(listener);
-        javaPlugin.getServer().getPluginManager().registerEvents(pluginListener, this);
+        getServer().getPluginManager().registerEvents(pluginListener, this);
         for (JavaPlugin plugin : keySet) {
             if (plugin.isEnabled()) { // 如果比ELD更早加載完成
                 // 強行加載ELD啟用事件
@@ -96,7 +96,7 @@ public abstract class BukkitPlugin extends JavaPlugin implements Registration<Ja
 
     @Override
     public void registerEvents(JavaPlugin javaPlugin, Listener listener) {
-        javaPlugin.getServer().getPluginManager().registerEvents(listener, javaPlugin);
+        getServer().getPluginManager().registerEvents(listener, javaPlugin);
     }
 
     protected void registerParser(ELDArgumentManager<CommandSender> argumentManager, ELDMessageConfig eldMessageConfig) {
