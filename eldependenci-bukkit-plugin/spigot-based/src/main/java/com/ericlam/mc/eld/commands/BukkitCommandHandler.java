@@ -15,17 +15,17 @@ import java.util.List;
 import java.util.Set;
 
 public final class BukkitCommandHandler implements TabCompleter, CommandExecutor {
-    private final Set<HierarchyNode<CommandNode>> commandNodes;
+    private final Set<HierarchyNode<? extends CommandNode>> commandNodes;
     private final CommandProcessor<CommandSender, CommandNode> processor;
 
-    public BukkitCommandHandler(Set<HierarchyNode<CommandNode>> commandNodes, CommandProcessor<CommandSender, CommandNode> processor) {
+    public BukkitCommandHandler(Set<HierarchyNode<? extends CommandNode>> commandNodes, CommandProcessor<CommandSender, CommandNode> processor) {
         this.commandNodes = commandNodes;
         this.processor = processor;
     }
 
     @Override
     public boolean onCommand(@Nonnull CommandSender commandSender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] strings) {
-        for (HierarchyNode<CommandNode> node : commandNodes) {
+        for (HierarchyNode<? extends CommandNode> node : commandNodes) {
             if (processor.labelMatch(node.current.getAnnotation(Commander.class), label)) {
                 processor.invokeCommand(commandSender, node, new LinkedList<>(List.of(strings)));
             }
@@ -36,7 +36,7 @@ public final class BukkitCommandHandler implements TabCompleter, CommandExecutor
 
     @Override
     public List<String> onTabComplete(@Nonnull CommandSender commandSender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] strings) {
-        for (HierarchyNode<CommandNode> node : commandNodes) {
+        for (HierarchyNode<? extends CommandNode> node : commandNodes) {
             if (processor.labelMatch(node.current.getAnnotation(Commander.class), label)) {
                 var result = processor.invokeTabComplete(commandSender, node, new ArrayList<>(List.of(strings)));
                 String lastAug = strings[strings.length - 1];
