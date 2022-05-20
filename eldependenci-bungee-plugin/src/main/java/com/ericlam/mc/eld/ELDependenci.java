@@ -2,7 +2,7 @@ package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.commands.*;
-import com.ericlam.mc.eld.components.CommandNode;
+import com.ericlam.mc.eld.components.BungeeCommand;
 import com.ericlam.mc.eld.listener.LifeCycleListener;
 import com.ericlam.mc.eld.module.ELDPluginModule;
 import net.md_5.bungee.api.CommandSender;
@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class ELDependenci extends Plugin implements Registration<Plugin, Listener, CommandSender, CommandNode>, MCPlugin {
+public class ELDependenci extends Plugin implements Registration<Plugin, Listener, CommandSender, BungeeCommand>, MCPlugin {
 
     private static ELDependenciAPI api;
 
@@ -28,7 +28,7 @@ public class ELDependenci extends Plugin implements Registration<Plugin, Listene
         return Optional.ofNullable(api).orElseThrow(() -> new IllegalStateException("ELDependencies has not yet loaded，make sure your plugin.yml has added eld-plugin as depend"));
     }
 
-    private final ELDependenciCore<Plugin, CommandSender, Listener, CommandNode> elDependenciCore = new ELDependenciCore<>(this);
+    private final ELDependenciCore<Plugin, CommandSender, Listener, BungeeCommand> elDependenciCore = new ELDependenciCore<>(this);
     private final BungeeConfigHandler bungeeConfigHandler = new BungeeConfigHandler();
     private final BungeePluginModule pluginModule = new BungeePluginModule();
 
@@ -80,11 +80,11 @@ public class ELDependenci extends Plugin implements Registration<Plugin, Listene
     }
 
     @Override
-    public void registerCommand(Plugin plugin, Set<HierarchyNode<? extends CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
+    public void registerCommand(Plugin plugin, Set<HierarchyNode<? extends BungeeCommand>> commands, CommandProcessor<CommandSender, BungeeCommand> processor) {
         var executor = new BungeeCommandHandler(commands, processor);
-        for (HierarchyNode<? extends CommandNode> node : commands) {
+        for (HierarchyNode<? extends BungeeCommand> node : commands) {
             var commander = node.current.getAnnotation(Commander.class);
-            var cmd = new BungeeCommand(commander, executor);
+            var cmd = new BungeecordCommand(commander, executor);
             getProxy().getPluginManager().registerCommand(plugin, cmd);
         }
     }
@@ -105,12 +105,12 @@ public class ELDependenci extends Plugin implements Registration<Plugin, Listene
     }
 
     @Override
-    public CommonManagerProvider<CommandSender, CommandNode, Listener, Plugin> toManagerProvider(ELDServiceCollection<CommandNode, Listener, Plugin> collection, ELDArgumentManager<CommandSender> argumentManager) {
+    public CommonManagerProvider<CommandSender, BungeeCommand, Listener, Plugin> toManagerProvider(ELDServiceCollection<BungeeCommand, Listener, Plugin> collection, ELDArgumentManager<CommandSender> argumentManager) {
         return new ELDBungeeManagerProvider(collection, argumentManager);
     }
 
     @Override
-    public ELDServiceCollection<CommandNode, Listener, Plugin> toServiceCollection(ELDCommonModule module, MCPlugin plugin, Map<Class<?>, Object> customInstallation, ConfigHandler handler) {
+    public ELDServiceCollection<BungeeCommand, Listener, Plugin> toServiceCollection(ELDCommonModule module, MCPlugin plugin, Map<Class<?>, Object> customInstallation, ConfigHandler handler) {
         return new BungeeServiceCollection(module, plugin, customInstallation, handler);
     }
 

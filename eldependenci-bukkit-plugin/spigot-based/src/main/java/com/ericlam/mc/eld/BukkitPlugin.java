@@ -3,7 +3,7 @@ package com.ericlam.mc.eld;
 import com.ericlam.mc.eld.bukkit.ItemInteractListener;
 import com.ericlam.mc.eld.commands.CommonCommandSender;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
-import com.ericlam.mc.eld.components.CommandNode;
+import com.ericlam.mc.eld.components.BukkitCommand;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import com.ericlam.mc.eld.listener.LifeCycleListener;
@@ -22,11 +22,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class BukkitPlugin extends JavaPlugin implements Registration<JavaPlugin, Listener, CommandSender, CommandNode>, MCPlugin {
+public abstract class BukkitPlugin extends JavaPlugin implements Registration<JavaPlugin, Listener, CommandSender, BukkitCommand>, MCPlugin {
     protected final BukkitModule bukkitModule = new BukkitModule();
     protected final BukkitConfigHandler configHandler = new BukkitConfigHandler();
     protected final ItemInteractListener itemInteractManager = new ItemInteractListener(this);
-    protected final ELDependenciCore<JavaPlugin, CommandSender, Listener, CommandNode> elDependenciCore = new ELDependenciCore<>(this);
+    protected final ELDependenciCore<JavaPlugin, CommandSender, Listener, BukkitCommand> elDependenciCore = new ELDependenciCore<>(this);
 
 
     @Override
@@ -60,13 +60,13 @@ public abstract class BukkitPlugin extends JavaPlugin implements Registration<Ja
     }
 
     @Override
-    public CommonManagerProvider<CommandSender, CommandNode, Listener, JavaPlugin> toManagerProvider(ELDServiceCollection<CommandNode, Listener, JavaPlugin> collection,
-                                                                                                     ELDArgumentManager<CommandSender> argumentManager) {
+    public CommonManagerProvider<CommandSender, BukkitCommand, Listener, JavaPlugin> toManagerProvider(ELDServiceCollection<BukkitCommand, Listener, JavaPlugin> collection,
+                                                                                                       ELDArgumentManager<CommandSender> argumentManager) {
         return new ELDBukkitManagerProvider(collection, argumentManager, itemInteractManager);
     }
 
     @Override
-    public ELDServiceCollection<CommandNode, Listener, JavaPlugin> toServiceCollection(ELDCommonModule module, MCPlugin plugin, Map<Class<?>, Object> customInstallation, ConfigHandler handler) {
+    public ELDServiceCollection<BukkitCommand, Listener, JavaPlugin> toServiceCollection(ELDCommonModule module, MCPlugin plugin, Map<Class<?>, Object> customInstallation, ConfigHandler handler) {
         return new BukkitServiceCollection(module, plugin, customInstallation, handler);
     }
 

@@ -18,7 +18,7 @@ jobs:
         with:
           java-version: '18'
           distribution: 'adopt'
-      - run: mvn --batch-mode clean package
+      - run: mvn --batch-mode -Dmaven.deploy.skip=true clean package
         name: build plugins
       - uses: actions/upload-artifact@v1
         name: 'upload plugins'
@@ -46,7 +46,7 @@ jobs:
       - run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
         id: project
       - name: Publish package
-        run: mvn --batch-mode deploy
+        run: mvn --batch-mode clean deploy
         if: endWith(${{steps.project.outputs.version}}, '-SNAPSHOT')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
