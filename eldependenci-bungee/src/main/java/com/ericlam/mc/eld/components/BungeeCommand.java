@@ -6,5 +6,5 @@ import net.md_5.bungee.api.CommandSender;
 /**
  * Bukkit 專用指令類
  */
-public interface CommandNode extends CommonCommandNode<CommandSender> {
+public interface BungeeCommand extends CommonCommandNode<CommandSender> {
 }

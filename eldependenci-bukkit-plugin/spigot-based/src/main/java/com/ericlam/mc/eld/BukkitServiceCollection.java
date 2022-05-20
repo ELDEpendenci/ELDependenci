@@ -1,13 +1,13 @@
 package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.common.CommonRegistry;
-import com.ericlam.mc.eld.components.CommandNode;
+import com.ericlam.mc.eld.components.BukkitCommand;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
 
-public class BukkitServiceCollection extends ELDServiceCollection<CommandNode, Listener, JavaPlugin> {
+public class BukkitServiceCollection extends ELDServiceCollection<BukkitCommand, Listener, JavaPlugin> {
 
 
     public BukkitServiceCollection(ELDCommonModule module, MCPlugin plugin, Map<Class<?>, Object> customInstallation, ConfigHandler handler) {
@@ -15,7 +15,7 @@ public class BukkitServiceCollection extends ELDServiceCollection<CommandNode, L
     }
 
     @Override
-    public Map.Entry<Class<? extends CommonRegistry<CommandNode, Listener>>, Class<? extends LifeCycle<JavaPlugin>>> getComponents(MCPlugin plugin) {
+    public Map.Entry<Class<? extends CommonRegistry<BukkitCommand, Listener>>, Class<? extends LifeCycle<JavaPlugin>>> getComponents(MCPlugin plugin) {
         if (!plugin.getClass().isAnnotationPresent(ELDBukkit.class)) {
             ELDServiceCollection.DISABLED.add(plugin);
             throw new IllegalStateException("插件 " + plugin.getName() + " 缺少 @ELDBukkit 標註");
