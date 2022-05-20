@@ -31,4 +31,8 @@ public abstract class ELDBukkitPlugin extends JavaPlugin implements ELDPlugin {
      */
     protected abstract void manageProvider(BukkitManagerProvider provider);
 
+    @Override
+    public void saveResource(String path) {
+        super.saveResource(path, true);
+    }
 }
