@@ -8,12 +8,13 @@ import java.util.function.Consumer;
 public interface ELDependenciAPI {
 
     /**
-     * 不應手動註冊，而應繼承 {@link ELDBukkit} 取代註冊
-     * @param plugin eld 插件
+     * 不應手動註冊，而應繼承 {@link ELDPlugin} 取代註冊
+     *
+     * @param plugin   eld 插件
      * @param injector 註冊服務
      * @return 管理器提供
      */
-    ManagerProvider register(ELDBukkit plugin, Consumer<ServiceCollection> injector);
+    ManagerProvider<?> register(ELDPlugin plugin, Consumer<ServiceCollection> injector);
 
 
     /**
