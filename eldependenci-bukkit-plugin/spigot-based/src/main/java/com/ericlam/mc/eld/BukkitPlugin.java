@@ -4,11 +4,14 @@ import com.ericlam.mc.eld.bukkit.ItemInteractListener;
 import com.ericlam.mc.eld.commands.CommonCommandSender;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
 import com.ericlam.mc.eld.components.BukkitCommand;
+import com.ericlam.mc.eld.configurations.BukkitBeanModifier;
+import com.ericlam.mc.eld.configurations.ELDConfigManager;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import com.ericlam.mc.eld.listener.LifeCycleListener;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
 import com.ericlam.mc.eld.module.ELDPluginModule;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -28,6 +31,16 @@ public abstract class BukkitPlugin extends JavaPlugin implements Registration<Ja
     protected final ItemInteractListener itemInteractManager = new ItemInteractListener(this);
     protected final ELDependenciCore<JavaPlugin, CommandSender, Listener, BukkitCommand> elDependenciCore = new ELDependenciCore<>(this);
 
+    static {
+        ELDConfigManager.JSON_MAPPER
+                .registerModule(new SimpleModule()
+                        .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
+                        .setSerializerModifier(new BukkitBeanModifier.Serializer()));
+        ELDConfigManager.YAML_MAPPER
+                .registerModule(new SimpleModule()
+                        .setDeserializerModifier(new BukkitBeanModifier.Deserializer())
+                        .setSerializerModifier(new BukkitBeanModifier.Serializer()));
+    }
 
     @Override
     public void onLoad() {
