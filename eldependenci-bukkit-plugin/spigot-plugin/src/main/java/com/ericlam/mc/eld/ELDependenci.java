@@ -34,7 +34,7 @@ public class ELDependenci extends BukkitPlugin {
     @Override
     public void registerCommand(JavaPlugin javaPlugin, Set<HierarchyNode<? extends CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
         var executor = new BukkitCommandHandler(commands, processor);
-        for (HierarchyNode<CommandNode> command : commands) {
+        for (HierarchyNode<? extends CommandNode> command : commands) {
             var cmd = command.current.getAnnotation(Commander.class);
             PluginCommand pluginCommand = javaPlugin.getCommand(cmd.name());
             if (pluginCommand == null) {
