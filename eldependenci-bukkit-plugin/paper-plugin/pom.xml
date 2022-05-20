@@ -31,11 +31,16 @@
     </dependencies>
 
     <build>
+
+
         <finalName>ELDependenci-paper-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <outputFile>${user.dir}/outputs/${build.finalName}.jar</outputFile>
+                </configuration>
             </plugin>
         </plugins>
     </build>
