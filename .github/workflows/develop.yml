@@ -24,7 +24,6 @@ jobs:
         with:
           name: 'plugins'
           path: 'outputs/'
-          mime-type: 'application/zip'
 
   upload_github_pkg_snapshot:
     runs-on: ubuntu-latest
