@@ -1,4 +1,4 @@
-package com.ericlam.mc.eld.services;
+package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.BukkitPlugin;
 import com.ericlam.mc.eld.ELDependenciAPI;
