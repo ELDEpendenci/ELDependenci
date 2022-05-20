@@ -16,13 +16,13 @@ public interface CommandRegistry<T extends CommonCommandNode<?>> {
      * @param node  指令類
      * @param child 分支指令註冊
      */
-    void command(Class<T> node, Consumer<CommandRegistry<T>> child);
+    void command(Class<? extends T> node, Consumer<CommandRegistry<T>> child);
 
     /**
      * 註冊指令
      *
      * @param node 指令類
      */
-    void command(Class<T> node);
+    void command(Class<? extends T> node);
 
 }

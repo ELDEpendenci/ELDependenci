@@ -1,8 +1,5 @@
 package com.ericlam.mc.eld;
 
-import com.ericlam.mc.eld.BukkitPlugin;
-import com.ericlam.mc.eld.ELDependenciAPI;
-import com.ericlam.mc.eld.HierarchyNode;
 import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.commands.BukkitCommandHandler;
 import com.ericlam.mc.eld.commands.CommandProcessor;
@@ -35,7 +32,7 @@ public class ELDependenci extends BukkitPlugin {
     }
 
     @Override
-    public void registerCommand(JavaPlugin javaPlugin, Set<HierarchyNode<CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
+    public void registerCommand(JavaPlugin javaPlugin, Set<HierarchyNode<? extends CommandNode>> commands, CommandProcessor<CommandSender, CommandNode> processor) {
         var executor = new BukkitCommandHandler(commands, processor);
         for (HierarchyNode<CommandNode> command : commands) {
             var cmd = command.current.getAnnotation(Commander.class);
