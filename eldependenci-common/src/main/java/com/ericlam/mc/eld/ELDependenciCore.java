@@ -10,8 +10,6 @@ import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDConfig;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import com.ericlam.mc.eld.listener.LifeCycleListener;
-import com.ericlam.mc.eld.managers.ArgumentManager;
-import com.ericlam.mc.eld.managers.ConfigStorage;
 import com.ericlam.mc.eld.module.ELDConfigModule;
 import com.ericlam.mc.eld.module.ELDLoggingModule;
 import com.ericlam.mc.eld.module.ELDPluginModule;
@@ -44,7 +42,7 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
 
     protected final ELDPluginModule<Plugin> eldPluginModule;
 
-    protected final ELDCommonModule module;
+    protected final ELDCommonModule baseModule;
 
     protected final Map<Plugin, ? extends ELDServiceCollection<CommandNode, Listener, Plugin>> collectionMap = new ConcurrentHashMap<>();
 
@@ -71,21 +69,21 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
         this.configHandler = registration.getConfigHandler();
         this.mcPlugin = registration.getPlugin();
         this.eldPluginModule = registration.getPluginModule();
-        this.module = new ELDCommonModule(this.mcPlugin);
+        this.baseModule = new ELDCommonModule(this.mcPlugin);
         this.localConfigManager = new ELDConfigManager(null, mcPlugin, configHandler);
     }
 
     public void onMainLoad() {
-        this.module.bindInstance(ArgParserService.class, argumentManager);
+        this.baseModule.bindInstance(ArgParserService.class, argumentManager);
         localConfigManager.loadConfig(ELDConfig.class);
         localConfigManager.loadConfig(ELDMessageConfig.class);
         this.eldMessageConfig = localConfigManager.getConfigAs(ELDMessageConfig.class);
         this.coreConfig = localConfigManager.getConfigAs(ELDConfig.class);
         groupConfigService = new ELDConfigPoolService(coreConfig.fileWalker, configHandler);
-        this.module.setDefaultSingleton(coreConfig.defaultSingleton);
+        this.baseModule.setDefaultSingleton(coreConfig.defaultSingleton);
         this.sharePluginInstance = coreConfig.sharePluginInstance;
-        this.module.addModule(new ELDConfigModule(groupConfigService, new ELDReflectionService()));
-        this.module.addModule(new ELDLoggingModule(new ELDLoggingService(coreConfig, this.mcPlugin.getLogger())));
+        this.baseModule.addModule(new ELDConfigModule(groupConfigService, new ELDReflectionService()));
+        this.baseModule.addModule(new ELDLoggingModule(new ELDLoggingService(coreConfig, this.mcPlugin.getLogger())));
         this.customInstallation(AddonInstallation.class, this);
         this.installModule(eldPluginModule);
     }
@@ -93,7 +91,7 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
     public void onMainEnable(Plugin plugin) {
         try {
             this.registerParser(argumentManager, eldMessageConfig);
-            this.injector = Guice.createInjector(module);
+            this.injector = Guice.createInjector(baseModule);
         } catch (Exception e) {
             mcPlugin.getLogger().log(Level.SEVERE, "Error while enabling ELDependenci: ", e);
             mcPlugin.getLogger().log(Level.SEVERE, "Disabling plugin...");
@@ -247,7 +245,7 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
 
     @Override
     public void installModule(Module module) {
-        this.module.addModule(module);
+        this.baseModule.addModule(module);
     }
 
     @Override
@@ -262,10 +260,10 @@ public class ELDependenciCore<Plugin, CommandSender, Listener, CommandNode exten
         if (collectionMap.containsKey(plugin)) {
             throw new IllegalStateException("the plugin is registered and not allowed to be registered again.");
         }
-        var collection = registration.toServiceCollection(module, eld, customInstallation, configHandler);
+        var collection = registration.toServiceCollection(baseModule, eld, customInstallation, configHandler);
         injector.accept(collection);
         if (sharePluginInstance) eldPluginModule.mapPluginInstance(plugin);
-        module.bindPluginInstance(eld.getClass(), eld);
+        baseModule.bindPluginInstance(eld.getClass(), eld);
         collection.configManager.getGroupConfigSet().forEach(gc -> groupConfigService.addTypeMapper(gc, eld));
         collection.configManager.dumpAll();
         return registration.toManagerProvider(collection, argumentManager);
