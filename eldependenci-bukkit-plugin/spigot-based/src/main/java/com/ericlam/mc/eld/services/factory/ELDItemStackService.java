@@ -1,6 +1,6 @@
 package com.ericlam.mc.eld.services.factory;
 
-import com.ericlam.mc.eld.bukkit.ItemInteractListener;
+import com.ericlam.mc.eld.ItemInteractListener;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
 import com.ericlam.mc.eld.services.ItemStackService;
 import org.bukkit.ChatColor;
