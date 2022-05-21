@@ -1,5 +1,8 @@
 package com.ericlam.mc.eld;
 
+import com.ericlam.mc.eld.bukkit.ComponentsRegistry;
+import com.ericlam.mc.eld.bukkit.ELDLifeCycle;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -17,12 +20,12 @@ public @interface ELDBukkit {
      *
      * @return 生命週期類定位
      */
-    Class<? extends BukkitLifeCycle> lifeCycle();
+    Class<? extends ELDLifeCycle> lifeCycle();
 
     /**
      *
      * @return 組件註冊類定位
      */
-    Class<? extends BukkitRegistry> registry();
+    Class<? extends ComponentsRegistry> registry();
 
 }

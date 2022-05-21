@@ -1,5 +1,8 @@
 package com.ericlam.mc.eld;
 
+import com.ericlam.mc.eld.bungee.ComponentsRegistry;
+import com.ericlam.mc.eld.bungee.ELDLifeCycle;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -16,13 +19,13 @@ public @interface ELDBungee {
      *
      * @return 生命週期類定位
      */
-    Class<? extends BungeeLifeCycle> lifeCycle();
+    Class<? extends ELDLifeCycle> lifeCycle();
 
 
     /**
      *
      * @return 組件註冊類定位
      */
-    Class<? extends BungeeRegistry> registry();
+    Class<? extends ComponentsRegistry> registry();
 
 }

@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 /**
  * Bukkit 專用的 管理器提供
  */
-public interface BukkitManagerProvider extends ManagerProvider<CommandSender>  {
+public interface BukkitManagerProvider extends ManagerProvider<CommandSender> {
 
 
     /**

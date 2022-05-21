@@ -1,5 +1,6 @@
 package com.ericlam.mc.eld;
 
+import com.ericlam.mc.eld.ManagerProvider;
 import net.md_5.bungee.api.CommandSender;
 
 /**

@@ -1,7 +1,5 @@
-package com.ericlam.mc.eld.bukkit;
+package com.ericlam.mc.eld;
 
-import com.ericlam.mc.eld.BukkitPlugin;
-import com.ericlam.mc.eld.ELDependenci;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.EventHandler;
