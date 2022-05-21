@@ -3,12 +3,15 @@ package com.ericlam.mc.eld;
 import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.commands.*;
 import com.ericlam.mc.eld.bungee.CommandNode;
+import com.ericlam.mc.eld.exceptions.ArgumentParseException;
+import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import com.ericlam.mc.eld.listener.LifeCycleListener;
 import com.ericlam.mc.eld.module.ELDPluginModule;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -42,7 +45,32 @@ public class ELDependenci extends Plugin implements Registration<Plugin, Listene
     @Override
     public void onEnable() {
         elDependenciCore.onMainEnable(this);
+        var argumentManager = elDependenciCore.argumentManager;
+        var messageConfig = elDependenciCore.eldMessageConfig;
+        this.registerParser(argumentManager, messageConfig);
     }
+
+    public void registerParser(ELDArgumentManager<CommandSender> argumentManager, ELDMessageConfig messageConfig){
+        // get ServerInfo
+        argumentManager.registerParser(ServerInfo.class, (arg, sender, parser) -> {
+            var name = arg.next();
+            var server = getProxy().getServerInfo(name);
+            if (server == null) {
+                throw new ArgumentParseException(messageConfig.getLang().getPure("server-not-exist", name));
+            }
+            return server;
+        });
+        // get ProxiedPlayer
+        argumentManager.registerParser(ProxiedPlayer.class, (arg, sender, parser) -> {
+            var name = arg.next();
+            var player = getProxy().getPlayer(name);
+            if (player == null) {
+                throw new ArgumentParseException(messageConfig.getLang().getPure("player-not-online", name));
+            }
+            return player;
+        });
+    }
+
 
     @Override
     public CommonCommandSender toCommandSender(CommandSender commandSender) {
