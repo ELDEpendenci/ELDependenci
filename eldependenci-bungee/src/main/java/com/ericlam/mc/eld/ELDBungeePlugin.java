@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+/**
+ * 用於主類繼承
+ */
 public abstract class ELDBungeePlugin extends Plugin implements ELDPlugin {
 
     @Override

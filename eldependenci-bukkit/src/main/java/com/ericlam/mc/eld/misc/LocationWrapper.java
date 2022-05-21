@@ -1,4 +1,4 @@
-package com.ericlam.mc.eld.wrapper;
+package com.ericlam.mc.eld.misc;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bukkit.Bukkit;
