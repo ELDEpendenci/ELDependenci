@@ -21,3 +21,4 @@ convert-error:
   player-not-exist: "&c玩家不存在"
   unknown-world: "&c未知世界"
   error-uuid: "&c解析UUID時出現錯誤: {0}"
+  server-not-exist: "&c分流不存在: {0}"
