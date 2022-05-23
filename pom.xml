@@ -43,7 +43,7 @@
     </repositories>
 
     <properties>
-        <jackson.version>2.12.4</jackson.version>
+        <jackson.version>2.13.3</jackson.version>
         <spigot.version>1.18.2-R0.1-SNAPSHOT</spigot.version>
         <bungee.version>1.18-R0.1-SNAPSHOT</bungee.version>
     </properties>
