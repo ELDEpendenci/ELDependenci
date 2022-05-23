@@ -58,7 +58,12 @@ public final class ELDCommonModule implements Module {
         serviceProviders.forEach((service, provider) -> setScope(binder.bind(service).toProvider(provider)));
         services.forEach((service, impl) -> setScope(binder.bind(service).to(impl)));
         configs.forEach((cls, config) -> binder.bind(cls).toInstance(config));
-        instances.forEach((cls, ins) -> binder.bind(cls).toInstance(ins));
+        instances.forEach((cls, ins) -> {
+            if (ins instanceof MCPlugin mcPlugin){
+                binder.bind(MCPlugin.class).annotatedWith(Names.named(mcPlugin.getName())).toInstance(mcPlugin);
+            }
+            binder.bind(cls).toInstance(ins);
+        });
         servicesMulti.forEach((service, map) -> {
             var binding = MapBinder.newMapBinder(binder, String.class, service);
 
