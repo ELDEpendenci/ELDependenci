@@ -31,9 +31,10 @@ public class ELDependenci extends Plugin implements Registration<Plugin, Listene
         return Optional.ofNullable(api).orElseThrow(() -> new IllegalStateException("ELDependencies has not yet loaded，make sure your plugin.yml has added eld-plugin as depend"));
     }
 
-    private final ELDependenciCore<Plugin, CommandSender, Listener, CommandNode> elDependenciCore = new ELDependenciCore<>(this);
     private final BungeeConfigHandler bungeeConfigHandler = new BungeeConfigHandler();
     private final BungeePluginModule pluginModule = new BungeePluginModule();
+
+    private final ELDependenciCore<Plugin, CommandSender, Listener, CommandNode> elDependenciCore = new ELDependenciCore<>(this);
 
 
     @Override
@@ -167,6 +168,9 @@ public class ELDependenci extends Plugin implements Registration<Plugin, Listene
 
     @Override
     public void saveResource(String path) {
+        if (!getDataFolder().exists() && getDataFolder().mkdirs()) {
+            getLogger().info("Created Plugin Folder for " + getName());
+        }
         var target = new File(getDataFolder(), path);
         var ins = this.getResourceAsStream(path);
         try {

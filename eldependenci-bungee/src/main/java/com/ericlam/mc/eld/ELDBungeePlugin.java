@@ -43,6 +43,9 @@ public abstract class ELDBungeePlugin extends Plugin implements ELDPlugin {
 
     @Override
     public void saveResource(String path) {
+        if (!getDataFolder().exists() && getDataFolder().mkdirs()) {
+            getLogger().info("Created Plugin Folder for " + getName());
+        }
         var target = new File(getDataFolder(), path);
         var ins = this.getResourceAsStream(path);
         try {
