@@ -50,11 +50,27 @@ jobs:
         asset_content_type: application/zip
 
     - name: 'Update javadocs'
-      id: update-javadoc
-      uses: eric2788/push-javadoc-branch@main
-      with:
-        use-maven: true
-        javadocs: "javadocs"
+      run: |
+        git config --global pull.rebase false
+        git config --global user.name "Javadocs Generator Bot"
+        git config --global user.email "<>"
+        git branch -D gh-pages
+        git checkout --orphan gh-pages
+        echo '<ul>
+                <li>
+                <a href="eldependenci-addon">eldependenci-addon</a>
+                </li>
+                <li>
+                <a href="eldependenci-bukkit">eldependenci-bukkit</a>
+                </li>
+                <li>
+                <a href="eldependenci-bungee">eldependenci-bungee</a>
+                </li>
+              </ul>' > index.html
+        git add javadocs/
+        git commit -m "Update javadocs"
+        git push -f origin gh-pages
+        
 
   upload_github_pkg:
     runs-on: ubuntu-latest
