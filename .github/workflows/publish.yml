@@ -20,6 +20,34 @@ jobs:
         distribution: 'adopt'
     - run: mvn --batch-mode clean package
       name: build plugins
+    - run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+      id: project
+
+    - name: Delete existing release and tag
+      id: delete-tag-release
+      uses: dev-drprasad/delete-tag-and-release@v0.1.2
+      with:
+        tag_name: ${{ steps.project.outputs.version }}
+        delete_release: true
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ steps.project.outputs.version }}
+        release_name: Release ${{ github.repository }} v${{ steps.project.outputs.version }}
+        body: 請到 [wiki](https://eric2788.gitbook.io/eldependenci/references/version-update) 查看更新內容
+    - name: zip plugins
+      run: zip -r plugins.zip outputs
+
+    - name: Upload Release jar
+      id: upload-release-asset-jar
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./
+        asset_name: plugins.zip
+        asset_content_type: application/zip
 
     - name: 'Update javadocs'
       id: update-javadoc
