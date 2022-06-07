@@ -4,6 +4,7 @@
 *.iml
 /.idea/
 /javadocs/
+/outputs/
 **/javadocs/
 **/dependency-reduced-pom.xml
 **/target
