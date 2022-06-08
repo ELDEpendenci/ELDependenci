@@ -68,6 +68,7 @@ jobs:
                 </li>
               </ul>' > index.html
         git add javadocs/
+        git add index.html
         git commit -m "Update javadocs"
         git push -f origin gh-pages
         
