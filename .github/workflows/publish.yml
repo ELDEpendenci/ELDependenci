@@ -58,6 +58,7 @@ jobs:
         git checkout --orphan gh-pages
         shopt -s extglob
         rm -rf !\("javadocs"\)
+        git rm -r --cached .
         echo '<ul>
                 <li>
                 <a href="eldependenci-addon">eldependenci-addon</a>
@@ -69,8 +70,8 @@ jobs:
                 <a href="eldependenci-bungee">eldependenci-bungee</a>
                 </li>
               </ul>' > index.html
-        git add -f javadocs/
-        git add index.html
+        mv -r javadocs/* .
+        git add .
         git commit -a -m "Update javadocs"
         git push -f origin gh-pages
         
