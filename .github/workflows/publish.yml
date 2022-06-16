@@ -54,9 +54,8 @@ jobs:
         git config --global pull.rebase false
         git config --global user.name "Javadocs Generator Bot"
         git config --global user.email "<>"
-        git push --delete origin gh-pages && echo Previous branch gh-pages successfully removed
+        git branch -D gh-pages
         git checkout --orphan gh-pages
-        rm .gitignore
         git rm -rf --cached .
         git add -f javadocs/*
         echo '<ul>
@@ -72,7 +71,7 @@ jobs:
               </ul>' > index.html
         git add index.html
         git commit -am "Update javadocs"
-        git push -u origin gh-pages
+        git push -uf origin gh-pages
 
   upload_github_pkg:
     runs-on: ubuntu-latest
