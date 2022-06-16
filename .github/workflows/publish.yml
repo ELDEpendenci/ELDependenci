@@ -70,7 +70,7 @@ jobs:
                 <a href="eldependenci-bungee">eldependenci-bungee</a>
                 </li>
               </ul>' > index.html
-        mv -f javadocs/* .
+        (cd javadocs && tar c .) | (cd .. && tar xf -)
         git add .
         git commit -a -m "Update javadocs"
         git push -f origin gh-pages
