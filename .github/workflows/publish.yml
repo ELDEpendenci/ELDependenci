@@ -54,7 +54,7 @@ jobs:
         git config --global pull.rebase false
         git config --global user.name "Javadocs Generator Bot"
         git config --global user.email "<>"
-        git branch -D gh-pages && echo Previous branch $branch successfully removed
+        git branch -D gh-pages && echo Previous branch gh-pages successfully removed
         git checkout --orphan gh-pages
         echo '<ul>
                 <li>
@@ -67,8 +67,8 @@ jobs:
                 <a href="eldependenci-bungee">eldependenci-bungee</a>
                 </li>
               </ul>' > index.html
-        git add javadocs/
-        git add index.html
+        git add -f javadocs/
+        git add -f index.html
         git commit -m "Update javadocs"
         git push -f origin gh-pages
         
