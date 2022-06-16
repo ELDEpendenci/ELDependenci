@@ -58,9 +58,8 @@ jobs:
         git checkout --orphan gh-pages
         setopt extendedglob
         rm -rf ^javadocs
-        rm .gitignore
         git rm -rf --cached .
-        git add -f javadocs/*
+        git add javadocs/*
         echo '<ul>
                 <li>
                 <a href="javadocs/eldependenci-addon">eldependenci-addon</a>
