@@ -56,10 +56,9 @@ jobs:
         git config --global user.email "<>"
         git push --delete origin gh-pages && echo Previous branch gh-pages successfully removed
         git checkout --orphan gh-pages
-        setopt extendedglob
-        rm -rf ^javadocs
+        rm .gitignore
         git rm -rf --cached .
-        git add javadocs/*
+        git add -f javadocs/*
         echo '<ul>
                 <li>
                 <a href="javadocs/eldependenci-addon">eldependenci-addon</a>
