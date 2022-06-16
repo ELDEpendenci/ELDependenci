@@ -5,13 +5,22 @@ import com.google.common.collect.Maps;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ELDReflectionService implements ReflectionService {
+
+    private final Map<Method, Annotation[]> methodAnnotationMap = new HashMap<>();
+    private final Map<Class<?>, Annotation[]> classAnnotationMap = new HashMap<>();
+    private final Map<Class<?>, Method[]> classMethodsMap = new HashMap<>();
+    private final Map<Method, Annotation[][]> methodParameterAnnotationMap = new HashMap<>();
+    private final Map<Method, Type[]> methodParameterTypeMap = new HashMap<>();
 
     @Override
     public List<Field> getDeclaredFieldsUpTo(@Nonnull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
@@ -21,6 +30,26 @@ public class ELDReflectionService implements ReflectionService {
     @Override
     public List<Method> getDeclaredMethodsUpTo(@Nonnull Class<?> startClass, @Nullable Class<?> exclusiveParent) {
         return getDeclaredMethodsUpToStatic(startClass, exclusiveParent != null ? exclusiveParent : Object.class);
+    }
+
+    public Annotation[] getDeclaredAnnotations(Method method) {
+        return methodAnnotationMap.computeIfAbsent(method, Method::getDeclaredAnnotations);
+    }
+
+    public Annotation[] getDeclaredAnnotations(Class<?> clazz) {
+        return classAnnotationMap.computeIfAbsent(clazz, Class::getDeclaredAnnotations);
+    }
+
+    public Method[] getMethods(Class<?> clazz) {
+        return classMethodsMap.computeIfAbsent(clazz, Class::getMethods);
+    }
+
+    public Annotation[][] getParameterAnnotations(Method method) {
+        return methodParameterAnnotationMap.computeIfAbsent(method, Method::getParameterAnnotations);
+    }
+
+    public Type[] getParameterTypes(Method method) {
+        return methodParameterTypeMap.computeIfAbsent(method, Method::getGenericParameterTypes);
     }
 
     private static final Map<Class<?>, Field[]> declaredFieldsCache = new HashMap<>();
