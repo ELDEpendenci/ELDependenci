@@ -139,6 +139,10 @@ public final class ELDConfigManager implements ConfigStorage {
 
     public <T extends Configuration> T initConfiguration(Class<T> config, File f) throws Exception {
         var ins = YAML_MAPPER.readValue(f, config);
+        return this.initConfiguration(config, f, ins);
+    }
+
+    public <T extends Configuration> T initConfiguration(Class<T> config, File f, T ins) throws Exception {
         class FileControllerImpl implements FileController {
 
             private final Field[] fields;
@@ -150,7 +154,7 @@ public final class ELDConfigManager implements ConfigStorage {
             @Override
             public boolean reload() {
                 try {
-                    if (reloadConfig(config)) {
+                    if (reloadConfig(config, ins)) {
                         var latest = YAML_MAPPER.readValue(f, config);
                         for (Field f : fields) {
                             var data = f.get(latest);
@@ -177,6 +181,26 @@ public final class ELDConfigManager implements ConfigStorage {
         return ins;
     }
 
+    public <T extends Configuration> void loadConfig(Class<T> config, T o) {
+        if (!config.isAnnotationPresent(Resource.class))
+            throw new IllegalStateException("config " + config.getSimpleName() + " is lack of @Resource annotation");
+        var resource = config.getAnnotation(Resource.class);
+        try {
+            File f = new File(plugin.getDataFolder(), resource.locate());
+            if (!f.exists()) plugin.saveResource(resource.locate());
+            var ins = initConfiguration(config, f, o);
+            if (ins instanceof LangConfiguration) {
+                var messageYaml = configHandler.loadYaml(f);
+                var controller = LangConfiguration.class.getDeclaredField("lang");
+                setField(controller, new MessageGetterImpl(ins, messageYaml, f, plugin), ins);
+            }
+
+            this.configurationMap.putIfAbsent(config, ins);
+        } catch (Exception e) {
+            plugin.getLogger().warning("Error while loading yaml " + resource.locate());
+            e.printStackTrace();
+        }
+    }
 
     public <T extends Configuration> void loadConfig(Class<T> config) {
         if (!config.isAnnotationPresent(Resource.class))
@@ -210,12 +234,12 @@ public final class ELDConfigManager implements ConfigStorage {
     }
 
 
-    private <T extends Configuration> boolean reloadConfig(Class<T> config) {
+    private <T extends Configuration> boolean reloadConfig(Class<T> config, T ins) {
         if (!configurationMap.containsKey(config)) {
             plugin.getLogger().log(Level.SEVERE, "cannot find " + config.getSimpleName() + " in plugin folder, make sure you have registered " + config.getSimpleName());
             return false;
         }
-        this.loadConfig(config);
+        this.loadConfig(config, ins);
         return true;
     }
 
