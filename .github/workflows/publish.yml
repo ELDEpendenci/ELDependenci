@@ -54,7 +54,7 @@ jobs:
         git config --global pull.rebase false
         git config --global user.name "Javadocs Generator Bot"
         git config --global user.email "<>"
-        git branch -D gh-pages
+        git branch -D gh-pages && echo Previous branch $branch successfully removed
         git checkout --orphan gh-pages
         echo '<ul>
                 <li>
