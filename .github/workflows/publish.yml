@@ -56,7 +56,7 @@ jobs:
         git config --global user.email "<>"
         git branch -D gh-pages && echo Previous branch gh-pages successfully removed
         git checkout --orphan gh-pages
-        rm -rf !(\"javadocs\")
+        rm -rf !\("javadocs"\)
         echo '<ul>
                 <li>
                 <a href="eldependenci-addon">eldependenci-addon</a>
