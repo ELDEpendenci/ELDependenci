@@ -157,7 +157,12 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
                 sender.sendMessage(msg.getLang().getPrefix() + e.getMessage());
                 return;
             }
-            msg.getLang().getList("error").stream().map(s -> s.replace("<message>", e.getMessage())).forEach(sender::sendMessage);
+            Exception real = e;
+            while (real.getCause() != null && real.getCause() instanceof Exception ex) {
+                real = ex;
+            }
+            var message = real.getMessage() != null ? real.getMessage() : real.getClass().getSimpleName();
+            msg.getLang().getList("error").stream().map(s -> s.replace("<message>", message)).forEach(sender::sendMessage);
             e.printStackTrace();
         }
     }
