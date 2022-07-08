@@ -16,6 +16,7 @@
         <maven.compiler.target>18</maven.compiler.target>
     </properties>
 
+    <version>${eld.plugin.version}</version>
 
     <dependencies>
         <dependency>
@@ -25,7 +26,7 @@
         <dependency>
             <groupId>org.eldependenci</groupId>
             <artifactId>spigot-based</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
