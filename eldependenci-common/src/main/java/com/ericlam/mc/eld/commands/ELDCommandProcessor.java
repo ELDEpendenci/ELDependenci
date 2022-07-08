@@ -228,7 +228,7 @@ public abstract class ELDCommandProcessor<Sender, Command extends CommonCommandN
 
     private String toPlaceholderStrings(List<Field> placeholders) {
         if (placeholders.isEmpty()) return "";
-        return " " + placeholders.stream().map(commandArgsHandler::getPlaceholderLabel).collect(Collectors.joining(" "));
+        return placeholders.stream().map(commandArgsHandler::getPlaceholderLabel).collect(Collectors.joining(" "));
     }
 
     private BaseComponent[] getHelpComponent(final HierarchyNode<? extends Command> node) {

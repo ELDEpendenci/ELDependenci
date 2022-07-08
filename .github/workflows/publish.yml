@@ -20,7 +20,7 @@ jobs:
         distribution: 'adopt'
     - run: mvn --batch-mode clean package
       name: build plugins
-    - run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+    - run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=eld.project.version -q -DforceStdout)
       id: project
 
     - name: Delete existing release and tag

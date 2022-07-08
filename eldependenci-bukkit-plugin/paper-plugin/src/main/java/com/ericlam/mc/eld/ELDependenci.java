@@ -9,14 +9,17 @@ import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class ELDependenci extends BukkitPlugin {
 
@@ -52,9 +55,7 @@ public class ELDependenci extends BukkitPlugin {
                 try {
                     var constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
                     constructor.setAccessible(true);
-                    var pluginCmd = constructor.newInstance(cmd.name(), plugin);
-                    plugin.getServer().getCommandMap().register(plugin.getDescription().getName(), pluginCmd);
-                    return pluginCmd;
+                    return constructor.newInstance(cmd.name(), plugin);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -64,10 +65,44 @@ public class ELDependenci extends BukkitPlugin {
                 plugin.getLogger().warning("Command " + cmd.name() + " did not register in plugin.yml and force register failed.");
                 return;
             }
-            pluginCommand.setAliases(List.of(cmd.alias()));
+            pluginCommand.setAliases(new ArrayList<>(Arrays.asList(cmd.alias())));
             pluginCommand.setDescription(cmd.description());
             pluginCommand.setExecutor(executor);
             pluginCommand.setTabCompleter(executor);
+            try {
+                Field activeAlias = Command.class.getDeclaredField("activeAliases");
+                activeAlias.setAccessible(true);
+                activeAlias.set(pluginCommand, new ArrayList<>(Arrays.asList(cmd.alias())));
+                plugin.getLogger().info("activeAliases: " + pluginCommand.getAliases());
+            }catch (Exception e){
+                e.printStackTrace();
+                plugin.getLogger().warning("failed to register aliases: "+e.getMessage());
+            }
+            plugin.getServer().getCommandMap().register(plugin.getName().toLowerCase(), pluginCommand);
+            // printDebug(pluginCommand, plugin.getLogger());
         });
+    }
+
+    private void printDebug(PluginCommand command, Logger logger){
+        try {
+            logger.info("activeAliases: " + command.getAliases());
+            Field aliases = Command.class.getDeclaredField("aliases");
+            aliases.setAccessible(true);
+            logger.info("aliases: " + aliases.get(command));
+            SimpleCommandMap commandMap = (SimpleCommandMap) Bukkit.getServer().getCommandMap();
+            logger.info("commands: "+commandMap.getCommands().stream()
+                    .filter(cmd -> cmd.getName().equalsIgnoreCase(command.getName()))
+                    .map(cmd -> String.format("name: %s\ndescription: %s\naliases: %s", cmd.getName(), cmd.getDescription(), cmd.getAliases()))
+                    .collect(Collectors.joining("\n")));
+
+            logger.info("knownCommands: "+
+                    commandMap.getKnownCommands().entrySet().stream()
+                            .filter(entry -> entry.getKey().equalsIgnoreCase(command.getName()))
+                            .map(entry -> String.format("%s => name: %s\ndescription: %s\naliases: %s", entry.getKey(), entry.getValue().getName(), entry.getValue().getDescription(), entry.getValue().getAliases()))
+                            .collect(Collectors.joining("\n"))
+            );
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
