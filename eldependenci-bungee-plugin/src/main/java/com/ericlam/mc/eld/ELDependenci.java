@@ -6,7 +6,7 @@ import com.ericlam.mc.eld.bungee.CommandNode;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
 import com.ericlam.mc.eld.listener.LifeCycleListener;
-import com.ericlam.mc.eld.module.ELDPluginModule;
+import com.ericlam.mc.eld.guice.ELDPluginModule;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;

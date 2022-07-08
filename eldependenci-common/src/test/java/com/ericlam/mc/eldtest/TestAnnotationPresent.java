@@ -1,11 +1,16 @@
 package com.ericlam.mc.eldtest;
 
 import com.ericlam.mc.eld.annotations.Commander;
+import com.ericlam.mc.eld.components.Configuration;
+import com.ericlam.mc.eld.configurations.FileLocator;
 
 import javax.inject.Singleton;
+import java.io.File;
 import java.util.Arrays;
 
 public class TestAnnotationPresent {
+
+
 
     public static void main(String[] args) {
         System.out.println(Impl.class.isAnnotationPresent(Commander.class));

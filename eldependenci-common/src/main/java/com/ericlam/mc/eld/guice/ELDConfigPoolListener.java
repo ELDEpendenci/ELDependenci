@@ -1,4 +1,4 @@
-package com.ericlam.mc.eld;
+package com.ericlam.mc.eld.guice;
 
 import com.ericlam.mc.eld.annotations.InjectPool;
 import com.ericlam.mc.eld.components.GroupConfiguration;
@@ -16,12 +16,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 
 @SuppressWarnings("unchecked")
-public final class ELDTypeListener implements TypeListener {
+public final class ELDConfigPoolListener implements TypeListener {
 
     private final ConfigPoolService configPoolService;
     private final ReflectionService reflectionService;
 
-    public ELDTypeListener(ConfigPoolService configPoolService, ReflectionService reflectionService) {
+    public ELDConfigPoolListener(ConfigPoolService configPoolService, ReflectionService reflectionService) {
         this.configPoolService = configPoolService;
         this.reflectionService = reflectionService;
     }
@@ -43,25 +43,4 @@ public final class ELDTypeListener implements TypeListener {
         }
     }
 
-    private static class InstanceInjector<T> implements MembersInjector<T> {
-
-        private final Field field;
-        private final Object value;
-
-        public InstanceInjector(Field field, Object value) {
-            this.field = field;
-            this.value = value;
-            field.setAccessible(true);
-        }
-
-
-        @Override
-        public void injectMembers(T t) {
-            try {
-                field.set(t, value);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }

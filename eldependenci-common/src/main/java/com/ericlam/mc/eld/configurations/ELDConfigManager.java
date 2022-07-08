@@ -143,7 +143,7 @@ public final class ELDConfigManager implements ConfigStorage {
     }
 
     public <T extends Configuration> T initConfiguration(Class<T> config, File f, T ins) throws Exception {
-        class FileControllerImpl implements FileController {
+        class FileControllerImpl implements FileController, FileLocator {
 
             private final Field[] fields;
 
@@ -172,6 +172,11 @@ public final class ELDConfigManager implements ConfigStorage {
             @Override
             public void save() throws IOException {
                 YAML_MAPPER.writeValue(f, ins);
+            }
+
+            @Override
+            public File getLocator() {
+                return f;
             }
         }
 

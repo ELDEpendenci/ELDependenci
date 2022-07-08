@@ -4,6 +4,8 @@ import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.bukkit.CommandNode;
 import com.ericlam.mc.eld.commands.BukkitCommandHandler;
 import com.ericlam.mc.eld.commands.CommandProcessor;
+import com.ericlam.mc.eld.services.factory.SkullSkinHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -11,11 +13,15 @@ import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
-public class ELDependenci extends BukkitPlugin {
+public class ELDependenci extends BukkitPlugin implements SkullSkinHandler {
 
     private static ELDependenciAPI api;
 
@@ -26,6 +32,7 @@ public class ELDependenci extends BukkitPlugin {
     @Override
     public void onLoad() {
         super.onLoad();
+        elDependenciCore.baseModule.bindInstance(SkullSkinHandler.class, this);
         api = elDependenciCore;
     }
 
@@ -77,5 +84,19 @@ public class ELDependenci extends BukkitPlugin {
                 plugin.getLogger().warning("failed to register command "+cmd.name()+": " + e.getMessage());
             }
         }
+    }
+
+    @Override
+    public PlayerProfile buildProfile(String skullKey) {
+        PlayerProfile profile = Bukkit.getServer().createPlayerProfile(UUID.randomUUID());
+        PlayerTextures textures = profile.getTextures();
+        try {
+            URL url = new URL(String.format("https://textures.minecraft.net/texture/%s", skullKey));
+            textures.setSkin(url);
+        }catch (MalformedURLException e){
+            getLogger().warning("Error while setting skull skin: "+e.getMessage());
+            e.printStackTrace();
+        }
+        return profile;
     }
 }

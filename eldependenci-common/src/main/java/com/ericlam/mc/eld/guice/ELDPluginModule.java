@@ -1,8 +1,6 @@
-package com.ericlam.mc.eld.module;
+package com.ericlam.mc.eld.guice;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Scopes;
-import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 
 import java.util.Map;
