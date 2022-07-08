@@ -46,6 +46,7 @@
         <jackson.version>2.13.3</jackson.version>
         <spigot.version>1.18.2-R0.1-SNAPSHOT</spigot.version>
         <bungee.version>1.18-R0.1-SNAPSHOT</bungee.version>
+        <eld.plugin.version>2.0.1.2</eld.plugin.version>
     </properties>
 
     <dependencies>
