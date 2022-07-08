@@ -3,8 +3,10 @@ package com.ericlam.mc.eld.services.factory;
 import com.ericlam.mc.eld.ItemInteractListener;
 import com.ericlam.mc.eld.managers.ItemInteractManager;
 import com.ericlam.mc.eld.services.ItemStackService;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -12,8 +14,10 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.profile.PlayerProfile;
 
 import javax.inject.Inject;
 import java.util.*;
@@ -22,8 +26,10 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecated")
 public final class ELDItemStackService implements ItemStackService {
-    
-    
+
+    @Inject
+    private SkullSkinHandler skullSkinHandler;
+
     private final ItemInteractListener itemInteractManager;
 
     @Inject
@@ -132,6 +138,31 @@ public final class ELDItemStackService implements ItemStackService {
             var enchants = new LinkedHashMap<>(itemStack.getEnchantments());
             enchantEditor.accept(enchants);
             itemStack.addEnchantments(enchants);
+            return this;
+        }
+
+        @Override
+        public ItemFactory head(OfflinePlayer player) {
+            if (itemStack.getType() != Material.PLAYER_HEAD || itemStack.getType() != Material.PLAYER_WALL_HEAD) {
+                throw new IllegalStateException("ItemStack is not a head");
+            }
+            SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
+            if (meta == null) return this;
+            meta.setOwningPlayer(player);
+            itemStack.setItemMeta(meta);
+            return this;
+        }
+
+        @Override
+        public ItemFactory head(String skullKey) {
+            if (itemStack.getType() != Material.PLAYER_HEAD || itemStack.getType() != Material.PLAYER_WALL_HEAD) {
+                throw new IllegalStateException("ItemStack is not a head");
+            }
+            SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
+            if (meta == null) return this;
+            PlayerProfile profile = skullSkinHandler.buildProfile(skullKey);
+            meta.setOwnerProfile(profile);
+            itemStack.setItemMeta(meta);
             return this;
         }
 

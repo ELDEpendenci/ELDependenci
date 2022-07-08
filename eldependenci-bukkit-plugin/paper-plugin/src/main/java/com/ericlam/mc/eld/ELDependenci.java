@@ -1,5 +1,6 @@
 package com.ericlam.mc.eld;
 
+import com.destroystokyo.paper.profile.ProfileProperty;
 import com.ericlam.mc.eld.annotations.Commander;
 import com.ericlam.mc.eld.bukkit.CommandNode;
 import com.ericlam.mc.eld.commands.CommandProcessor;
@@ -7,6 +8,7 @@ import com.ericlam.mc.eld.commands.ELDArgumentManager;
 import com.ericlam.mc.eld.commands.BukkitCommandHandler;
 import com.ericlam.mc.eld.exceptions.ArgumentParseException;
 import com.ericlam.mc.eld.implement.ELDMessageConfig;
+import com.ericlam.mc.eld.services.factory.SkullSkinHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -15,13 +17,15 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.profile.PlayerProfile;
 
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ELDependenci extends BukkitPlugin {
+public class ELDependenci extends BukkitPlugin implements SkullSkinHandler {
 
     private static ELDependenciAPI api;
 
@@ -32,6 +36,7 @@ public class ELDependenci extends BukkitPlugin {
     @Override
     public void onLoad() {
         super.onLoad();
+        elDependenciCore.baseModule.bindInstance(SkullSkinHandler.class, this);
         api = elDependenciCore;
     }
     @Override
@@ -104,5 +109,21 @@ public class ELDependenci extends BukkitPlugin {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public PlayerProfile buildProfile(String skullKey) {
+        String textures = """
+                {
+                    "textures":{
+                        "SKIN":{
+                            "url":  "https://textures.minecraft.net/texture/%s"
+                        }
+                    }
+                }
+                """.trim().formatted(skullKey);
+        com.destroystokyo.paper.profile.PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
+        profile.setProperty(new ProfileProperty("textures", Base64.getEncoder().encodeToString(textures.getBytes(StandardCharsets.UTF_8))));
+        return profile;
     }
 }

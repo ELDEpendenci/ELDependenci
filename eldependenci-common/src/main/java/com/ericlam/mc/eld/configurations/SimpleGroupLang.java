@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.ericlam.mc.eld.configurations.ELDConfigManager.ConfigUtils.setField;
 
-public class SimpleGroupLang<T extends GroupLangConfiguration> implements GroupLang<T>, PreLoadable {
+public class SimpleGroupLang<T extends GroupLangConfiguration> implements GroupLang<T>, PreLoadable, FileLocator {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(GroupLang.class);
 
@@ -105,5 +105,10 @@ public class SimpleGroupLang<T extends GroupLangConfiguration> implements GroupL
         } catch (Exception e) {
             throw new IllegalStateException("Error while loading default language: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public File getLocator() {
+        return folder;
     }
 }
