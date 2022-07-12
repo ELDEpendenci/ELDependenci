@@ -41,12 +41,6 @@ public final class ELDLogger extends Logger implements DebugLogger {
         this(name, null, config, parent);
     }
 
-
-    public ELDLogger(Class<?> cls, ELDConfig config,Logger parent) {
-        this(cls.getName(), null, config, parent);
-    }
-
-
     @Override
     public void debug(String message, Object... args) {
         if (config.debugLogging) {

@@ -1,6 +1,6 @@
 package com.ericlam.mc.eld;
 
-import com.ericlam.mc.eld.module.ELDPluginModule;
+import com.ericlam.mc.eld.guice.ELDPluginModule;
 import com.ericlam.mc.eld.services.ItemStackService;
 import com.ericlam.mc.eld.services.ScheduleService;
 import com.ericlam.mc.eld.services.factory.ELDItemStackService;
