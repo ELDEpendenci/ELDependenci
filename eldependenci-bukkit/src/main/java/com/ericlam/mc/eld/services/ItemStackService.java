@@ -111,7 +111,7 @@ public interface ItemStackService {
 
         /**
          * 設置頭顱皮膚, 物品必須為 PLAYER_HEAD
-         * @Deprecated 此方式不建議使用
+         * @deprecated 不建議使用，因為每次使用都會請求 URL, 建議使用 {@link #head(String)}
          * @param player 玩家
          * @return this
          */
