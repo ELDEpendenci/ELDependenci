@@ -121,7 +121,7 @@ public class ELDependenci extends BukkitPlugin implements SkullSkinHandler {
                         }
                     }
                 }
-                """.formatted(skullKey);
+                """.trim().formatted(skullKey);
         com.destroystokyo.paper.profile.PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
         profile.setProperty(new ProfileProperty("textures", Base64.getEncoder().encodeToString(textures.getBytes(StandardCharsets.UTF_8))));
         return profile;
