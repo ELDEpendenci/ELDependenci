@@ -20,7 +20,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupConfig<T>, PreLoadable {
+public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupConfig<T>, PreLoadable, FileLocator {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(GroupConfig.class);
 
@@ -180,6 +180,12 @@ public class SimpleGroupConfig<T extends GroupConfiguration> implements GroupCon
                         LOGGER.warn("Error while loading " + id + ".yml: " + e.getMessage(), e);
                     }
                 });
+    }
+
+
+    @Override
+    public File getLocator() {
+        return folder;
     }
 
     private static class YamlPage<T> implements Page<T> {

@@ -2,6 +2,8 @@ package com.ericlam.mc.eld;
 
 import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.Overridable;
+import com.ericlam.mc.eld.services.ELDMessageService;
+import com.ericlam.mc.eld.services.MessageService;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
@@ -52,6 +54,9 @@ public final class ELDCommonModule implements Module {
 
     @Override
     public void configure(Binder binder) {
+
+        // bind internal service
+        binder.bind(MessageService.class).to(ELDMessageService.class).in(Scopes.SINGLETON);
 
         modules.forEach(binder::install);
         singleton.forEach(cls -> setScope(binder.bind(cls)));

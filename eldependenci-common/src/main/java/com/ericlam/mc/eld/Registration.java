@@ -5,7 +5,7 @@ import com.ericlam.mc.eld.commands.CommonCommandSender;
 import com.ericlam.mc.eld.commands.ELDArgumentManager;
 import com.ericlam.mc.eld.common.CommonCommandNode;
 import com.ericlam.mc.eld.listener.LifeCycleListener;
-import com.ericlam.mc.eld.module.ELDPluginModule;
+import com.ericlam.mc.eld.guice.ELDPluginModule;
 
 import java.util.Map;
 import java.util.Set;

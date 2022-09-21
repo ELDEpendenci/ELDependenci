@@ -1,6 +1,7 @@
 package com.ericlam.mc.eld.services;
 
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -107,6 +108,22 @@ public interface ItemStackService {
          * @return this
          */
         ItemFactory enchant(Consumer<Map<Enchantment, Integer>> enchantEditor);
+
+        /**
+         * 設置頭顱皮膚, 物品必須為 PLAYER_HEAD
+         * @deprecated 不建議使用，因為每次使用都會請求 URL, 建議使用 {@link #head(String)}
+         * @param player 玩家
+         * @return this
+         */
+        @Deprecated
+        ItemFactory head(OfflinePlayer player);
+
+        /**
+         * 設置頭顱皮膚, 物品必須為 PLAYER_HEAD
+         * @param skullKey 皮膚ID
+         * @return this
+         */
+        ItemFactory head(String skullKey);
 
         /**
          * 設置不可破壞
