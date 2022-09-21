@@ -1,0 +1,1 @@
+typeSearchIndex = [{"p":"com.ericlam.mc.eld","l":"AddonInstallation"},{"l":"All Classes and Interfaces","u":"allclasses-index.html"}];updateSearchResults();

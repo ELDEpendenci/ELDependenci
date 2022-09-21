@@ -1,0 +1,12 @@
+com.ericlam.mc.eld
+com.ericlam.mc.eld.annotations
+com.ericlam.mc.eld.bukkit
+com.ericlam.mc.eld.common
+com.ericlam.mc.eld.components
+com.ericlam.mc.eld.configurations
+com.ericlam.mc.eld.controllers
+com.ericlam.mc.eld.exceptions
+com.ericlam.mc.eld.managers
+com.ericlam.mc.eld.misc
+com.ericlam.mc.eld.registration
+com.ericlam.mc.eld.services
