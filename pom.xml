@@ -43,10 +43,10 @@
     </repositories>
 
     <properties>
-        <jackson.version>2.13.4</jackson.version>
-        <spigot.version>1.19-R0.1-SNAPSHOT</spigot.version>
+        <jackson.version>2.15.2</jackson.version>
+        <spigot.version>1.20-R0.1-SNAPSHOT</spigot.version>
         <bungee.version>1.18-R0.1-SNAPSHOT</bungee.version>
-        <eld.plugin.version>2.0.2</eld.plugin.version>
+        <eld.plugin.version>2.0.2-1.20-alpha</eld.plugin.version>
     </properties>
 
     <dependencies>
@@ -303,8 +303,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.10.1</version>
                     <configuration>
-                        <source>18</source>
-                        <target>18</target>
+                        <source>17</source>
+                        <target>17</target>
                         <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>
