@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
-          java-version: '18'
+          java-version: '17'
           distribution: 'adopt'
       - run: mvn --batch-mode -Dmaven.deploy.skip=true -Dmaven.javadoc.skip=true clean package
         name: build plugins

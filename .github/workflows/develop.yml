@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
-          java-version: '18'
+          java-version: '17'
           distribution: 'adopt'
       - run: mvn --batch-mode -Dmaven.deploy.skip=true clean package
         name: build plugins
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
-          java-version: '18'
+          java-version: '17'
           distribution: 'adopt'
       - run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
         id: project
