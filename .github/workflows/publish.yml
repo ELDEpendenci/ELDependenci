@@ -10,6 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
     steps:
     - name: Checkout Source Code
       id: checkout-source
@@ -24,32 +27,21 @@ jobs:
       id: project
 
     - name: Delete existing release and tag
+      continue-on-error: true
       id: delete-tag-release
-      uses: dev-drprasad/delete-tag-and-release@v0.1.2
-      with:
-        tag_name: ${{ steps.project.outputs.version }}
-        delete_release: true
+      run: gh release delete ${{ steps.project.outputs.version }} --yes --cleanup-tag
 
-    - name: Create Release
-      id: create_release
-      # TODO: this action is deprecated
-      uses: actions/create-release@v1
-      with:
-        tag_name: ${{ steps.project.outputs.version }}
-        release_name: Release ${{ github.repository }} v${{ steps.project.outputs.version }}
-        body: 請到 [wiki](https://eric2788.gitbook.io/eldependenci/references/version-update) 查看更新內容
     - name: zip plugins
       run: zip -r plugins.zip outputs
 
-    - name: Upload Release jar
-      id: upload-release-asset-jar
-      # TODO: this action is deprecated
-      uses: actions/upload-release-asset@v1
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v2
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./plugins.zip
-        asset_name: plugins.zip
-        asset_content_type: application/zip
+        tag_name: ${{ steps.project.outputs.version }}
+        name: Release ${{ github.repository }} v${{ steps.project.outputs.version }}
+        body: 請到 [wiki](https://eric2788.gitbook.io/eldependenci/references/version-update) 查看更新內容
+        files: plugins.zip
 
     - name: 'Update javadocs'
       run: |
