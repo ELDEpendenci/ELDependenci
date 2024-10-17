@@ -7,7 +7,7 @@
     <groupId>org.eldependenci</groupId>
     <artifactId>eldependenci</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.3</version>
+    <version>2.0.4-SNAPSHOT</version>
 
     <modules>
         <module>eldependenci-framework</module>
@@ -43,12 +43,12 @@
     </repositories>
 
     <properties>
-        <jackson.version>2.15.2</jackson.version>
-        <spigot.version>1.20.2-R0.1-SNAPSHOT</spigot.version>
-        <bungee.version>1.19-R0.1-SNAPSHOT</bungee.version>
-        <eld.plugin.version>2.0.3</eld.plugin.version>
-        <maven.compile.source>17</maven.compile.source>
-        <maven.compile.target>17</maven.compile.target>
+        <jackson.version>2.16.2</jackson.version>
+        <spigot.version>1.21.1-R0.1-SNAPSHOT</spigot.version>
+        <bungee.version>1.20-R0.2-SNAPSHOT</bungee.version>
+        <eld.plugin.version>2.0.4</eld.plugin.version>
+        <maven.compile.source>21</maven.compile.source>
+        <maven.compile.target>21</maven.compile.target>
     </properties>
 
     <dependencies>
@@ -68,19 +68,19 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>2.0.0-alpha7</version>
+                <version>2.0.7</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>net.md-5</groupId>
                 <artifactId>bungeecord-chat</artifactId>
-                <version>1.16-R0.4</version>
+                <version>1.20-R0.2</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
-                <version>2.0</version>
+                <version>2.2</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -114,13 +114,13 @@
             <dependency>
                 <groupId>org.reflections</groupId>
                 <artifactId>reflections</artifactId>
-                <version>0.9.12</version>
+                <version>0.10.12</version>
                 <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.inject</groupId>
                 <artifactId>guice</artifactId>
-                <version>5.1.0</version>
+                <version>6.0.0</version> <!-- 7.0.0 do not support javax.inject anymore -->
                 <scope>compile</scope>
             </dependency>
             <dependency>
@@ -211,7 +211,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.3.2</version>
+                    <version>3.11.1</version>
                     <executions>
                         <execution>
                             <id>attach-javadocs</id>
@@ -222,7 +222,6 @@
                             <configuration>
                                 <verbose>true</verbose>
                                 <outputDirectory>${user.dir}/javadocs/${project.artifactId}</outputDirectory>
-                                <destDir>./</destDir>
                                 <dependencySourceIncludes>
                                     <dependencySourceInclude>org.eldependenci:*</dependencySourceInclude>
                                 </dependencySourceIncludes>
@@ -233,20 +232,18 @@
                     <configuration>
                         <links>
                             <link>https://hub.spigotmc.org/javadocs/spigot/</link>
-                            <link>https://papermc.io/javadocs/paper/1.18/</link>
-                            <link>https://papermc.io/javadocs/waterfall/1.18/</link>
+                            <link>https://jd.papermc.io/paper/1.21.3/</link>
+                            <link>https://jd.papermc.io/waterfall/1.20/</link>
                             <link>https://ci.md-5.net/job/BungeeCord/ws/api/target/apidocs/</link>
                             <link>https://ci.md-5.net/job/BungeeCord/ws/chat/target/apidocs/</link>
                         </links>
                         <show>public</show>
-                        <isOffline>false</isOffline>
                         <linksource>true</linksource>
                         <encoding>UTF-8</encoding>
                         <windowtitle>${project.artifactId}</windowtitle>
                         <doctitle>${project.artifactId} v${project.version}</doctitle>
                         <verbose>true</verbose>
                         <author>true</author>
-                        <destDir>javadocs</destDir>
                         <version>true</version>
                         <linksource>true</linksource>
                         <notimestamp>true</notimestamp>
@@ -303,7 +300,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.10.1</version>
+                    <version>3.13.0</version>
                     <configuration>
                         <source>${maven.compile.source}</source>
                         <target>${maven.compile.target}</target>
