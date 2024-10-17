@@ -1,0 +1,1 @@
+memberSearchIndex = [{"p":"com.ericlam.mc.eld","c":"AddonInstallation","l":"customInstallation(Class<T>, T)","u":"customInstallation(java.lang.Class,T)"},{"p":"com.ericlam.mc.eld","c":"AddonInstallation","l":"installModule(Module)","u":"installModule(com.google.inject.Module)"}];updateSearchResults();
