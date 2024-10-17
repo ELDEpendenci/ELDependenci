@@ -19,7 +19,9 @@ jobs:
       uses: actions/checkout@v4
     - uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: |
+          17
+          21
         distribution: 'adopt'
     - run: mvn --batch-mode clean package
       name: build plugins
@@ -83,7 +85,9 @@ jobs:
          separator: '.'
       - uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: |
+            17
+            21
           distribution: 'adopt'
       - name: Publish package
         run: mvn --batch-mode clean deploy

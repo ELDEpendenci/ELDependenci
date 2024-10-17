@@ -11,7 +11,10 @@
 
     <artifactId>paper-plugin</artifactId>
 
-
+    <properties>
+        <maven.compile.source>21</maven.compile.source>
+        <maven.compile.target>21</maven.compile.target>
+    </properties>
 
     <version>${eld.plugin.version}</version>
 
