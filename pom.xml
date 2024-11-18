@@ -222,7 +222,6 @@
                             <configuration>
                                 <verbose>true</verbose>
                                 <outputDirectory>${user.dir}/javadocs/${project.artifactId}</outputDirectory>
-                                <destDir>./</destDir>
                                 <dependencySourceIncludes>
                                     <dependencySourceInclude>org.eldependenci:*</dependencySourceInclude>
                                 </dependencySourceIncludes>
@@ -239,14 +238,12 @@
                             <link>https://ci.md-5.net/job/BungeeCord/ws/chat/target/apidocs/</link>
                         </links>
                         <show>public</show>
-                        <isOffline>false</isOffline>
                         <linksource>true</linksource>
                         <encoding>UTF-8</encoding>
                         <windowtitle>${project.artifactId}</windowtitle>
                         <doctitle>${project.artifactId} v${project.version}</doctitle>
                         <verbose>true</verbose>
                         <author>true</author>
-                        <destDir>javadocs</destDir>
                         <version>true</version>
                         <linksource>true</linksource>
                         <notimestamp>true</notimestamp>
