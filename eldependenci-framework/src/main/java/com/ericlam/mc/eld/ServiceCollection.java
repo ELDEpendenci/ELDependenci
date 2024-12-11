@@ -42,6 +42,23 @@ public interface ServiceCollection {
 
 
     /**
+     * 使用工廠註冊服務，外加返回類型映射。
+     * 返回類型映射用於將工廠方法的返回類型 (interface) 映射到實際的實作類型
+     *
+     * @param factory 工廠類 (interface)
+     * @param typeMapping 返回類型映射
+     * @return this
+     */
+    ServiceCollection bindFactory(Class<?> factory, Map<Class<?>, Class<?>> typeMapping);
+
+    /**
+     * 使用工廠註冊服務
+     * @param factory 工廠類 (interface)
+     * @return this
+     */
+    ServiceCollection bindFactory(Class<?> factory);
+
+    /**
      * 獲取自定義安裝器，沒有時拋出異常
      * @param cls 安裝器類
      * @param <T> 安裝類

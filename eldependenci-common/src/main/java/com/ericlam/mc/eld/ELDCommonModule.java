@@ -1,7 +1,24 @@
 package com.ericlam.mc.eld;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Qualifier;
+
 import com.ericlam.mc.eld.components.Configuration;
 import com.ericlam.mc.eld.components.Overridable;
+import com.ericlam.mc.eld.factories.ELDFactoryProvider;
 import com.ericlam.mc.eld.services.ELDMessageService;
 import com.ericlam.mc.eld.services.MessageService;
 import com.google.inject.Binder;
@@ -12,13 +29,6 @@ import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
-import javax.inject.Named;
-import javax.inject.Provider;
-import javax.inject.Qualifier;
-import java.lang.annotation.Annotation;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class ELDCommonModule implements Module {
 
@@ -27,10 +37,9 @@ public final class ELDCommonModule implements Module {
     private final Map<Class<?>, Map<String, Class>> servicesMulti = new ConcurrentHashMap<>();
     private final Map<Class<?>, Set<Class>> servicesSet = new ConcurrentHashMap<>();
     private final Map<Class, Object> instances = new ConcurrentHashMap<>();
-
     private final Map<Class, Configuration> configs = new ConcurrentHashMap<>();
-
     private final Map<Class, Class<? extends Provider>> serviceProviders = new ConcurrentHashMap<>();
+    private final Map<Class, Provider> factories = new ConcurrentHashMap<>();
 
     private final List<Module> modules = new ArrayList<>();
 
@@ -61,6 +70,7 @@ public final class ELDCommonModule implements Module {
         modules.forEach(binder::install);
         singleton.forEach(cls -> setScope(binder.bind(cls)));
         serviceProviders.forEach((service, provider) -> setScope(binder.bind(service).toProvider(provider)));
+        factories.forEach((factory, provider) -> setScope(binder.bind(factory).toProvider(provider)));
         services.forEach((service, impl) -> setScope(binder.bind(service).to(impl)));
         configs.forEach((cls, config) -> binder.bind(cls).toInstance(config));
         instances.forEach((cls, ins) -> {
@@ -148,5 +158,9 @@ public final class ELDCommonModule implements Module {
 
     <T, P extends Provider<T>> void addServiceProvider(Class<T> service, Class<P> provider) {
         this.serviceProviders.put(service, provider);
+    }
+
+    <T> void bindFactory(Class<T> factory, Map<Class<?>, Class<?>> mapping){
+        this.factories.put(factory, new ELDFactoryProvider<>(factory, mapping));
     }
 }
