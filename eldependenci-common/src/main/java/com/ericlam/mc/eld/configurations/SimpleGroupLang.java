@@ -51,7 +51,7 @@ public class SimpleGroupLang<T extends GroupLangConfiguration> implements GroupL
                         T data = loadLanguage(locale, f);
                         cached.put(locale, data);
                     } catch (Exception e) {
-                        LOGGER.warn("Error while loading " + locale + ".yml: " + e.getMessage(), e);
+	                    LOGGER.warn("Error while loading {}.yml: {}", locale, e.getMessage(), e);
                     }
                 });
     }
@@ -66,7 +66,7 @@ public class SimpleGroupLang<T extends GroupLangConfiguration> implements GroupL
             this.cached.put(locale, ins);
             return Optional.of(ins);
         } catch (Exception e) {
-            LOGGER.warn("Error while loading default language: " + e.getMessage(), e);
+	        LOGGER.warn("Error while loading default language: {}", e.getMessage(), e);
         }
         return Optional.empty();
     }

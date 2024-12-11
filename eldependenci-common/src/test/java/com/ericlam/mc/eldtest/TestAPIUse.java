@@ -20,16 +20,19 @@ public class TestAPIUse {
     public interface MyCommandNode extends CommonCommandNode<MySender> {
     }
 
+    public interface MyParentNode extends MyCommandNode {
+        @Override
+        default void execute(MySender mySender){
+            throw new UnsupportedOperationException("This is parent command node");
+        }
+    }
 
     public interface MyRegistry extends CommonRegistry<MyCommandNode, MyListener>{
 
     }
 
 
-    public static class CommandA implements MyCommandNode {
-        @Override
-        public void execute(MySender mySender) {
-        }
+    public static class CommandA implements MyParentNode {
     }
 
     public static class CommandB implements MyCommandNode {
