@@ -14,6 +14,12 @@ import java.util.function.Predicate;
 public interface GroupConfig<T extends GroupConfiguration> {
 
     /**
+     * 獲取所有文件 ID, 不需要損耗性能以加載文件
+     * @return 所有文件ID
+     */
+    List<String> listAll();
+
+    /**
      *
      * @return 所有文件實例
      */
@@ -67,12 +73,12 @@ public interface GroupConfig<T extends GroupConfiguration> {
     boolean delete(T config);
 
     /**
-     * 清楚所有快取
+     * 清除所有快取
      */
     void fetch();
 
     /**
-     * 清楚指定文件的快取
+     * 清除指定文件的快取
      * @param id 標識 id
      */
     void fetchById(String id);
