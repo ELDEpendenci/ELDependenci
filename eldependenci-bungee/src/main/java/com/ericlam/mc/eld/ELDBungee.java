@@ -16,16 +16,16 @@ import java.lang.annotation.Target;
 public @interface ELDBungee {
 
     /**
-     *
+     * 可選，爲空則不執行任何生命周期操作
      * @return 生命週期類定位
      */
-    Class<? extends ELDLifeCycle> lifeCycle();
+    Class<? extends ELDLifeCycle> lifeCycle() default ELDLifeCycle.class;
 
 
     /**
-     *
+     * 可選，爲空則不執行任何注冊操作
      * @return 組件註冊類定位
      */
-    Class<? extends ComponentsRegistry> registry();
+    Class<? extends ComponentsRegistry> registry() default ComponentsRegistry.class;
 
 }

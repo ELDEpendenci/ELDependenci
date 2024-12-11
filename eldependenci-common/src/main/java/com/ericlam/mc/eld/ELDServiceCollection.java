@@ -1,5 +1,13 @@
 package com.ericlam.mc.eld;
 
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.inject.Provider;
+
 import com.ericlam.mc.eld.common.CommonCommandNode;
 import com.ericlam.mc.eld.common.CommonRegistry;
 import com.ericlam.mc.eld.components.Configuration;
@@ -7,15 +15,10 @@ import com.ericlam.mc.eld.components.GroupConfiguration;
 import com.ericlam.mc.eld.components.GroupLangConfiguration;
 import com.ericlam.mc.eld.components.Overridable;
 import com.ericlam.mc.eld.configurations.ELDConfigManager;
+import com.ericlam.mc.eld.registration.CommandRegistry;
+import com.ericlam.mc.eld.registration.ListenerRegistry;
 import com.ericlam.mc.eld.registrations.ELDCommandRegistry;
 import com.ericlam.mc.eld.registrations.ELDListenerRegistry;
-
-import javax.inject.Provider;
-import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 public abstract class ELDServiceCollection<CommandNode extends CommonCommandNode<?>, Listener, Plugin> implements ServiceCollection {
 
@@ -40,8 +43,8 @@ public abstract class ELDServiceCollection<CommandNode extends CommonCommandNode
         var registryCls = en.getKey();
         var lifeCycleCls = en.getValue();
 
-        var registry = this.toInstance(registryCls);
-        this.lifeCycleHook = this.toInstance(lifeCycleCls);
+        var registry = registryCls.isInterface() ? new EmptyCommandRegistry() : this.toInstance(registryCls);
+        this.lifeCycleHook = lifeCycleCls.isInterface() ? new EmptyLifeCycle() : this.toInstance(lifeCycleCls);
 
         //register command
         var cmdregistry = new ELDCommandRegistry<CommandNode>();
@@ -139,6 +142,28 @@ public abstract class ELDServiceCollection<CommandNode extends CommonCommandNode
                 throw new IllegalStateException(registry.getSimpleName() + " must have public no-args constructor");
             }
             throw new RuntimeException(e);
+        }
+    }
+
+    public final class EmptyLifeCycle implements LifeCycle<Plugin> {
+
+        @Override
+        public void onEnable(Plugin plugin) {
+        }
+
+        @Override
+        public void onDisable(Plugin plugin) {
+        }
+    }
+
+    public final class EmptyCommandRegistry implements CommonRegistry<CommandNode, Listener> {
+
+        @Override
+        public void registerCommand(CommandRegistry<CommandNode> registry) {
+        }
+
+        @Override
+        public void registerListeners(ListenerRegistry<Listener> registry) {
         }
     }
 }
