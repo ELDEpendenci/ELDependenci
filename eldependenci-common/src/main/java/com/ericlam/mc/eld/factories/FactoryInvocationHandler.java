@@ -22,7 +22,7 @@ public final class FactoryInvocationHandler implements InvocationHandler {
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		var implementationCls = findImplementations(method.getReturnType());
+		var implementationCls = findImplementations(method);
 		var constructorArgs = Arrays.stream(args).map(Object::getClass).toArray(Class[]::new);
 		try {
 			var constructor = implementationCls.getConstructor(constructorArgs);
